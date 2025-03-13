@@ -7,20 +7,22 @@ properties:
     required:
       - type
       - attributes
-      - relationships
     properties:
       type:
         type: string
-        enum: [ tokens_pair ]
+        enum: [ author_update]
       attributes:
         type: object
-        required:
-          - access_token
-          - refresh_token
         properties:
-          access_token:
+          name:
             type: string
-            description: "Access Token"
-          refresh_token:
+          desc:
             type: string
-            description: "Refresh Token"
+          avatar:
+            type: string
+          email:
+            type: string
+          telegram:
+            type: string
+          twitter:
+            type: string

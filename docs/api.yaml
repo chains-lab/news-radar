@@ -1,0 +1,44 @@
+openapi: 3.0.0
+info:
+  title: REST API
+  description:  REST API
+  version: 0.0.1
+
+paths:
+  /test:
+    post:
+      tags:
+        - Test
+      description: Test
+      responses:
+        '201':
+          description: successfully
+
+components:
+  schemas:
+    Article:
+      $ref: './spec/components/schemas/Article.yaml'
+    ArticleData:
+      $ref: './spec/components/schemas/ArticleData.yaml'
+    ArticleAttributes:
+      $ref: './spec/components/schemas/ArticleAttributes.yaml'
+    ArticleInclude:
+      $ref: './spec/components/schemas/ArticleInclude.yaml'
+    ArticleCreate:
+      $ref: './spec/components/schemas/ArticleCreate.yaml'
+    ArticleUpdate:
+      $ref: './spec/components/schemas/ArticleUpdate.yaml'
+    Author:
+      $ref: './spec/components/schemas/Author.yaml'
+    AuthorData:
+      $ref: './spec/components/schemas/AuthorData.yaml'
+    AuthorAttributes:
+      $ref: './spec/components/schemas/AuthorAttributes.yaml'
+    AuthorCreate:
+      $ref: './spec/components/schemas/AuthorCreate.yaml'
+    AuthorUpdate:
+      $ref: './spec/components/schemas/AuthorUpdate.yaml'
+    Content:
+      $ref: './spec/components/schemas/Content.yaml'
+    Tag:
+      $ref: './spec/components/schemas/Tag.yaml'

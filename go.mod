@@ -7,6 +7,7 @@ require (
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/lib/pq v1.10.9
+	github.com/neo4j/neo4j-go-driver v1.8.3
 	github.com/pkg/errors v0.9.1
 	github.com/recovery-flow/comtools v0.1.1
 	github.com/recovery-flow/tokens v0.5.1

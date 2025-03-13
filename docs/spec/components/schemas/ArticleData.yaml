@@ -1,0 +1,15 @@
+type: object
+required:
+  - id
+  - type
+  - attributes
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "article ID"
+  type:
+    type: string
+    enum: [ article ]
+  attributes:
+    $ref: './ArticleAttributes.yaml'

@@ -7,9 +7,9 @@ properties:
   id:
     type: string
     format: uuid
-    description: "session id"
+    description: "Author ID"
   type:
     type: string
-    enum: [ account_session ]
+    enum: [ author ]
   attributes:
-    $ref: './SessionAttributes.yaml'
+    $ref: './AuthorAttributes.yaml'

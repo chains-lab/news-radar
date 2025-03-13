@@ -1,0 +1,14 @@
+type: object
+required:
+  - id
+  - type
+  - attributes
+properties:
+  id:
+    type: string
+    description: "tag name"
+  type:
+    type: string
+    enum: [ tag ]
+  attributes:
+    $ref: './TagAttributes.yaml'

@@ -1,0 +1,46 @@
+type: object
+required:
+  - data
+  - included
+properties:
+  data:
+    type: object
+    required:
+      - type
+      - attributes
+    properties:
+      type:
+        type: string
+        enum: [ article_updated ]
+      attributes:
+        type: object
+        properties:
+          title:
+            type: string
+            description: "Article title"
+            example: "Article title"
+          icon:
+            type: string
+            description: "Article link"
+            example: "Article link"
+          desc:
+            type: string
+            description: "Article description"
+            example: "Article description"
+          authors:
+            type: array
+            items:
+              type: string
+            description: "Authors ID uuid"
+          content:
+            type: string
+            description: "Article content"
+            example: "Article content"
+          tags:
+            type: array
+            items:
+              type: './TagData.yaml'
+          status:
+            type: string
+            description: "Article status"
+            example: "Article status"

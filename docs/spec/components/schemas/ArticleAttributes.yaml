@@ -1,0 +1,39 @@
+type: object
+required:
+  - title
+  - icon
+  - desc
+  - content
+  - status
+  - created_at
+properties:
+  title:
+    type: string
+    description: "Article title"
+    example: "Article title"
+  icon:
+    type: string
+    description: "Article link"
+    example: "Article link"
+  desc:
+    type: string
+    description: "Article description"
+    example: "Article description"
+  content:
+    type: string
+    description: "Article content"
+    example: "Article content"
+  status:
+    type: string
+    description: "Article status"
+    example: "Article status"
+  updated_at:
+    type: string
+    format: date-time
+    description: "Updated at"
+    example: "2020-01-01T00:00:00Z"
+  created_at:
+    type: string
+    format: date-time
+    description: "Created at"
+    example: "2020-01-01T00:00:00Z"

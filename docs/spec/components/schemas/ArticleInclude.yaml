@@ -1,0 +1,13 @@
+type: object
+required:
+  - authors
+  - tags
+properties:
+  authors:
+    type: array
+    items:
+      $ref: './AuthorData.yaml'
+  tags:
+    type: array
+    items:
+      $ref: './TagData.yaml'

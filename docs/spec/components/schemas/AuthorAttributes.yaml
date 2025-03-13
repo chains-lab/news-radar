@@ -1,0 +1,18 @@
+type: object
+required:
+  - name
+  - desc
+  - avatar
+properties:
+  name:
+    type: string
+  desc:
+    type: string
+  avatar:
+    type: string
+  email:
+    type: string
+  telegram:
+    type: string
+  twitter:
+    type: string
