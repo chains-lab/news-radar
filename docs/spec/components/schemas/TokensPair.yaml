@@ -1,0 +1,26 @@
+type: object
+required:
+  - data
+properties:
+  data:
+    type: object
+    required:
+      - type
+      - attributes
+      - relationships
+    properties:
+      type:
+        type: string
+        enum: [ tokens_pair ]
+      attributes:
+        type: object
+        required:
+          - access_token
+          - refresh_token
+        properties:
+          access_token:
+            type: string
+            description: "Access Token"
+          refresh_token:
+            type: string
+            description: "Refresh Token"

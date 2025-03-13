@@ -1,0 +1,27 @@
+type: object
+required:
+  - account_id
+  - client
+  - ip
+  - created_at
+  - last_used
+properties:
+  account_id:
+    type: string
+    format: uuid
+    description: "account id"
+  client:
+    type: string
+    description: "client name and version"
+  ip:
+    type: string
+    description: "IP address"
+  created_at:
+    type: string
+    format: date-time
+    description: "session creation date"
+  last_used:
+    type: string
+    format: date-time
+    description: "last used date"
+

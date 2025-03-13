@@ -1,0 +1,40 @@
+server:
+  name: "news-radar"
+  port: ":8004"
+  base_path: "/api/v1"
+  test_mode: true
+  logging:
+    level: "debug"
+    format: "text"
+
+database:
+  redis:
+    addr: "localhost:7200"
+    password: "example"
+    db: 0
+    lifetime: 15 #minutes
+  mongo:
+    uri: "mongodb://localhost:7100/"
+    db: "re-news"
+  neo4j:
+    uri: "bolt://localhost:7687"
+    user: "neo4j"
+    password: "example"
+
+jwt:
+  access_token:
+    secret_key: "supersecretkey"
+    token_lifetime: 900
+  refresh_token:
+    secret_key: "refreshsuperkey"
+    encryption_key: "f6tD7wVYNvXMm4MwqivfpB9Gf+HYz8a3"  # Key for decrypting Refresh Token in the database
+    token_lifetime: 604800
+
+kafka:
+  brokers:
+    - "re-news-kafka:9092"
+
+swagger:
+  enabled: true
+  url: "/swagger"
+  port: "8080"
