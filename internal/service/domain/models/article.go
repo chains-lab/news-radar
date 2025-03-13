@@ -16,6 +16,7 @@ type Article struct {
 	Likes       int         `json:"likes" bson:"likes"`
 	Reposts     int         `json:"reposts" bson:"reposts"`
 	Tags        []Tag       `json:"tags" bson:"tags"`
+	UpdatedAt   time.Time   `json:"updated_at" bson:"updated_at"`
 	CreatedAt   time.Time   `json:"created_at" bson:"created_at"`
 }
 
