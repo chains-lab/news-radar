@@ -20,11 +20,13 @@ type Articles interface {
 	Create(ctx context.Context, article *Article) error
 	Delete(ctx context.Context, id uuid.UUID) error
 
-	CreateAboutRelationship(ctx context.Context, articleID uuid.UUID, tagName string) error
-	DeleteAboutRelationship(ctx context.Context, articleID uuid.UUID, tagName string) error
+	CreateHasTagRelationship(ctx context.Context, articleID uuid.UUID, tagName string) error
+	DeleteHasTagRelationship(ctx context.Context, articleID uuid.UUID, tagName string) error
 
-	CreateTopicRelationship(ctx context.Context, articleID uuid.UUID, themeName string) error
-	DeleteTopicRelationship(ctx context.Context, articleID uuid.UUID, themeName string) error
+	CreateAboutRelationship(ctx context.Context, articleID uuid.UUID, themeName string) error
+	DeleteAboutRelationship(ctx context.Context, articleID uuid.UUID, themeName string) error
+
+	CreateAuthorshipRelationship(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error
 }
 
 type articles struct {
@@ -65,11 +67,11 @@ func (a *articles) Create(ctx context.Context, article *Article) error {
 			CREATE (a:Article { id: $id, created_at: $created_at })
 			FOREACH (tagName IN $tags |
 				MATCH (t:Tag { name: tagName })
-				MERGE (a)-[:ABOUT]->(t)
+				MERGE (a)-[:HAS_TAG]->(t)
 			)
 			FOREACH (themeName IN $themes |
 				MATCH (th:Theme { name: themeName })
-				MERGE (a)-[:TOPIC]->(th)
+				MERGE (a)-[:ABOUT]->(th)
 			)
 			RETURN a
 		`
@@ -117,7 +119,7 @@ func (a *articles) Delete(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
-func (a *articles) CreateAboutRelationship(ctx context.Context, articleID uuid.UUID, tagName string) error {
+func (a *articles) CreateHasTagRelationship(ctx context.Context, articleID uuid.UUID, tagName string) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -128,7 +130,7 @@ func (a *articles) CreateAboutRelationship(ctx context.Context, articleID uuid.U
 		cypher := `
 			MATCH (art:Article { id: $articleID })
 			MATCH (t:Tag { name: $tagName })
-			MERGE (art)-[r:ABOUT]->(t)
+			MERGE (art)-[r:HAS_TAG]->(t)
 		`
 		params := map[string]any{
 			"articleID": articleID.String(),
@@ -137,7 +139,7 @@ func (a *articles) CreateAboutRelationship(ctx context.Context, articleID uuid.U
 
 		_, err := tx.Run(cypher, params)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create ABOUT relationship: %w", err)
+			return nil, fmt.Errorf("failed to create HAS_TAG relationship: %w", err)
 		}
 
 		return nil, nil
@@ -146,7 +148,7 @@ func (a *articles) CreateAboutRelationship(ctx context.Context, articleID uuid.U
 	return err
 }
 
-func (a *articles) DeleteAboutRelationship(ctx context.Context, articleID uuid.UUID, tagName string) error {
+func (a *articles) DeleteHasTagRelationship(ctx context.Context, articleID uuid.UUID, tagName string) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -155,7 +157,7 @@ func (a *articles) DeleteAboutRelationship(ctx context.Context, articleID uuid.U
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (art:Article { id: $articleID })-[r:ABOUT]->(t:Tag { name: $tagName })
+			MATCH (art:Article { id: $articleID })-[r:HAS_TAG]->(t:Tag { name: $tagName })
 			DELETE r
 		`
 		params := map[string]any{
@@ -165,7 +167,7 @@ func (a *articles) DeleteAboutRelationship(ctx context.Context, articleID uuid.U
 
 		_, err := tx.Run(cypher, params)
 		if err != nil {
-			return nil, fmt.Errorf("failed to delete ABOUT relationship: %w", err)
+			return nil, fmt.Errorf("failed to delete HAS_TAG relationship: %w", err)
 		}
 
 		return nil, nil
@@ -174,7 +176,7 @@ func (a *articles) DeleteAboutRelationship(ctx context.Context, articleID uuid.U
 	return err
 }
 
-func (a *articles) CreateTopicRelationship(ctx context.Context, articleID uuid.UUID, themeName string) error {
+func (a *articles) CreateAboutRelationship(ctx context.Context, articleID uuid.UUID, themeName string) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -185,7 +187,7 @@ func (a *articles) CreateTopicRelationship(ctx context.Context, articleID uuid.U
 		cypher := `
 			MATCH (art:Article { id: $articleID })
 			MATCH (th:Theme { name: $themeName })
-			MERGE (art)-[r:TOPIC]->(th)
+			MERGE (art)-[r:ABOUT]->(th)
 		`
 		params := map[string]any{
 			"articleID": articleID.String(),
@@ -194,7 +196,7 @@ func (a *articles) CreateTopicRelationship(ctx context.Context, articleID uuid.U
 
 		_, err := tx.Run(cypher, params)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create TOPIC relationship: %w", err)
+			return nil, fmt.Errorf("failed to create ABOUT relationship: %w", err)
 		}
 		return nil, nil
 	})
@@ -202,7 +204,7 @@ func (a *articles) CreateTopicRelationship(ctx context.Context, articleID uuid.U
 	return err
 }
 
-func (a *articles) DeleteTopicRelationship(ctx context.Context, articleID uuid.UUID, themeName string) error {
+func (a *articles) DeleteAboutRelationship(ctx context.Context, articleID uuid.UUID, themeName string) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -211,7 +213,7 @@ func (a *articles) DeleteTopicRelationship(ctx context.Context, articleID uuid.U
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (art:Article { id: $articleID })-[r:TOPIC]->(th:Theme { name: $themeName })
+			MATCH (art:Article { id: $articleID })-[r:ABOUT]->(th:Theme { name: $themeName })
 			DELETE r
 		`
 		params := map[string]any{
@@ -221,10 +223,36 @@ func (a *articles) DeleteTopicRelationship(ctx context.Context, articleID uuid.U
 
 		_, err := tx.Run(cypher, params)
 		if err != nil {
-			return nil, fmt.Errorf("failed to delete TOPIC relationship: %w", err)
+			return nil, fmt.Errorf("failed to delete ABOUT relationship: %w", err)
 		}
 		return nil, nil
 	})
 
+	return err
+}
+
+func (a *articles) CreateAuthorshipRelationship(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error {
+	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+		cypher := `
+            MATCH (art:Article { id: $articleID })
+            MATCH (auth:Author { id: $authorID })
+            MERGE (art)-[:AUTHORED_BY]->(auth)
+        `
+		params := map[string]any{
+			"articleID": articleID.String(),
+			"authorID":  authorID.String(),
+		}
+		_, err := tx.Run(cypher, params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create authorship relationship: %w", err)
+		}
+		return nil, nil
+	})
 	return err
 }

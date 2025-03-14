@@ -1,0 +1,352 @@
+openapi: 3.0.0
+info:
+  title: REST API
+  description: REST API
+  version: 0.0.1
+paths:
+  /test:
+    post:
+      tags:
+        - Test
+      description: Test
+      responses:
+        '201':
+          description: successfully
+components:
+  schemas:
+    Article:
+      type: object
+      required:
+        - data
+        - included
+      properties:
+        data:
+          $ref: '#/components/schemas/ArticleData'
+        included:
+          $ref: '#/components/schemas/ArticleInclude'
+    ArticleData:
+      type: object
+      required:
+        - id
+        - type
+        - attributes
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: article ID
+        type:
+          type: string
+          enum:
+            - article
+        attributes:
+          $ref: '#/components/schemas/ArticleAttributes'
+    ArticleAttributes:
+      type: object
+      required:
+        - title
+        - icon
+        - desc
+        - content
+        - status
+        - created_at
+      properties:
+        title:
+          type: string
+          description: Article title
+          example: Article title
+        icon:
+          type: string
+          description: Article link
+          example: Article link
+        desc:
+          type: string
+          description: Article description
+          example: Article description
+        content:
+          type: string
+          description: Article content
+          example: Article content
+        status:
+          type: string
+          description: Article status
+          example: Article status
+        updated_at:
+          type: string
+          format: date-time
+          description: Updated at
+          example: '2020-01-01T00:00:00Z'
+        created_at:
+          type: string
+          format: date-time
+          description: Created at
+          example: '2020-01-01T00:00:00Z'
+    ArticleInclude:
+      type: object
+      required:
+        - authors
+        - tags
+      properties:
+        authors:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorData'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag/properties/data'
+    ArticleCreate:
+      type: object
+      required:
+        - data
+        - included
+      properties:
+        data:
+          type: object
+          required:
+            - type
+            - attributes
+          properties:
+            type:
+              type: string
+              enum:
+                - article_create
+            attributes:
+              type: object
+              required:
+                - title
+                - icon
+                - desc
+                - authors
+                - content
+                - tags
+                - status
+              properties:
+                title:
+                  type: string
+                  description: Article title
+                  example: Article title
+                icon:
+                  type: string
+                  description: Article link
+                  example: Article link
+                desc:
+                  type: string
+                  description: Article description
+                  example: Article description
+                authors:
+                  type: array
+                  items:
+                    type: string
+                  description: Authors ID uuid
+                content:
+                  type: string
+                  description: Article content
+                  example: Article content
+                tags:
+                  type: array
+                  items:
+                    type: ./TagData.yaml
+                status:
+                  type: string
+                  description: Article status
+                  example: Article status
+    ArticleUpdate:
+      type: object
+      required:
+        - data
+        - included
+      properties:
+        data:
+          type: object
+          required:
+            - type
+            - attributes
+          properties:
+            type:
+              type: string
+              enum:
+                - article_updated
+            attributes:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Article title
+                  example: Article title
+                icon:
+                  type: string
+                  description: Article link
+                  example: Article link
+                desc:
+                  type: string
+                  description: Article description
+                  example: Article description
+                authors:
+                  type: array
+                  items:
+                    type: string
+                  description: Authors ID uuid
+                content:
+                  type: string
+                  description: Article content
+                  example: Article content
+                tags:
+                  type: array
+                  items:
+                    type: ./TagData.yaml
+                status:
+                  type: string
+                  description: Article status
+                  example: Article status
+    Author:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/AuthorData'
+    AuthorData:
+      type: object
+      required:
+        - id
+        - type
+        - attributes
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Author ID
+        type:
+          type: string
+          enum:
+            - author
+        attributes:
+          $ref: '#/components/schemas/AuthorAttributes'
+    AuthorAttributes:
+      type: object
+      required:
+        - name
+        - desc
+        - avatar
+      properties:
+        name:
+          type: string
+        desc:
+          type: string
+        avatar:
+          type: string
+        email:
+          type: string
+        telegram:
+          type: string
+        twitter:
+          type: string
+    AuthorCreate:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - type
+            - attributes
+          properties:
+            type:
+              type: string
+              enum:
+                - author_create
+            attributes:
+              type: object
+              required:
+                - name
+                - desc
+                - avatar
+              properties:
+                name:
+                  type: string
+                desc:
+                  type: string
+                avatar:
+                  type: string
+                email:
+                  type: string
+                telegram:
+                  type: string
+                twitter:
+                  type: string
+    AuthorUpdate:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - type
+            - attributes
+          properties:
+            type:
+              type: string
+              enum:
+                - author_update
+            attributes:
+              type: object
+              properties:
+                name:
+                  type: string
+                desc:
+                  type: string
+                avatar:
+                  type: string
+                email:
+                  type: string
+                telegram:
+                  type: string
+                twitter:
+                  type: string
+    Content:
+      type: object
+      required:
+        - type
+        - content
+      properties:
+        type:
+          type: string
+        content:
+          type: object
+          additionalProperties: true
+    Tag:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - id
+            - type
+            - attributes
+          properties:
+            id:
+              type: string
+              description: tag name
+            type:
+              type: string
+              enum:
+                - tag
+            attributes:
+              type: object
+              required:
+                - status
+                - type
+                - created_at
+              properties:
+                status:
+                  type: string
+                type:
+                  type: string
+                created_at:
+                  type: string
+                  format: date-time

@@ -1,0 +1,374 @@
+openapi: 3.0.0
+info:
+  description: REST API
+  title: REST API
+  version: 0.0.1
+servers:
+- url: /
+paths:
+  /test:
+    post:
+      description: Test
+      responses:
+        "201":
+          description: successfully
+      tags:
+      - Test
+components:
+  schemas:
+    Article:
+      properties:
+        data:
+          $ref: '#/components/schemas/ArticleData'
+        included:
+          $ref: '#/components/schemas/ArticleInclude'
+      required:
+      - data
+      - included
+      type: object
+    ArticleData:
+      properties:
+        id:
+          description: article ID
+          format: uuid
+          type: string
+        type:
+          enum:
+          - article
+          type: string
+        attributes:
+          $ref: '#/components/schemas/ArticleAttributes'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+    ArticleAttributes:
+      properties:
+        title:
+          description: Article title
+          example: Article title
+          type: string
+        icon:
+          description: Article link
+          example: Article link
+          type: string
+        desc:
+          description: Article description
+          example: Article description
+          type: string
+        content:
+          description: Article content
+          example: Article content
+          type: string
+        status:
+          description: Article status
+          example: Article status
+          type: string
+        updated_at:
+          description: Updated at
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
+        created_at:
+          description: Created at
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
+      required:
+      - content
+      - created_at
+      - desc
+      - icon
+      - status
+      - title
+      type: object
+    ArticleInclude:
+      properties:
+        authors:
+          items:
+            $ref: '#/components/schemas/AuthorData'
+          type: array
+        tags:
+          items:
+            $ref: '#/components/schemas/Tag/properties/data'
+          type: array
+      required:
+      - authors
+      - tags
+      type: object
+    ArticleCreate:
+      properties:
+        data:
+          $ref: '#/components/schemas/ArticleCreate_data'
+      required:
+      - data
+      - included
+      type: object
+    ArticleUpdate:
+      properties:
+        data:
+          $ref: '#/components/schemas/ArticleUpdate_data'
+      required:
+      - data
+      - included
+      type: object
+    Author:
+      properties:
+        data:
+          $ref: '#/components/schemas/AuthorData'
+      required:
+      - data
+      type: object
+    AuthorData:
+      properties:
+        id:
+          description: Author ID
+          format: uuid
+          type: string
+        type:
+          enum:
+          - author
+          type: string
+        attributes:
+          $ref: '#/components/schemas/AuthorAttributes'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+    AuthorAttributes:
+      properties:
+        name:
+          type: string
+        desc:
+          type: string
+        avatar:
+          type: string
+        email:
+          type: string
+        telegram:
+          type: string
+        twitter:
+          type: string
+      required:
+      - avatar
+      - desc
+      - name
+      type: object
+    AuthorCreate:
+      properties:
+        data:
+          $ref: '#/components/schemas/AuthorCreate_data'
+      required:
+      - data
+      type: object
+    AuthorUpdate:
+      properties:
+        data:
+          $ref: '#/components/schemas/AuthorUpdate_data'
+      required:
+      - data
+      type: object
+    Content:
+      properties:
+        type:
+          type: string
+        content:
+          additionalProperties: true
+          type: object
+      required:
+      - content
+      - type
+      type: object
+    Tag:
+      properties:
+        data:
+          $ref: '#/components/schemas/Tag_data'
+      required:
+      - data
+      type: object
+    ArticleCreate_data_attributes:
+      properties:
+        title:
+          description: Article title
+          example: Article title
+          type: string
+        icon:
+          description: Article link
+          example: Article link
+          type: string
+        desc:
+          description: Article description
+          example: Article description
+          type: string
+        authors:
+          description: Authors ID uuid
+          items:
+            type: string
+          type: array
+        content:
+          description: Article content
+          example: Article content
+          type: string
+        tags:
+          items:
+            type: ./TagData.yaml
+          type: array
+        status:
+          description: Article status
+          example: Article status
+          type: string
+      required:
+      - authors
+      - content
+      - desc
+      - icon
+      - status
+      - tags
+      - title
+      type: object
+    ArticleCreate_data:
+      properties:
+        type:
+          enum:
+          - article_create
+          type: string
+        attributes:
+          $ref: '#/components/schemas/ArticleCreate_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
+    ArticleUpdate_data_attributes:
+      properties:
+        title:
+          description: Article title
+          example: Article title
+          type: string
+        icon:
+          description: Article link
+          example: Article link
+          type: string
+        desc:
+          description: Article description
+          example: Article description
+          type: string
+        authors:
+          description: Authors ID uuid
+          items:
+            type: string
+          type: array
+        content:
+          description: Article content
+          example: Article content
+          type: string
+        tags:
+          items:
+            type: ./TagData.yaml
+          type: array
+        status:
+          description: Article status
+          example: Article status
+          type: string
+      type: object
+    ArticleUpdate_data:
+      properties:
+        type:
+          enum:
+          - article_updated
+          type: string
+        attributes:
+          $ref: '#/components/schemas/ArticleUpdate_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
+    AuthorCreate_data_attributes:
+      properties:
+        name:
+          type: string
+        desc:
+          type: string
+        avatar:
+          type: string
+        email:
+          type: string
+        telegram:
+          type: string
+        twitter:
+          type: string
+      required:
+      - avatar
+      - desc
+      - name
+      type: object
+    AuthorCreate_data:
+      properties:
+        type:
+          enum:
+          - author_create
+          type: string
+        attributes:
+          $ref: '#/components/schemas/AuthorCreate_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
+    AuthorUpdate_data_attributes:
+      properties:
+        name:
+          type: string
+        desc:
+          type: string
+        avatar:
+          type: string
+        email:
+          type: string
+        telegram:
+          type: string
+        twitter:
+          type: string
+      type: object
+    AuthorUpdate_data:
+      properties:
+        type:
+          enum:
+          - author_update
+          type: string
+        attributes:
+          $ref: '#/components/schemas/AuthorUpdate_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
+    Tag_data_attributes:
+      properties:
+        status:
+          type: string
+        type:
+          type: string
+        created_at:
+          format: date-time
+          type: string
+      required:
+      - created_at
+      - status
+      - type
+      type: object
+    Tag_data:
+      properties:
+        id:
+          description: tag name
+          type: string
+        type:
+          enum:
+          - tag
+          type: string
+        attributes:
+          $ref: '#/components/schemas/Tag_data_attributes'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
