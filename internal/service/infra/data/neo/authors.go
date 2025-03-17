@@ -8,27 +8,24 @@ import (
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
 
-// Author — узел автора в Neo4j.
 type Author struct {
 	ID   uuid.UUID `json:"id"`
 	Name string    `json:"name"`
 }
 
-// Authors — интерфейс для работы с узлами Author.
 type Authors interface {
-	// Create создаёт узел Author.
 	Create(ctx context.Context, author *Author) error
-	// Delete удаляет узел Author по ID.
 	Delete(ctx context.Context, id uuid.UUID) error
-	// Update обновляет только имя узла Author по его ID.
 	Update(ctx context.Context, id uuid.UUID, newName string) error
+
+	GetByID(ctx context.Context, ID uuid.UUID) (*Author, error)
+	GetArticles(ctx context.Context, id uuid.UUID) ([]uuid.UUID, error)
 }
 
 type authors struct {
 	driver neo4j.Driver
 }
 
-// NewAuthors создаёт новый репозиторий для работы с авторами.
 func NewAuthors(uri, username, password string) (Authors, error) {
 	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""))
 	if err != nil {
@@ -123,4 +120,95 @@ func (a *authors) Update(ctx context.Context, id uuid.UUID, newName string) erro
 	})
 
 	return err
+}
+
+func (a *authors) GetByID(ctx context.Context, ID uuid.UUID) (*Author, error) {
+	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	if err != nil {
+		return nil, err
+	}
+	defer session.C * lose()
+
+	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
+		cypher := `
+			MATCH (au:Author { id: $id })
+			RETURN au
+			LIMIT 1
+		`
+		params := map[string]any{
+			"id": ID.String(),
+		}
+		record, err := tx.Run(cypher, params)
+		if err != nil {
+			return nil, err
+		}
+		if record.Next() {
+			node, ok := record.Record().Get("au")
+			if !ok {
+				return nil, fmt.Errorf("author not found")
+			}
+			n := node.(neo4j.Node)
+			props := n.Props()
+
+			authorID, err := uuid.Parse(props["id"].(string))
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse author id: %w", err)
+			}
+			author := Author{
+				ID:   authorID,
+				Name: props["name"].(string),
+			}
+			return author, nil
+		}
+		return nil, fmt.Errorf("author not found")
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.(*Author), nil
+}
+
+func (a *authors) GetArticles(ctx context.Context, id uuid.UUID) ([]uuid.UUID, error) {
+	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+
+	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
+		cypher := `
+			MATCH (au:Author { id: $id })<-[:AUTHORED_BY]-(art:Article)
+			RETURN art.id AS articleID
+		`
+		params := map[string]any{
+			"id": id.String(),
+		}
+		records, err := tx.Run(cypher, params)
+		if err != nil {
+			return nil, err
+		}
+		var articleIDs []uuid.UUID
+		for records.Next() {
+			record := records.Record()
+			articleIDVal, ok := record.Get("articleID")
+			if !ok {
+				continue
+			}
+
+			articleIDStr, ok := articleIDVal.(string)
+			if !ok {
+				continue
+			}
+			parsedID, err := uuid.Parse(articleIDStr)
+			if err != nil {
+				continue
+			}
+			articleIDs = append(articleIDs, parsedID)
+		}
+		return articleIDs, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.([]uuid.UUID), nil
 }

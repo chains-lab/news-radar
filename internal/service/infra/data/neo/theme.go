@@ -9,19 +9,14 @@ import (
 	"github.com/recovery-flow/news-radar/internal/service/domain/models"
 )
 
-// Themes — интерфейс для работы с узлами Theme в Neo4j.
 type Themes interface {
-	// Create создаёт узел Theme.
 	Create(ctx context.Context, theme *models.Theme) error
-	// Delete удаляет узел Theme по имени.
 	Delete(ctx context.Context, themeName string) error
 
-	// GetAllSortedByPopularity возвращает все темы, отсортированные по популярности (количество статей с отношением TOPIC).
-	GetAllSortedByPopularity(ctx context.Context) ([]*models.Theme, error)
-	// FindByName ищет темы по имени с частичным совпадением.
 	FindByName(ctx context.Context, name string) ([]*models.Theme, error)
-	// FindByID ищет тему по полному совпадению имени (используем его как идентификатор).
 	FindByID(ctx context.Context, id string) (*models.Theme, error)
+
+	GetAll(ctx context.Context) ([]*models.Theme, error)
 }
 
 type themes struct {
@@ -93,7 +88,7 @@ func (t *themes) Delete(ctx context.Context, themeName string) error {
 	return err
 }
 
-func (t *themes) GetAllSortedByPopularity(ctx context.Context) ([]*models.Theme, error) {
+func (t *themes) GetAll(ctx context.Context) ([]*models.Theme, error) {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return nil, err

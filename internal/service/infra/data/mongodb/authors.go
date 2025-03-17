@@ -11,6 +11,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+const (
+	AuthorsCollection = "authors"
+)
+
 type Authors interface {
 	New() Authors
 
@@ -41,7 +45,7 @@ type authors struct {
 	skip    int64
 }
 
-func NewAuthors(uri, dbName, collectionName string) (Authors, error) {
+func NewAuthors(uri, dbName string) (Authors, error) {
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
@@ -49,7 +53,7 @@ func NewAuthors(uri, dbName, collectionName string) (Authors, error) {
 	}
 
 	database := client.Database(dbName)
-	coll := database.Collection(collectionName)
+	coll := database.Collection(AuthorsCollection)
 
 	return &authors{
 		client:     client,

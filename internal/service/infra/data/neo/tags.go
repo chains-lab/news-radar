@@ -12,6 +12,11 @@ import (
 type Tags interface {
 	Create(ctx context.Context, tag *models.Tag) error
 	Delete(ctx context.Context, tagName string) error
+
+	FindByID(ctx context.Context, id string) (*models.Tag, error)
+	FindByName(ctx context.Context, name string) (*models.Tag, error)
+
+	GetAll(ctx context.Context) ([]*models.Tag, error)
 }
 
 type tags struct {
@@ -90,7 +95,7 @@ func (t *tags) Delete(ctx context.Context, tagName string) error {
 	return err
 }
 
-func (t *tags) GetAllSortedByPopularity(ctx context.Context) ([]*models.Tag, error) {
+func (t *tags) GetAll(ctx context.Context) ([]*models.Tag, error) {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return nil, err
@@ -136,7 +141,7 @@ func (t *tags) GetAllSortedByPopularity(ctx context.Context) ([]*models.Tag, err
 	return result.([]*models.Tag), nil
 }
 
-func (t *tags) FindByName(ctx context.Context, name string) ([]*models.Tag, error) {
+func (t *tags) FindByName(ctx context.Context, name string) (*models.Tag, error) {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return nil, err
@@ -153,7 +158,7 @@ func (t *tags) FindByName(ctx context.Context, name string) ([]*models.Tag, erro
 		if err != nil {
 			return nil, err
 		}
-		var tagsList []*models.Tag
+		var tag models.Tag
 		for records.Next() {
 			record := records.Record()
 			node, ok := record.Get("t")
@@ -161,7 +166,7 @@ func (t *tags) FindByName(ctx context.Context, name string) ([]*models.Tag, erro
 				continue
 			}
 			props := node.(neo4j.Node).Props()
-			tag := &models.Tag{
+			tag = models.Tag{
 				Name:   props["name"].(string),
 				Status: models.TagStatus(props["status"].(string)),
 				Type:   models.TagType(props["category"].(string)),
@@ -172,14 +177,13 @@ func (t *tags) FindByName(ctx context.Context, name string) ([]*models.Tag, erro
 					tag.CreatedAt = parsedTime
 				}
 			}
-			tagsList = append(tagsList, tag)
 		}
-		return tagsList, nil
+		return tag, nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return result.([]*models.Tag), nil
+	return result.(*models.Tag), nil
 }
 
 func (t *tags) FindByID(ctx context.Context, id string) (*models.Tag, error) {

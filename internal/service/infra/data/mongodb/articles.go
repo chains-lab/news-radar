@@ -12,6 +12,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+const (
+	ArticlesCollection = "articles"
+)
+
 type Articles interface {
 	New() Articles
 
@@ -24,7 +28,6 @@ type Articles interface {
 	FilterID(id uuid.UUID) Articles
 	FilterTitle(name string) Articles
 	FilterAuthors(authors ...uuid.UUID) Articles
-	FilterTags(tags ...string) Articles
 	FilterDate(filters map[string]any, after bool) Articles
 
 	Update(ctx context.Context, fields map[string]any) (*models.Article, error)
@@ -45,7 +48,7 @@ type articles struct {
 	skip    int64
 }
 
-func NewArticles(uri, dbName, collectionName string) (Articles, error) {
+func NewArticles(uri, dbName string) (Articles, error) {
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
@@ -53,7 +56,7 @@ func NewArticles(uri, dbName, collectionName string) (Articles, error) {
 	}
 
 	database := client.Database(dbName)
-	coll := database.Collection(collectionName)
+	coll := database.Collection(ArticlesCollection)
 
 	return &articles{
 		client:     client,
@@ -155,16 +158,6 @@ func (a *articles) FilterAuthors(authors ...uuid.UUID) Articles {
 	return a
 }
 
-func (a *articles) FilterTags(tags ...string) Articles {
-	if len(tags) == 0 {
-		return a
-	}
-	a.filters["tags"] = bson.M{
-		"$in": tags,
-	}
-	return a
-}
-
 func (a *articles) FilterDate(filters map[string]any, after bool) Articles {
 	validDateFields := map[string]bool{
 		"updated_at": true,
@@ -217,7 +210,6 @@ func (a *articles) Update(ctx context.Context, fields map[string]any) (*models.A
 		"content":     true,
 		"likes":       true,
 		"reposts":     true,
-		"tags":        true,
 		"updated_at":  true,
 	}
 	updateFields := bson.M{}
