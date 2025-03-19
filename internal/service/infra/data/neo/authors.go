@@ -127,7 +127,7 @@ func (a *authors) GetByID(ctx context.Context, ID uuid.UUID) (*Author, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer session.C * lose()
+	defer session.Close()
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `

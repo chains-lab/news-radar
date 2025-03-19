@@ -7,7 +7,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/recovery-flow/news-radar/internal/service/domain/models"
+	"github.com/recovery-flow/news-radar/internal/service/infra"
 	"github.com/recovery-flow/news-radar/internal/service/infra/data/neo"
+	"github.com/sirupsen/logrus"
 )
 
 type Articles interface {
@@ -37,14 +39,19 @@ type Articles interface {
 	AddTheme(ctx context.Context, ID uuid.UUID, theme string) error
 	DeleteTheme(ctx context.Context, ID uuid.UUID, theme string) error
 
-	AddAuthor(ctx context.Context, ID uuid.UUID, author uuid.UUID) error
-	DeleteAuthor(ctx context.Context, ID uuid.UUID) error
-	SetAuthors(ctx context.Context, ID uuid.UUID, author []uuid.UUID) error
+	AddAuthor(ctx context.Context, ID uuid.UUID, author string) error
+	DeleteAuthor(ctx context.Context, ID uuid.UUID, author string) error
+	SetAuthors(ctx context.Context, ID uuid.UUID, authors []string) error
 
 	GetByID(ctx context.Context, ID uuid.UUID) (*models.Article, error)
 }
 
-func (d *domain) Create(
+type articles struct {
+	Infra *infra.Infra
+	log   *logrus.Logger
+}
+
+func (a *articles) Create(
 	ctx context.Context,
 	title string,
 	icon string,
@@ -53,7 +60,7 @@ func (d *domain) Create(
 ) (*models.Article, error) {
 	articleID := uuid.New()
 
-	err := d.Infra.Neo.Articles.Create(ctx, &neo.Article{
+	err := a.Infra.Neo.Articles.Create(ctx, &neo.Article{
 		ID:        articleID,
 		CreatedAt: time.Now().UTC(),
 		Tags:      nil,
@@ -63,7 +70,7 @@ func (d *domain) Create(
 		return nil, err
 	}
 
-	res, err := d.Infra.Mongo.Articles.Insert(ctx, &models.Article{
+	res, err := a.Infra.Mongo.Articles.Insert(ctx, &models.Article{
 		ID:        articleID,
 		Title:     title,
 		Icon:      icon,
@@ -81,7 +88,7 @@ func (d *domain) Create(
 	return res, nil
 }
 
-func (d *domain) Update(
+func (a *articles) Update(
 	ctx context.Context,
 	ID uuid.UUID,
 	title *string,
@@ -111,7 +118,7 @@ func (d *domain) Update(
 		fields["status"] = st
 	}
 
-	res, err := d.Infra.Mongo.Articles.FilterID(ID).Update(ctx, fields)
+	res, err := a.Infra.Mongo.Articles.FilterID(ID).Update(ctx, fields)
 	if err != nil {
 		return nil, err
 	}
@@ -119,13 +126,13 @@ func (d *domain) Update(
 	return res, nil
 }
 
-func (d *domain) Delete(ID uuid.UUID, ctx context.Context) error {
-	err := d.Infra.Neo.Articles.Delete(ctx, ID)
+func (a *articles) Delete(ID uuid.UUID, ctx context.Context) error {
+	err := a.Infra.Neo.Articles.Delete(ctx, ID)
 	if err != nil {
 		return err
 	}
 
-	err = d.Infra.Mongo.Articles.FilterID(ID).Delete(ctx)
+	err = a.Infra.Mongo.Articles.FilterID(ID).Delete(ctx)
 	if err != nil {
 		return err
 	}
@@ -133,8 +140,8 @@ func (d *domain) Delete(ID uuid.UUID, ctx context.Context) error {
 	return nil
 }
 
-func (d *domain) GetByID(ctx context.Context, ID uuid.UUID) (*models.Article, error) {
-	res, err := d.Infra.Mongo.Articles.FilterID(ID).Get(ctx)
+func (a *articles) GetByID(ctx context.Context, ID uuid.UUID) (*models.Article, error) {
+	res, err := a.Infra.Mongo.Articles.FilterID(ID).Get(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -144,9 +151,9 @@ func (d *domain) GetByID(ctx context.Context, ID uuid.UUID) (*models.Article, er
 
 //Tags
 
-func (d *domain) SetTags(ctx context.Context, ID uuid.UUID, tags []string) error {
+func (a *articles) SetTags(ctx context.Context, ID uuid.UUID, tags []string) error {
 	for _, tag := range tags {
-		curTag, err := d.Infra.Neo.Tags.FindByName(ctx, tag)
+		curTag, err := a.Infra.Neo.Tags.FindByName(ctx, tag)
 		if err != nil {
 			return err
 		}
@@ -155,7 +162,7 @@ func (d *domain) SetTags(ctx context.Context, ID uuid.UUID, tags []string) error
 		}
 	}
 
-	err := d.Infra.Neo.Articles.SetHasTag(ctx, ID, tags)
+	err := a.Infra.Neo.Articles.SetHasTag(ctx, ID, tags)
 	if err != nil {
 		return err
 	}
@@ -163,8 +170,8 @@ func (d *domain) SetTags(ctx context.Context, ID uuid.UUID, tags []string) error
 	return nil
 }
 
-func (d *domain) AddTag(ctx context.Context, ID uuid.UUID, tag string) error {
-	curTag, err := d.Infra.Neo.Tags.FindByName(ctx, tag)
+func (a *articles) AddTag(ctx context.Context, ID uuid.UUID, tag string) error {
+	curTag, err := a.Infra.Neo.Tags.FindByName(ctx, tag)
 	if err != nil {
 		return err
 	}
@@ -172,7 +179,7 @@ func (d *domain) AddTag(ctx context.Context, ID uuid.UUID, tag string) error {
 		return fmt.Errorf("tag %s not found", tag)
 	}
 
-	err = d.Infra.Neo.Articles.CreateHasTagRelationship(ctx, ID, tag)
+	err = a.Infra.Neo.Articles.CreateHasTagRelationship(ctx, ID, tag)
 	if err != nil {
 		return err
 	}
@@ -180,8 +187,8 @@ func (d *domain) AddTag(ctx context.Context, ID uuid.UUID, tag string) error {
 	return nil
 }
 
-func (d *domain) DeleteTag(ctx context.Context, ID uuid.UUID, tag string) error {
-	curTag, err := d.Infra.Neo.Tags.FindByName(ctx, tag)
+func (a *articles) DeleteTag(ctx context.Context, ID uuid.UUID, tag string) error {
+	curTag, err := a.Infra.Neo.Tags.FindByName(ctx, tag)
 	if err != nil {
 		return err
 	}
@@ -189,7 +196,7 @@ func (d *domain) DeleteTag(ctx context.Context, ID uuid.UUID, tag string) error 
 		return fmt.Errorf("tag %s not found", tag)
 	}
 
-	err = d.Infra.Neo.Articles.DeleteHasTagRelationship(ctx, ID, tag)
+	err = a.Infra.Neo.Articles.DeleteHasTagRelationship(ctx, ID, tag)
 	if err != nil {
 		return err
 	}
@@ -199,9 +206,9 @@ func (d *domain) DeleteTag(ctx context.Context, ID uuid.UUID, tag string) error 
 
 //Theme
 
-func (d *domain) SetTheme(ctx context.Context, ID uuid.UUID, theme []string) error {
+func (a *articles) SetTheme(ctx context.Context, ID uuid.UUID, theme []string) error {
 	for _, them := range theme {
-		curTheme, err := d.Infra.Neo.Themes.FindByName(ctx, them)
+		curTheme, err := a.Infra.Neo.Themes.FindByName(ctx, them)
 		if err != nil {
 			return err
 		}
@@ -210,7 +217,7 @@ func (d *domain) SetTheme(ctx context.Context, ID uuid.UUID, theme []string) err
 		}
 	}
 
-	err := d.Infra.Neo.Articles.SetAbout(ctx, ID, theme)
+	err := a.Infra.Neo.Articles.SetAbout(ctx, ID, theme)
 	if err != nil {
 		return err
 	}
@@ -218,8 +225,8 @@ func (d *domain) SetTheme(ctx context.Context, ID uuid.UUID, theme []string) err
 	return nil
 }
 
-func (d *domain) AddTheme(ctx context.Context, ID uuid.UUID, theme string) error {
-	curTheme, err := d.Infra.Neo.Themes.FindByName(ctx, theme)
+func (a *articles) AddTheme(ctx context.Context, ID uuid.UUID, theme string) error {
+	curTheme, err := a.Infra.Neo.Themes.FindByName(ctx, theme)
 	if err != nil {
 		return err
 	}
@@ -227,7 +234,7 @@ func (d *domain) AddTheme(ctx context.Context, ID uuid.UUID, theme string) error
 		return fmt.Errorf("theme %s not found", theme)
 	}
 
-	err = d.Infra.Neo.Articles.CreateAboutRelationship(ctx, ID, theme)
+	err = a.Infra.Neo.Articles.CreateAboutRelationship(ctx, ID, theme)
 	if err != nil {
 		return err
 	}
@@ -235,8 +242,8 @@ func (d *domain) AddTheme(ctx context.Context, ID uuid.UUID, theme string) error
 	return nil
 }
 
-func (d *domain) DeleteTheme(ctx context.Context, ID uuid.UUID, theme string) error {
-	curTheme, err := d.Infra.Neo.Themes.FindByName(ctx, theme)
+func (a *articles) DeleteTheme(ctx context.Context, ID uuid.UUID, theme string) error {
+	curTheme, err := a.Infra.Neo.Themes.FindByName(ctx, theme)
 	if err != nil {
 		return err
 	}
@@ -244,7 +251,7 @@ func (d *domain) DeleteTheme(ctx context.Context, ID uuid.UUID, theme string) er
 		return fmt.Errorf("theme %s not found", theme)
 	}
 
-	err = d.Infra.Neo.Articles.DeleteAboutRelationship(ctx, ID, theme)
+	err = a.Infra.Neo.Articles.DeleteAboutRelationship(ctx, ID, theme)
 	if err != nil {
 		return err
 	}
@@ -254,14 +261,14 @@ func (d *domain) DeleteTheme(ctx context.Context, ID uuid.UUID, theme string) er
 
 //Author
 
-func (d *domain) SetAuthors(ctx context.Context, ID uuid.UUID, authors []string) error {
+func (a *articles) SetAuthors(ctx context.Context, ID uuid.UUID, authors []string) error {
 	var IDs []uuid.UUID
 	for _, author := range authors {
 		ID, err := uuid.Parse(author)
 		if err != nil {
 			return err
 		}
-		curAuthor, err := d.Infra.Neo.Authors.GetByID(ctx, ID)
+		curAuthor, err := a.Infra.Neo.Authors.GetByID(ctx, ID)
 		if err != nil {
 			return err
 		}
@@ -274,7 +281,7 @@ func (d *domain) SetAuthors(ctx context.Context, ID uuid.UUID, authors []string)
 		return nil
 	}
 
-	err := d.Infra.Neo.Articles.SetAuthors(ctx, ID, IDs)
+	err := a.Infra.Neo.Articles.SetAuthors(ctx, ID, IDs)
 	if err != nil {
 		return err
 	}
@@ -282,16 +289,20 @@ func (d *domain) SetAuthors(ctx context.Context, ID uuid.UUID, authors []string)
 	return nil
 }
 
-func (d *domain) AddAuthor(ctx context.Context, ID uuid.UUID, author uuid.UUID) error {
-	curAuthor, err := d.Infra.Neo.Authors.GetByID(ctx, author)
+func (a *articles) AddAuthor(ctx context.Context, ID uuid.UUID, author string) error {
+	authorID, err := uuid.Parse(author)
+	if err != nil {
+		return err
+	}
+	curAuthor, err := a.Infra.Neo.Authors.GetByID(ctx, authorID)
 	if err != nil {
 		return err
 	}
 	if curAuthor == nil {
-		return fmt.Errorf("author %s not found", author)
+		return fmt.Errorf("author %s not found", authorID)
 	}
 
-	err = d.Infra.Neo.Articles.CreateAuthorshipRelationship(ctx, ID, author)
+	err = a.Infra.Neo.Articles.CreateAuthorshipRelationship(ctx, ID, authorID)
 	if err != nil {
 		return err
 	}
@@ -299,16 +310,20 @@ func (d *domain) AddAuthor(ctx context.Context, ID uuid.UUID, author uuid.UUID) 
 	return nil
 }
 
-func (d *domain) DeleteAuthor(ctx context.Context, ID uuid.UUID) error {
-	curAuthor, err := d.Infra.Neo.Authors.GetByID(ctx, ID)
+func (a *articles) DeleteAuthor(ctx context.Context, ID uuid.UUID, author string) error {
+	authorID, err := uuid.Parse(author)
+	if err != nil {
+		return err
+	}
+	curAuthor, err := a.Infra.Neo.Authors.GetByID(ctx, ID)
 	if err != nil {
 		return err
 	}
 	if curAuthor == nil {
-		return fmt.Errorf("author %s not found", ID)
+		return fmt.Errorf("author %s not found", authorID)
 	}
 
-	err = d.Infra.Neo.Articles.DeleteAuthorshipRelationship(ctx, ID, ID)
+	err = a.Infra.Neo.Articles.DeleteAuthorshipRelationship(ctx, ID, authorID)
 	if err != nil {
 		return err
 	}
