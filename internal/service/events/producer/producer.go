@@ -8,7 +8,8 @@ import (
 	"time"
 
 	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/service/infra/events"
+	"github.com/recovery-flow/news-radar/internal/service/events"
+
 	"github.com/segmentio/kafka-go"
 )
 

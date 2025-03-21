@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/news-radar/internal/service/domain/models"
 	"github.com/recovery-flow/news-radar/internal/service/infra"
 	"github.com/recovery-flow/news-radar/internal/service/infra/data/neo"
+	"github.com/recovery-flow/news-radar/internal/service/models"
 	"github.com/sirupsen/logrus"
 )
 

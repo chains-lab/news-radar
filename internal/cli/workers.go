@@ -6,7 +6,7 @@ import (
 
 	"github.com/recovery-flow/news-radar/internal/service"
 	"github.com/recovery-flow/news-radar/internal/service/api"
-	"github.com/recovery-flow/news-radar/internal/workers/listener"
+	"github.com/recovery-flow/news-radar/internal/service/events/listener"
 )
 
 func runServices(ctx context.Context, wg *sync.WaitGroup, svc *service.Service) {

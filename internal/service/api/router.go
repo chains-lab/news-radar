@@ -17,7 +17,7 @@ func Run(ctx context.Context, svc *service.Service) {
 	r.Use(
 		httpkit.CtxMiddleWare(
 			handlers.CtxLog(svc.Log),
-			handlers.CtxDomain(svc.Domain),
+			handlers.CtxApp(svc.Domain),
 			handlers.CtxConfig(svc.Config),
 		),
 	)

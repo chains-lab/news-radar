@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
-	"github.com/recovery-flow/news-radar/internal/service/domain/models"
+	"github.com/recovery-flow/news-radar/internal/service/models"
 )
 
 type Article struct {
@@ -20,7 +20,7 @@ type Article struct {
 type Articles interface {
 	Create(ctx context.Context, article *Article) error
 	Delete(ctx context.Context, ID uuid.UUID) error
-	
+
 	GetAllHasTag(ctx context.Context, ID uuid.UUID) ([]*models.Tag, error)
 	SetHasTag(ctx context.Context, ID uuid.UUID, tags []string) error
 	DeleteHasTag(ctx context.Context, ID uuid.UUID) error

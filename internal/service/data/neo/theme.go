@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/neo4j/neo4j-go-driver/neo4j"
-	"github.com/recovery-flow/news-radar/internal/service/domain/models"
+	"github.com/recovery-flow/news-radar/internal/service/models"
 )
 
 type Themes interface {
