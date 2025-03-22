@@ -12,6 +12,18 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+type Article struct {
+	ID        uuid.UUID        `json:"id" bson:"_id"`
+	Title     string           `json:"title" bson:"title"`
+	Icon      string           `json:"icon" bson:"icon"`
+	Desc      string           `json:"desc" bson:"desc"`
+	Content   []models.Section `json:"content,omitempty" bson:"content,omitempty"`
+	Likes     int              `json:"likes" bson:"likes"`
+	Reposts   int              `json:"reposts" bson:"reposts"`
+	UpdatedAt *time.Time       `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	CreatedAt time.Time        `json:"created_at" bson:"created_at"`
+}
+
 const (
 	ArticlesCollection = "articles"
 )
@@ -19,18 +31,17 @@ const (
 type Articles interface {
 	New() Articles
 
-	Insert(ctx context.Context, article *models.Article) (*models.Article, error)
+	Insert(ctx context.Context, article *Article) (*Article, error)
 	Delete(ctx context.Context) error
 	Count(ctx context.Context) (int64, error)
-	Select(ctx context.Context) ([]*models.Article, error)
-	Get(ctx context.Context) (*models.Article, error)
+	Select(ctx context.Context) ([]*Article, error)
+	Get(ctx context.Context) (*Article, error)
 
 	FilterID(id uuid.UUID) Articles
-	FilterTitle(name string) Articles
-	FilterAuthors(authors ...uuid.UUID) Articles
+	FilterTitle(title string) Articles
 	FilterDate(filters map[string]any, after bool) Articles
 
-	Update(ctx context.Context, fields map[string]any) (*models.Article, error)
+	Update(ctx context.Context, fields map[string]any) (*Article, error)
 
 	Limit(limit int64) Articles
 	Skip(skip int64) Articles
@@ -81,7 +92,7 @@ func (a *articles) New() Articles {
 	}
 }
 
-func (a *articles) Insert(ctx context.Context, article *models.Article) (*models.Article, error) {
+func (a *articles) Insert(ctx context.Context, article *Article) (*Article, error) {
 	_, err := a.collection.InsertOne(ctx, article)
 	if err != nil {
 		return nil, fmt.Errorf("failed to insert article: %w", err)
@@ -101,7 +112,7 @@ func (a *articles) Count(ctx context.Context) (int64, error) {
 	return a.collection.CountDocuments(ctx, a.filters)
 }
 
-func (a *articles) Select(ctx context.Context) ([]*models.Article, error) {
+func (a *articles) Select(ctx context.Context) ([]*Article, error) {
 	findOptions := options.Find()
 	if a.limit > 0 {
 		findOptions.SetLimit(a.limit)
@@ -119,15 +130,15 @@ func (a *articles) Select(ctx context.Context) ([]*models.Article, error) {
 	}
 	defer cursor.Close(ctx)
 
-	var arts []*models.Article
+	var arts []*Article
 	if err = cursor.All(ctx, &arts); err != nil {
 		return nil, fmt.Errorf("failed to decode articles: %w", err)
 	}
 	return arts, nil
 }
 
-func (a *articles) Get(ctx context.Context) (*models.Article, error) {
-	var art models.Article
+func (a *articles) Get(ctx context.Context) (*Article, error) {
+	var art Article
 	err := a.collection.FindOne(ctx, a.filters).Decode(&art)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get article: %w", err)
@@ -144,16 +155,6 @@ func (a *articles) FilterTitle(title string) Articles {
 	a.filters["title"] = bson.M{
 		"$regex":   fmt.Sprintf(".*%s.*", title),
 		"$options": "i",
-	}
-	return a
-}
-
-func (a *articles) FilterAuthors(authors ...uuid.UUID) Articles {
-	if len(authors) == 0 {
-		return a
-	}
-	a.filters["authors"] = bson.M{
-		"$in": authors,
 	}
 	return a
 }
@@ -201,7 +202,7 @@ func (a *articles) FilterDate(filters map[string]any, after bool) Articles {
 	return a
 }
 
-func (a *articles) Update(ctx context.Context, fields map[string]any) (*models.Article, error) {
+func (a *articles) Update(ctx context.Context, fields map[string]any) (*Article, error) {
 	validFields := map[string]bool{
 		"title":       true,
 		"icon":        true,
@@ -220,7 +221,7 @@ func (a *articles) Update(ctx context.Context, fields map[string]any) (*models.A
 	}
 
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
-	var updated models.Article
+	var updated Article
 	err := a.collection.FindOneAndUpdate(ctx, a.filters, bson.M{"$set": updateFields}, opts).Decode(&updated)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update article: %w", err)

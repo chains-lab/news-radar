@@ -3,13 +3,25 @@ package mongodb
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/news-radar/internal/service/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+type Author struct {
+	ID        uuid.UUID  `json:"id" bson:"id"`
+	Name      string     `json:"name" bson:"name"`
+	Desc      *string    `json:"desc" bson:"desc"`
+	Avatar    *string    `json:"avatar,omitempty" bson:"avatar,omitempty"`
+	Email     *string    `json:"email,omitempty" bson:"email,omitempty"`
+	Telegram  *string    `json:"telegram,omitempty" bson:"telegram,omitempty"`
+	Twitter   *string    `json:"twitter,omitempty" bson:"twitter,omitempty"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	CreatedAt time.Time  `json:"created_at" bson:"created_at"`
+}
 
 const (
 	AuthorsCollection = "authors"
@@ -18,16 +30,16 @@ const (
 type Authors interface {
 	New() Authors
 
-	Insert(ctx context.Context, author *models.Author) (*models.Author, error)
+	Insert(ctx context.Context, author *Author) (*Author, error)
 	Delete(ctx context.Context) error
 	Count(ctx context.Context) (int64, error)
-	Select(ctx context.Context) ([]*models.Author, error)
-	Get(ctx context.Context) (*models.Author, error)
+	Select(ctx context.Context) ([]*Author, error)
+	Get(ctx context.Context) (*Author, error)
 
 	FiltersID(id uuid.UUID) Authors
 	FiltersName(name string) Authors
 
-	Update(ctx context.Context, fields map[string]any) (*models.Author, error)
+	Update(ctx context.Context, fields map[string]any) (*Author, error)
 
 	Limit(limit int64) Authors
 	Skip(skip int64) Authors
@@ -78,7 +90,7 @@ func (a *authors) New() Authors {
 	}
 }
 
-func (a *authors) Insert(ctx context.Context, author *models.Author) (*models.Author, error) {
+func (a *authors) Insert(ctx context.Context, author *Author) (*Author, error) {
 	_, err := a.collection.InsertOne(ctx, author)
 	if err != nil {
 		return nil, fmt.Errorf("failed to insert author: %w", err)
@@ -98,22 +110,22 @@ func (a *authors) Count(ctx context.Context) (int64, error) {
 	return a.collection.CountDocuments(ctx, a.filters)
 }
 
-func (a *authors) Select(ctx context.Context) ([]*models.Author, error) {
+func (a *authors) Select(ctx context.Context) ([]*Author, error) {
 	cursor, err := a.collection.Find(ctx, a.filters)
 	if err != nil {
 		return nil, fmt.Errorf("failed to select authors: %w", err)
 	}
 	defer cursor.Close(ctx)
 
-	var aths []*models.Author
+	var aths []*Author
 	if err = cursor.All(ctx, &aths); err != nil {
 		return nil, fmt.Errorf("failed to decode authors: %w", err)
 	}
 	return aths, nil
 }
 
-func (a *authors) Get(ctx context.Context) (*models.Author, error) {
-	var ath models.Author
+func (a *authors) Get(ctx context.Context) (*Author, error) {
+	var ath Author
 	err := a.collection.FindOne(ctx, a.filters).Decode(&ath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get author: %w", err)
@@ -134,7 +146,7 @@ func (a *authors) FiltersName(name string) Authors {
 	return a
 }
 
-func (a *authors) Update(ctx context.Context, fields map[string]any) (*models.Author, error) {
+func (a *authors) Update(ctx context.Context, fields map[string]any) (*Author, error) {
 	validFields := map[string]bool{
 		"name":       true,
 		"desc":       true,
@@ -153,7 +165,7 @@ func (a *authors) Update(ctx context.Context, fields map[string]any) (*models.Au
 	}
 
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
-	var updated models.Author
+	var updated Author
 	err := a.collection.FindOneAndUpdate(ctx, a.filters, bson.M{"$set": updateFields}, opts).Decode(&updated)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update document: %w", err)

@@ -12,7 +12,6 @@ type Article struct {
 	Title     string        `json:"title" bson:"title"`
 	Icon      string        `json:"icon" bson:"icon"`
 	Desc      string        `json:"desc" bson:"desc"`
-	Authors   []uuid.UUID   `json:"authors,omitempty" bson:"authors,omitempty"`
 	Content   []Section     `json:"content,omitempty" bson:"content,omitempty"`
 	Likes     int           `json:"likes" bson:"likes"`
 	Reposts   int           `json:"reposts" bson:"reposts"`

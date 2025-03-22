@@ -52,7 +52,7 @@ type DatabaseConfig struct {
 
 	Neo4j struct {
 		URI      string `mapstructure:"uri"`
-		User     string `mapstructure:"user"`
+		Username string `mapstructure:"username"`
 		Password string `mapstructure:"password"`
 	} `mapstructure:"neo4j"`
 }

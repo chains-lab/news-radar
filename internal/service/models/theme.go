@@ -8,26 +8,9 @@ import (
 type Theme struct {
 	Name      string      `json:"name"`
 	Status    ThemeStatus `json:"status"`
-	Type      ThemeType   `json:"category"`
 	CreatedAt time.Time   `json:"created_at"`
-}
-
-type ThemeType string
-
-const (
-	ThemeTypeCategory ThemeType = "category"
-	ThemeTypeTheme    ThemeType = "person"
-)
-
-func ParseThemeType(s string) (ThemeType, error) {
-	switch s {
-	case "category":
-		return ThemeTypeCategory, nil
-	case "person":
-		return ThemeTypeTheme, nil
-	default:
-		return "", fmt.Errorf("invalid theme type %s", s)
-	}
+	Color     string      `json:"color"`
+	Icon      string      `json:"icon"`
 }
 
 type ThemeStatus string

@@ -1,4 +1,4 @@
-package neo
+package neodb
 
 import (
 	"context"
@@ -6,20 +6,23 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
+	"github.com/recovery-flow/news-radar/internal/service/models"
 )
 
 type Author struct {
-	ID   uuid.UUID `json:"id"`
-	Name string    `json:"name"`
+	ID     uuid.UUID           `json:"id"`
+	Name   string              `json:"name"`
+	Status models.AuthorStatus `json:"status"`
 }
 
 type Authors interface {
 	Create(ctx context.Context, author *Author) error
-	Delete(ctx context.Context, id uuid.UUID) error
-	Update(ctx context.Context, id uuid.UUID, newName string) error
+	Delete(ctx context.Context, ID uuid.UUID) error
+
+	UpdateName(ctx context.Context, ID uuid.UUID, name string) error
+	UpdateStatus(ctx context.Context, ID uuid.UUID, status models.AuthorStatus) error
 
 	GetByID(ctx context.Context, ID uuid.UUID) (*Author, error)
-	GetArticles(ctx context.Context, id uuid.UUID) ([]uuid.UUID, error)
 }
 
 type authors struct {
@@ -50,12 +53,13 @@ func (a *authors) Create(ctx context.Context, author *Author) error {
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			CREATE (au:Author { id: $id, name: $name })
+			CREATE (au:Author { id: $id, name: $name, status: $status })
 			RETURN au
 		`
 		params := map[string]any{
-			"id":   author.ID.String(),
-			"name": author.Name,
+			"id":     author.ID.String(),
+			"name":   author.Name,
+			"status": author.Status,
 		}
 
 		_, err := tx.Run(cypher, params)
@@ -94,7 +98,7 @@ func (a *authors) Delete(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
-func (a *authors) Update(ctx context.Context, id uuid.UUID, newName string) error {
+func (a *authors) UpdateName(ctx context.Context, id uuid.UUID, name string) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -107,9 +111,39 @@ func (a *authors) Update(ctx context.Context, id uuid.UUID, newName string) erro
 			SET au.name = $name
 			RETURN au
 		`
+
 		params := map[string]any{
 			"id":   id.String(),
-			"name": newName,
+			"name": name,
+		}
+
+		_, err := tx.Run(cypher, params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to update author: %w", err)
+		}
+		return nil, nil
+	})
+
+	return err
+}
+
+func (a *authors) UpdateStatus(ctx context.Context, id uuid.UUID, status models.AuthorStatus) error {
+	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+		cypher := `
+			MATCH (au:Author { id: $id })
+			SET au.status = $status
+			RETURN au
+		`
+
+		params := map[string]any{
+			"id":     id.String(),
+			"status": status,
 		}
 
 		_, err := tx.Run(cypher, params)
@@ -154,9 +188,15 @@ func (a *authors) GetByID(ctx context.Context, ID uuid.UUID) (*Author, error) {
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse author id: %w", err)
 			}
+			status, err := models.ParseAuthorStatus(props["status"].(string))
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse author status: %w", err)
+			}
+
 			author := Author{
-				ID:   authorID,
-				Name: props["name"].(string),
+				ID:     authorID,
+				Name:   props["name"].(string),
+				Status: status,
 			}
 			return author, nil
 		}
@@ -166,49 +206,4 @@ func (a *authors) GetByID(ctx context.Context, ID uuid.UUID) (*Author, error) {
 		return nil, err
 	}
 	return result.(*Author), nil
-}
-
-func (a *authors) GetArticles(ctx context.Context, id uuid.UUID) ([]uuid.UUID, error) {
-	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-	if err != nil {
-		return nil, err
-	}
-	defer session.Close()
-
-	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
-		cypher := `
-			MATCH (au:Author { id: $id })<-[:AUTHORED_BY]-(art:Article)
-			RETURN art.id AS articleID
-		`
-		params := map[string]any{
-			"id": id.String(),
-		}
-		records, err := tx.Run(cypher, params)
-		if err != nil {
-			return nil, err
-		}
-		var articleIDs []uuid.UUID
-		for records.Next() {
-			record := records.Record()
-			articleIDVal, ok := record.Get("articleID")
-			if !ok {
-				continue
-			}
-
-			articleIDStr, ok := articleIDVal.(string)
-			if !ok {
-				continue
-			}
-			parsedID, err := uuid.Parse(articleIDStr)
-			if err != nil {
-				continue
-			}
-			articleIDs = append(articleIDs, parsedID)
-		}
-		return articleIDs, nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return result.([]uuid.UUID), nil
 }

@@ -8,26 +8,9 @@ import (
 type Tag struct {
 	Name      string    `json:"name"`
 	Status    TagStatus `json:"status"`
-	Type      TagType   `json:"category"`
 	CreatedAt time.Time `json:"created_at"`
-}
-
-type TagType string
-
-const (
-	TagTypeCategory TagType = "category"
-	TagTypeTag      TagType = "person"
-)
-
-func ParseTagType(s string) (TagType, error) {
-	switch s {
-	case "category":
-		return TagTypeCategory, nil
-	case "person":
-		return TagTypeTag, nil
-	default:
-		return "", fmt.Errorf("invalid tag type %s", s)
-	}
+	Color     string    `json:"color"`
+	Icon      string    `json:"icon"`
 }
 
 type TagStatus string

@@ -18,7 +18,7 @@ database:
     db: "re-news"
   neo4j:
     uri: "bolt://localhost:7687"
-    user: "neo4j"
+    username: "neo4j"
     password: "example"
 
 jwt:
