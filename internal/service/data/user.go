@@ -28,7 +28,7 @@ type users struct {
 	dislikes neodb.Dislikes
 }
 
-func NewUser(cfg *config.Config) (Users, error) {
+func NewUsers(cfg config.Config) (Users, error) {
 	neo, err := neodb.NewUsers(cfg.Database.Neo4j.URI, cfg.Database.Neo4j.Username, cfg.Database.Neo4j.Password)
 	if err != nil {
 		return nil, err

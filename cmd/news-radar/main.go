@@ -1,4 +1,4 @@
-package news_radar
+package main
 
 import (
 	"os"

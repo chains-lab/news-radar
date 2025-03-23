@@ -6,6 +6,8 @@ import (
 
 	_ "github.com/lib/pq" // postgres driver don`t delete
 	"github.com/pkg/errors"
+	"github.com/recovery-flow/comtools/logkit"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -88,4 +90,9 @@ func LoadConfig() (*Config, error) {
 	}
 
 	return &config, nil
+}
+
+func (c *Config) Log() *logrus.Logger {
+	logger := logkit.SetupLogger(c.Server.Log.Level, c.Server.Log.Format)
+	return logger
 }

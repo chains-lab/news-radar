@@ -21,7 +21,7 @@ type themes struct {
 	neo   neodb.Themes
 }
 
-func NewTheme(cfg config.Config) (Themes, error) {
+func NewThemes(cfg config.Config) (Themes, error) {
 	neo, err := neodb.NewThemes(cfg.Database.Neo4j.URI, cfg.Database.Neo4j.Username, cfg.Database.Neo4j.Password)
 	if err != nil {
 		return nil, err

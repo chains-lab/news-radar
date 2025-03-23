@@ -11,7 +11,7 @@ import (
 	"github.com/alecthomas/kingpin"
 	"github.com/recovery-flow/comtools/logkit"
 	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/service"
+	"github.com/recovery-flow/news-radar/internal/service/app"
 )
 
 func Run(args []string) bool {
@@ -24,23 +24,23 @@ func Run(args []string) bool {
 	logger.Info("Starting server...")
 
 	var (
-		app        = kingpin.New("news-radar", "")
-		runCmd     = app.Command("run", "run command")
-		serviceCmd = runCmd.Command("service", "run service")
+		application = kingpin.New("news-radar", "")
+		runCmd      = application.Command("run", "run command")
+		serviceCmd  = runCmd.Command("service", "run service")
 	)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	svc, err := service.NewService(cfg, logger)
+	var wg sync.WaitGroup
+
+	app, err := app.NewApp(*cfg)
 	if err != nil {
-		logger.Fatalf("failed to create server: %v", err)
+		logger.WithError(err).Error("failed to create app")
 		return false
 	}
 
-	var wg sync.WaitGroup
-
-	cmd, err := app.Parse(args[1:])
+	cmd, err := application.Parse(args[1:])
 	if err != nil {
 		logger.WithError(err).Error("failed to parse arguments")
 		return false
@@ -48,7 +48,7 @@ func Run(args []string) bool {
 
 	switch cmd {
 	case serviceCmd.FullCommand():
-		runServices(ctx, &wg, svc)
+		runServices(ctx, &wg, app, cfg)
 	default:
 		logger.Errorf("unknown command %s", cmd)
 		return false
