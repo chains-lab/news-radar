@@ -10,8 +10,8 @@ import (
 
 	"github.com/alecthomas/kingpin"
 	"github.com/recovery-flow/comtools/logkit"
+	"github.com/recovery-flow/news-radar/internal/app"
 	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/service/app"
 )
 
 func Run(args []string) bool {
@@ -34,9 +34,9 @@ func Run(args []string) bool {
 
 	var wg sync.WaitGroup
 
-	app, err := app.NewApp(*cfg)
+	domain, err := service.NewApp(*cfg)
 	if err != nil {
-		logger.WithError(err).Error("failed to create app")
+		logger.WithError(err).Error("failed to create domain")
 		return false
 	}
 
@@ -48,7 +48,7 @@ func Run(args []string) bool {
 
 	switch cmd {
 	case serviceCmd.FullCommand():
-		runServices(ctx, &wg, app, cfg)
+		runServices(ctx, &wg, domain, cfg)
 	default:
 		logger.Errorf("unknown command %s", cmd)
 		return false

@@ -4,13 +4,13 @@ import (
 	"context"
 	"sync"
 
+	"github.com/recovery-flow/news-radar/internal/api"
+	"github.com/recovery-flow/news-radar/internal/app"
 	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/service/api"
-	"github.com/recovery-flow/news-radar/internal/service/app"
-	"github.com/recovery-flow/news-radar/internal/service/workers/evelisten"
+	"github.com/recovery-flow/news-radar/internal/workers/eventlistener"
 )
 
-func runServices(ctx context.Context, wg *sync.WaitGroup, app app.App, cfg *config.Config) {
+func runServices(ctx context.Context, wg *sync.WaitGroup, domain service.Domain, cfg *config.Config) {
 	run := func(f func()) {
 		wg.Add(1)
 		go func() {
@@ -19,7 +19,7 @@ func runServices(ctx context.Context, wg *sync.WaitGroup, app app.App, cfg *conf
 		}()
 	}
 
-	run(func() { api.Run(ctx, cfg, app) })
+	run(func() { api.Run(ctx, cfg, domain) })
 
-	run(func() { evelisten.Listen(ctx, cfg, app) })
+	run(func() { eventlistener.Listen(ctx, cfg, domain) })
 }

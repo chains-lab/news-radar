@@ -2,18 +2,18 @@ package entities
 
 import (
 	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/service/data"
+	"github.com/recovery-flow/news-radar/internal/service/repo"
 )
 
 type Authors interface {
 }
 
 type authors struct {
-	data data.Authors
+	data repo.Authors
 }
 
 func NewAuthors(cfg config.Config) (Authors, error) {
-	repo, err := data.NewAuthors(cfg)
+	repo, err := repo.NewAuthors(cfg)
 	if err != nil {
 		return nil, err
 	}

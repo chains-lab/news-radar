@@ -2,23 +2,23 @@ package entities
 
 import (
 	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/service/data"
+	"github.com/recovery-flow/news-radar/internal/service/repo"
 )
 
 type Themes interface {
 }
 
 type theme struct {
-	data data.Themes
+	data repo.Themes
 }
 
 func NewThemes(cfg config.Config) (Themes, error) {
-	repo, err := data.NewThemes(cfg)
+	data, err := repo.NewThemes(cfg)
 	if err != nil {
 		return nil, err
 	}
 
 	return &theme{
-		data: repo,
+		data: data,
 	}, nil
 }

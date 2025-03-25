@@ -1,20 +1,20 @@
-package evelisten
+package eventlistener
 
 import (
 	"context"
 	"time"
 
+	"github.com/recovery-flow/news-radar/internal/app"
 	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/service/app"
-	"github.com/recovery-flow/news-radar/internal/service/events"
-	"github.com/recovery-flow/news-radar/internal/service/events/reader"
+	"github.com/recovery-flow/news-radar/internal/events"
+	"github.com/recovery-flow/news-radar/internal/events/reader"
 	"github.com/segmentio/kafka-go"
 )
 
-func Listen(ctx context.Context, cfg *config.Config, app app.App) {
+func Listen(ctx context.Context, cfg *config.Config, domain service.Domain) {
 	logger := cfg.Log().WithField("listener", "kafka")
 
-	reactionsWriter := reader.NewReactions(logger, app, kafka.NewReader(kafka.ReaderConfig{
+	reactionsWriter := reader.NewReactions(logger, domain, kafka.NewReader(kafka.ReaderConfig{
 		Brokers:        cfg.Kafka.Brokers,
 		Topic:          events.ReactionsTopic,
 		MinBytes:       1,
@@ -22,7 +22,7 @@ func Listen(ctx context.Context, cfg *config.Config, app app.App) {
 		CommitInterval: time.Second,
 	}))
 
-	accountsWriter := reader.NewAccounts(logger, app, kafka.NewReader(kafka.ReaderConfig{
+	accountsWriter := reader.NewAccounts(logger, domain, kafka.NewReader(kafka.ReaderConfig{
 		Brokers:        cfg.Kafka.Brokers,
 		Topic:          events.AccountsTopic,
 		MinBytes:       1,

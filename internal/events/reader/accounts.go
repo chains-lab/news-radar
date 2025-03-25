@@ -4,8 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/recovery-flow/news-radar/internal/service/app"
-	"github.com/recovery-flow/news-radar/internal/service/events"
+	"github.com/recovery-flow/news-radar/internal/events"
 	"github.com/segmentio/kafka-go"
 	"github.com/sirupsen/logrus"
 )
@@ -17,21 +16,21 @@ type Accounts interface {
 }
 
 type accounts struct {
-	log *logrus.Entry
-	app app.App
+	log    *logrus.Entry
+	domain app.Domain
 	*kafka.Reader
 }
 
-func NewAccounts(log *logrus.Entry, app app.App, r *kafka.Reader) Accounts {
+func NewAccounts(log *logrus.Entry, app app.Domain, r *kafka.Reader) Accounts {
 	return &accounts{
 		log:    log,
-		app:    app,
+		domain: app,
 		Reader: r,
 	}
 }
 
 func (a *accounts) Create(eve events.AccountCreated) error {
-	//res, err := a.app.Accounts.Create(ctx, eve.AccountID)
+	//res, err := a.domain.Accounts.Create(ctx, eve.AccountID)
 	//if err != nil {
 	//	return err
 	//}

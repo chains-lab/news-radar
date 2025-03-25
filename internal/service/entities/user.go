@@ -2,20 +2,20 @@ package entities
 
 import (
 	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/service/data"
-	"github.com/recovery-flow/news-radar/internal/service/events/writer"
+	"github.com/recovery-flow/news-radar/internal/events/writer"
+	"github.com/recovery-flow/news-radar/internal/service/repo"
 )
 
 type User interface {
 }
 
 type user struct {
-	data   data.Users
+	data   repo.Users
 	writer writer.Reaction
 }
 
 func NewUser(cfg config.Config) (User, error) {
-	repo, err := data.NewUsers(cfg)
+	data, err := repo.NewUsers(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +23,7 @@ func NewUser(cfg config.Config) (User, error) {
 	reaction := writer.NewReactions(cfg)
 
 	return &user{
-		data:   repo,
+		data:   data,
 		writer: reaction,
 	}, nil
 }

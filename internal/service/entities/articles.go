@@ -2,23 +2,23 @@ package entities
 
 import (
 	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/service/data"
+	"github.com/recovery-flow/news-radar/internal/service/repo"
 )
 
 type Articles interface {
 }
 
 type articles struct {
-	data data.Article
+	data repo.Article
 }
 
 func NewArticles(cfg config.Config) (Articles, error) {
-	repo, err := data.NewArticles(cfg)
+	data, err := repo.NewArticles(cfg)
 	if err != nil {
 		return nil, err
 	}
 
 	return &articles{
-		data: repo,
+		data: data,
 	}, nil
 }
