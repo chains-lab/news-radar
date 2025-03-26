@@ -7,7 +7,7 @@ import (
 	"github.com/recovery-flow/news-radar/internal/api"
 	"github.com/recovery-flow/news-radar/internal/app"
 	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/services/eventlistener"
+	"github.com/recovery-flow/news-radar/internal/workers/eventlistener"
 )
 
 func runServices(ctx context.Context, wg *sync.WaitGroup, app app.App, cfg *config.Config) {

@@ -68,7 +68,7 @@ func (a *accounts) Listen(ctx context.Context) {
 			switch ie.EventType {
 			case events.AccountCreateType:
 				if err := a.Create(eve); err != nil {
-					a.log.WithError(err).Error("Error processing like reaction")
+					a.log.WithError(err).Error("Error processing Like reaction")
 					continue
 				}
 			default:

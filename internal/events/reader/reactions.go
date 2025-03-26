@@ -12,11 +12,11 @@ import (
 )
 
 type Reactions interface {
-	like(eve events.Reaction, articleID uuid.UUID) error
-	likeRemove(eve events.Reaction, articleID uuid.UUID) error
-	dislike(eve events.Reaction, articleID uuid.UUID) error
-	dislikeRemove(eve events.Reaction, articleID uuid.UUID) error
-	repost(eve events.Reaction, articleID uuid.UUID) error
+	Like(eve events.Reaction, articleID uuid.UUID) error
+	LikeRemove(eve events.Reaction, articleID uuid.UUID) error
+	Dislike(eve events.Reaction, articleID uuid.UUID) error
+	DislikeRemove(eve events.Reaction, articleID uuid.UUID) error
+	Repost(eve events.Reaction, articleID uuid.UUID) error
 
 	Listen(ctx context.Context)
 }
@@ -33,6 +33,62 @@ func NewReactions(log *logrus.Entry, app app.App, r *kafka.Reader) Reactions {
 		app:    app,
 		Reader: r,
 	}
+}
+
+func (r *reactions) Like(eve events.Reaction, articleID uuid.UUID) error {
+
+	//res, err := r.app.UserLike(ctx, accountID, articleID)
+	//if err != nil {
+	//	return err
+	//}
+
+	r.log.Infof("user %s Like article %s", eve.UserID, articleID)
+	return nil
+}
+
+func (r *reactions) LikeRemove(eve events.Reaction, articleID uuid.UUID) error {
+
+	//_, err = r.app.UserLikeRemove(ctx, accountID, articleID)
+	//if err != nil {
+	//	return err
+	//}
+
+	r.log.Infof("user %s Like article %s", eve.UserID, articleID)
+	return nil
+}
+
+func (r *reactions) Dislike(eve events.Reaction, articleID uuid.UUID) error {
+
+	//_, err = r.app.UserDislike(ctx, accountID, articleID)
+	//if err != nil {
+	//	return err
+	//}
+
+	r.log.Infof("user %s Dislike article %s", eve.UserID, articleID)
+
+	return nil
+}
+
+func (r *reactions) DislikeRemove(eve events.Reaction, articleID uuid.UUID) error {
+
+	//_, err = r.app.UserDislikeRemove(ctx, accountID, articleID)
+	//if err != nil {
+	//	return err
+	//}
+
+	r.log.Infof("user %s Dislike article %s", eve.UserID, articleID)
+	return nil
+}
+
+func (r *reactions) Repost(eve events.Reaction, articleID uuid.UUID) error {
+
+	//_, err = r.app.UserRepost(ctx, accountID, articleID)
+	//if err != nil {
+	//	return err
+	//}
+
+	r.log.Infof("user %s Repost article %s", eve.UserID, articleID)
+	return nil
 }
 
 func (r *reactions) Listen(ctx context.Context) {
@@ -68,28 +124,28 @@ func (r *reactions) Listen(ctx context.Context) {
 
 			switch ie.EventType {
 			case events.LikeEventType:
-				if err := r.like(eve, articleID); err != nil {
-					r.log.WithError(err).Error("Error processing like reaction")
+				if err := r.Like(eve, articleID); err != nil {
+					r.log.WithError(err).Error("Error processing Like reaction")
 					continue
 				}
 			case events.LikeRemoveEventType:
-				if err := r.likeRemove(eve, articleID); err != nil {
-					r.log.WithError(err).Error("Error processing like removal reaction")
+				if err := r.LikeRemove(eve, articleID); err != nil {
+					r.log.WithError(err).Error("Error processing Like removal reaction")
 					continue
 				}
 			case events.DislikeEventType:
-				if err := r.dislike(eve, articleID); err != nil {
-					r.log.WithError(err).Error("Error processing dislike reaction")
+				if err := r.Dislike(eve, articleID); err != nil {
+					r.log.WithError(err).Error("Error processing Dislike reaction")
 					continue
 				}
 			case events.DislikeRemoveEventType:
-				if err := r.dislikeRemove(eve, articleID); err != nil {
-					r.log.WithError(err).Error("Error processing dislike removal reaction")
+				if err := r.DislikeRemove(eve, articleID); err != nil {
+					r.log.WithError(err).Error("Error processing Dislike removal reaction")
 					continue
 				}
 			case events.RepostEventType:
-				if err := r.repost(eve, articleID); err != nil {
-					r.log.WithError(err).Error("Error processing repost reaction")
+				if err := r.Repost(eve, articleID); err != nil {
+					r.log.WithError(err).Error("Error processing Repost reaction")
 					continue
 				}
 			default:
@@ -99,60 +155,4 @@ func (r *reactions) Listen(ctx context.Context) {
 	}()
 	<-ctx.Done()
 	r.log.Info("Reactions listener stopped")
-}
-
-func (r *reactions) like(eve events.Reaction, articleID uuid.UUID) error {
-
-	//res, err := r.app.UserLike(ctx, accountID, articleID)
-	//if err != nil {
-	//	return err
-	//}
-
-	r.log.Infof("user %s like article %s", eve.UserID, articleID)
-	return nil
-}
-
-func (r *reactions) likeRemove(eve events.Reaction, articleID uuid.UUID) error {
-
-	//_, err = r.app.UserLikeRemove(ctx, accountID, articleID)
-	//if err != nil {
-	//	return err
-	//}
-
-	r.log.Infof("user %s like article %s", eve.UserID, articleID)
-	return nil
-}
-
-func (r *reactions) dislike(eve events.Reaction, articleID uuid.UUID) error {
-
-	//_, err = r.app.UserDislike(ctx, accountID, articleID)
-	//if err != nil {
-	//	return err
-	//}
-
-	r.log.Infof("user %s dislike article %s", eve.UserID, articleID)
-
-	return nil
-}
-
-func (r *reactions) dislikeRemove(eve events.Reaction, articleID uuid.UUID) error {
-
-	//_, err = r.app.UserDislikeRemove(ctx, accountID, articleID)
-	//if err != nil {
-	//	return err
-	//}
-
-	r.log.Infof("user %s dislike article %s", eve.UserID, articleID)
-	return nil
-}
-
-func (r *reactions) repost(eve events.Reaction, articleID uuid.UUID) error {
-
-	//_, err = r.app.UserRepost(ctx, accountID, articleID)
-	//if err != nil {
-	//	return err
-	//}
-
-	r.log.Infof("user %s repost article %s", eve.UserID, articleID)
-	return nil
 }
