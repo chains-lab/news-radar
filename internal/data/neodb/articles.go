@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
-	"github.com/recovery-flow/news-radar/internal/service/models"
+	"github.com/recovery-flow/news-radar/internal/app/models"
 )
 
 type Article struct {

@@ -2,7 +2,7 @@ package entities
 
 import (
 	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/service/repo"
+	"github.com/recovery-flow/news-radar/internal/repo"
 )
 
 type Authors interface {

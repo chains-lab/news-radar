@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/google/uuid"
+	"github.com/recovery-flow/news-radar/internal/app"
 	"github.com/recovery-flow/news-radar/internal/events"
 	"github.com/segmentio/kafka-go"
 	"github.com/sirupsen/logrus"
@@ -21,15 +22,15 @@ type Reactions interface {
 }
 
 type reactions struct {
-	log    *logrus.Entry
-	domain app.Domain
+	log *logrus.Entry
+	app app.App
 	*kafka.Reader
 }
 
-func NewReactions(log *logrus.Entry, domain app.Domain, r *kafka.Reader) Reactions {
+func NewReactions(log *logrus.Entry, app app.App, r *kafka.Reader) Reactions {
 	return &reactions{
 		log:    log,
-		domain: domain,
+		app:    app,
 		Reader: r,
 	}
 }
@@ -102,7 +103,7 @@ func (r *reactions) Listen(ctx context.Context) {
 
 func (r *reactions) like(eve events.Reaction, articleID uuid.UUID) error {
 
-	//res, err := r.domain.UserLike(ctx, accountID, articleID)
+	//res, err := r.app.UserLike(ctx, accountID, articleID)
 	//if err != nil {
 	//	return err
 	//}
@@ -113,7 +114,7 @@ func (r *reactions) like(eve events.Reaction, articleID uuid.UUID) error {
 
 func (r *reactions) likeRemove(eve events.Reaction, articleID uuid.UUID) error {
 
-	//_, err = r.domain.UserLikeRemove(ctx, accountID, articleID)
+	//_, err = r.app.UserLikeRemove(ctx, accountID, articleID)
 	//if err != nil {
 	//	return err
 	//}
@@ -124,7 +125,7 @@ func (r *reactions) likeRemove(eve events.Reaction, articleID uuid.UUID) error {
 
 func (r *reactions) dislike(eve events.Reaction, articleID uuid.UUID) error {
 
-	//_, err = r.domain.UserDislike(ctx, accountID, articleID)
+	//_, err = r.app.UserDislike(ctx, accountID, articleID)
 	//if err != nil {
 	//	return err
 	//}
@@ -136,7 +137,7 @@ func (r *reactions) dislike(eve events.Reaction, articleID uuid.UUID) error {
 
 func (r *reactions) dislikeRemove(eve events.Reaction, articleID uuid.UUID) error {
 
-	//_, err = r.domain.UserDislikeRemove(ctx, accountID, articleID)
+	//_, err = r.app.UserDislikeRemove(ctx, accountID, articleID)
 	//if err != nil {
 	//	return err
 	//}
@@ -147,7 +148,7 @@ func (r *reactions) dislikeRemove(eve events.Reaction, articleID uuid.UUID) erro
 
 func (r *reactions) repost(eve events.Reaction, articleID uuid.UUID) error {
 
-	//_, err = r.domain.UserRepost(ctx, accountID, articleID)
+	//_, err = r.app.UserRepost(ctx, accountID, articleID)
 	//if err != nil {
 	//	return err
 	//}

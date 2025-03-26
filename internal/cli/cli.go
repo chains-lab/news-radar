@@ -34,9 +34,9 @@ func Run(args []string) bool {
 
 	var wg sync.WaitGroup
 
-	domain, err := service.NewApp(*cfg)
+	svc, err := app.NewApp(*cfg)
 	if err != nil {
-		logger.WithError(err).Error("failed to create domain")
+		logger.WithError(err).Error("failed to create svc")
 		return false
 	}
 
@@ -48,7 +48,7 @@ func Run(args []string) bool {
 
 	switch cmd {
 	case serviceCmd.FullCommand():
-		runServices(ctx, &wg, domain, cfg)
+		runServices(ctx, &wg, svc, cfg)
 	default:
 		logger.Errorf("unknown command %s", cmd)
 		return false

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/recovery-flow/news-radar/internal/app"
 	"github.com/recovery-flow/news-radar/internal/config"
 	"github.com/sirupsen/logrus"
 )
@@ -12,7 +13,7 @@ type ctxKey int
 
 const (
 	logCtxKey ctxKey = iota
-	domainCtxKey
+	appCtxKey
 	configCtxKey
 )
 
@@ -26,14 +27,14 @@ func Log(r *http.Request) *logrus.Logger {
 	return r.Context().Value(logCtxKey).(*logrus.Logger)
 }
 
-func CtxDomain(entry app.Domain) func(context.Context) context.Context {
+func CtxApp(entry app.App) func(context.Context) context.Context {
 	return func(ctx context.Context) context.Context {
-		return context.WithValue(ctx, domainCtxKey, entry)
+		return context.WithValue(ctx, appCtxKey, entry)
 	}
 }
 
-func Domain(r *http.Request) app.Domain {
-	return r.Context().Value(domainCtxKey).(app.Domain)
+func App(r *http.Request) app.App {
+	return r.Context().Value(appCtxKey).(app.App)
 }
 
 func CtxConfig(entry *config.Config) func(context.Context) context.Context {

@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/recovery-flow/news-radar/internal/app/models"
 	"github.com/recovery-flow/news-radar/internal/config"
 	"github.com/recovery-flow/news-radar/internal/data/mongodb"
 	"github.com/recovery-flow/news-radar/internal/data/neodb"
 	"github.com/recovery-flow/news-radar/internal/data/redisdb"
-	"github.com/recovery-flow/news-radar/internal/service/models"
 )
 
 type Article interface {

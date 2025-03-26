@@ -11,10 +11,10 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-func Listen(ctx context.Context, cfg *config.Config, domain service.Domain) {
+func Listen(ctx context.Context, cfg *config.Config, app app.App) {
 	logger := cfg.Log().WithField("listener", "kafka")
 
-	reactionsWriter := reader.NewReactions(logger, domain, kafka.NewReader(kafka.ReaderConfig{
+	reactionsWriter := reader.NewReactions(logger, app, kafka.NewReader(kafka.ReaderConfig{
 		Brokers:        cfg.Kafka.Brokers,
 		Topic:          events.ReactionsTopic,
 		MinBytes:       1,
@@ -22,7 +22,7 @@ func Listen(ctx context.Context, cfg *config.Config, domain service.Domain) {
 		CommitInterval: time.Second,
 	}))
 
-	accountsWriter := reader.NewAccounts(logger, domain, kafka.NewReader(kafka.ReaderConfig{
+	accountsWriter := reader.NewAccounts(logger, app, kafka.NewReader(kafka.ReaderConfig{
 		Brokers:        cfg.Kafka.Brokers,
 		Topic:          events.AccountsTopic,
 		MinBytes:       1,

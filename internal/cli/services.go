@@ -7,10 +7,10 @@ import (
 	"github.com/recovery-flow/news-radar/internal/api"
 	"github.com/recovery-flow/news-radar/internal/app"
 	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/workers/eventlistener"
+	"github.com/recovery-flow/news-radar/internal/services/eventlistener"
 )
 
-func runServices(ctx context.Context, wg *sync.WaitGroup, domain service.Domain, cfg *config.Config) {
+func runServices(ctx context.Context, wg *sync.WaitGroup, app app.App, cfg *config.Config) {
 	run := func(f func()) {
 		wg.Add(1)
 		go func() {
@@ -19,7 +19,8 @@ func runServices(ctx context.Context, wg *sync.WaitGroup, domain service.Domain,
 		}()
 	}
 
-	run(func() { api.Run(ctx, cfg, domain) })
+	API := api.NewAPI(cfg, app)
+	run(func() { API.Run(ctx) })
 
-	run(func() { eventlistener.Listen(ctx, cfg, domain) })
+	run(func() { eventlistener.Listen(ctx, cfg, app) })
 }

@@ -1,14 +1,14 @@
-package service
+package app
 
 import (
+	"github.com/recovery-flow/news-radar/internal/app/entities"
 	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/service/entities"
 )
 
-type Domain interface {
+type App interface {
 }
 
-type domain struct {
+type app struct {
 	articles entities.Articles
 	authors  entities.Authors
 	tags     entities.Tags
@@ -16,7 +16,7 @@ type domain struct {
 	user     entities.User
 }
 
-func NewApp(cfg config.Config) (Domain, error) {
+func NewApp(cfg config.Config) (App, error) {
 	articles, err := entities.NewArticles(cfg)
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func NewApp(cfg config.Config) (Domain, error) {
 		return nil, err
 	}
 
-	return &domain{
+	return &app{
 		articles: articles,
 		authors:  authors,
 		tags:     tags,
