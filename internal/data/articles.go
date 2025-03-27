@@ -1,4 +1,4 @@
-package repo
+package data
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/recovery-flow/news-radar/internal/data/neodb"
 )
 
-type ArticlesMongo interface {
+type articlesMongo interface {
 	New() *mongodb.ArticlesQ
 
 	Insert(ctx context.Context, article *mongodb.ArticleModel) (*mongodb.ArticleModel, error)
@@ -30,7 +30,7 @@ type ArticlesMongo interface {
 	Sort(field string, ascending bool) *mongodb.ArticlesQ
 }
 
-type ArticlesNeo interface {
+type articlesNeo interface {
 	Create(ctx context.Context, article *neodb.ArticleModel) error
 	Delete(ctx context.Context, ID uuid.UUID) error
 	Get(ctx context.Context, ID uuid.UUID) (*neodb.ArticleModel, error)
@@ -38,39 +38,13 @@ type ArticlesNeo interface {
 	UpdateStatus(ctx context.Context, ID uuid.UUID, status models.ArticleStatus) error
 }
 
-type Hashtag interface {
-	Create(ctx context.Context, articleID uuid.UUID, tag string) error
-	Delete(ctx context.Context, articleID uuid.UUID, tag string) error
-
-	SetForArticle(ctx context.Context, articleID uuid.UUID, tags []string) error
-	GetForArticle(ctx context.Context, articleID uuid.UUID) ([]*models.Tag, error)
-}
-
-type Authorship interface {
-	Create(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error
-	Delete(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error
-
-	SetForArticle(ctx context.Context, ID uuid.UUID, author []uuid.UUID) error
-	GetForArticle(ctx context.Context, ID uuid.UUID) ([]uuid.UUID, error)
-
-	GetForAuthor(ctx context.Context, ID uuid.UUID) ([]uuid.UUID, error)
-}
-
-type About interface {
-	Create(ctx context.Context, articleID uuid.UUID, theme string) error
-	Delete(ctx context.Context, articleID uuid.UUID, theme string) error
-
-	SetForArticle(ctx context.Context, articleID uuid.UUID, themes []string) error
-	GetForArticle(ctx context.Context, articleID uuid.UUID) ([]*neodb.ThemeModels, error)
-}
-
 type ArticlesRepo struct {
-	mongo ArticlesMongo
-	neo   ArticlesNeo
+	mongo articlesMongo
+	neo   articlesNeo
 
-	hashtag    Hashtag
-	authorship Authorship
-	about      About
+	hashtag    hashtag
+	authorship authorship
+	about      about
 }
 
 func NewArticles(cfg config.Config) (*ArticlesRepo, error) {
@@ -181,6 +155,14 @@ func (a *ArticlesRepo) GetByID(ctx context.Context, ID uuid.UUID) (*models.Artic
 	return &res, nil
 }
 
+type hashtag interface {
+	Create(ctx context.Context, articleID uuid.UUID, tag string) error
+	Delete(ctx context.Context, articleID uuid.UUID, tag string) error
+
+	SetForArticle(ctx context.Context, articleID uuid.UUID, tags []string) error
+	GetForArticle(ctx context.Context, articleID uuid.UUID) ([]*models.Tag, error)
+}
+
 func (a *ArticlesRepo) SetTags(ctx context.Context, articleID uuid.UUID, tags []string) error {
 	err := a.hashtag.SetForArticle(ctx, articleID, tags)
 	if err != nil {
@@ -205,6 +187,14 @@ func (a *ArticlesRepo) DeleteTag(ctx context.Context, articleID uuid.UUID, tag s
 	return nil
 }
 
+type about interface {
+	Create(ctx context.Context, articleID uuid.UUID, theme string) error
+	Delete(ctx context.Context, articleID uuid.UUID, theme string) error
+
+	SetForArticle(ctx context.Context, articleID uuid.UUID, themes []string) error
+	GetForArticle(ctx context.Context, articleID uuid.UUID) ([]neodb.ThemeModels, error)
+}
+
 func (a *ArticlesRepo) SetTheme(ctx context.Context, articleID uuid.UUID, theme []string) error {
 	err := a.about.SetForArticle(ctx, articleID, theme)
 	if err != nil {
@@ -227,6 +217,16 @@ func (a *ArticlesRepo) DeleteTheme(ctx context.Context, articleID uuid.UUID, the
 		return err
 	}
 	return nil
+}
+
+type authorship interface {
+	Create(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error
+	Delete(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error
+
+	SetForArticle(ctx context.Context, ID uuid.UUID, author []uuid.UUID) error
+	GetForArticle(ctx context.Context, ID uuid.UUID) ([]uuid.UUID, error)
+
+	GetForAuthor(ctx context.Context, ID uuid.UUID) ([]uuid.UUID, error)
 }
 
 func (a *ArticlesRepo) SetAuthors(ctx context.Context, articleID uuid.UUID, authors []uuid.UUID) error {

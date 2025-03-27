@@ -1,6 +1,9 @@
 package app
 
 import (
+	"context"
+
+	"github.com/google/uuid"
 	"github.com/recovery-flow/news-radar/internal/app/entities"
 	"github.com/recovery-flow/news-radar/internal/config"
 )
@@ -18,6 +21,16 @@ type Theme interface {
 }
 
 type User interface {
+}
+
+type Reaction interface {
+	MakeLike(ctx context.Context, userID, articleID uuid.UUID) error
+	RemoveLike(ctx context.Context, userID, articleID uuid.UUID) error
+
+	MakeDislike(ctx context.Context, userID, articleID uuid.UUID) error
+	RemoveDislike(ctx context.Context, userID, articleID uuid.UUID) error
+
+	MakeRepost(ctx context.Context, userID, articleID uuid.UUID) error
 }
 
 type App struct {
@@ -61,4 +74,8 @@ func NewApp(cfg config.Config) (*App, error) {
 		themes:   themes,
 		user:     user,
 	}, nil
+}
+
+func (a *App) Testacion() {
+
 }

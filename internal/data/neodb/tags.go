@@ -43,7 +43,7 @@ func (t *TagsImpl) Create(ctx context.Context, tag TagModels) error {
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			CREATE (t:TagModels {
+			CREATE (t:Tag {
 				name: $name,
 				status: $status,
 				created_at: $created_at
@@ -74,7 +74,7 @@ func (t *TagsImpl) Delete(ctx context.Context, name string) error {
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (t:TagModels { name: $name })
+			MATCH (t:Tag { name: $name })
 			DETACH DELETE t
 		`
 		params := map[string]any{
@@ -98,7 +98,7 @@ func (t *TagsImpl) UpdateStatus(ctx context.Context, name string, status models.
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (t:TagModels { name: $name })
+			MATCH (t:Tag { name: $name })
 			SET t.status = $status
 			RETURN t
 		`
@@ -126,7 +126,7 @@ func (t *TagsImpl) UpdateName(ctx context.Context, name string, newName string) 
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (t:TagModels { name: $name })
+			MATCH (t:Tag { name: $name })
 			SET t.name = $newName
 			RETURN t
 		`
@@ -153,7 +153,7 @@ func (t *TagsImpl) Get(ctx context.Context, name string) (*TagModels, error) {
 	defer session.Close()
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (t:TagModels)
+			MATCH (t:Tag)
 			WHERE toLower(t.name) CONTAINS toLower($name)
 			RETURN t
 		`
@@ -199,8 +199,8 @@ func (t *TagsImpl) Select(ctx context.Context) ([]TagModels, error) {
 	defer session.Close()
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (t:TagModels)
-			OPTIONAL MATCH (t)<-[r:ABOUT]-(:ArticleModel)
+			MATCH (t:Tag)
+			OPTIONAL MATCH (t)<-[r:ABOUT]-(:Article)
 			WITH t, count(r) as popularity
 			RETURN t ORDER BY popularity DESC
 		`

@@ -6,10 +6,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/recovery-flow/news-radar/internal/app/models"
 	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/repo"
+	"github.com/recovery-flow/news-radar/internal/data"
 )
 
-type ArticlesRepo interface {
+type articlesRepo interface {
 	Create(ctx context.Context, article models.Article) error
 	Update(ctx context.Context, ID uuid.UUID, fields map[string]any) error
 	Delete(ctx context.Context, ID uuid.UUID) error
@@ -30,11 +30,11 @@ type ArticlesRepo interface {
 }
 
 type Articles struct {
-	data ArticlesRepo
+	data articlesRepo
 }
 
 func NewArticles(cfg config.Config) (*Articles, error) {
-	repo, err := repo.NewArticles(cfg)
+	repo, err := data.NewArticles(cfg)
 	if err != nil {
 		return nil, err
 	}

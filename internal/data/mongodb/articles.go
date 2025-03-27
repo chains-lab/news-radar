@@ -25,7 +25,7 @@ type ArticleModel struct {
 }
 
 const (
-	ArticlesCollection = "ArticlesQ"
+	ArticlesCollection = "Articles"
 )
 
 type ArticlesQ struct {

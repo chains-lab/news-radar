@@ -1,4 +1,4 @@
-package repo
+package data
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/recovery-flow/news-radar/internal/data/redisdb"
 )
 
-type TagsRedis interface {
+type tagsRedis interface {
 	Add(ctx context.Context, tag redisdb.TagModels) error
 	Get(ctx context.Context, tag string) (*redisdb.TagModels, error)
 	Delete(ctx context.Context, tag string) error
@@ -20,7 +20,7 @@ type TagsRedis interface {
 	Drop(ctx context.Context) error
 }
 
-type TagsNeo interface {
+type tagsNeo interface {
 	Create(ctx context.Context, tag neodb.TagModels) error
 	Delete(ctx context.Context, name string) error
 
@@ -32,8 +32,8 @@ type TagsNeo interface {
 }
 
 type Tags struct {
-	redis TagsRedis
-	neo   TagsNeo
+	redis tagsRedis
+	neo   tagsNeo
 }
 
 func NewTags(cfg config.Config) (*Tags, error) {

@@ -5,10 +5,10 @@ import (
 
 	"github.com/recovery-flow/news-radar/internal/app/models"
 	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/repo"
+	"github.com/recovery-flow/news-radar/internal/data"
 )
 
-type ThemesRepo interface {
+type themesRepo interface {
 	Create(ctx context.Context, theme models.Theme) error
 	Delete(ctx context.Context, name string) error
 	Update(ctx context.Context, name string, fields map[string]any) error
@@ -16,11 +16,11 @@ type ThemesRepo interface {
 }
 
 type Theme struct {
-	data ThemesRepo
+	data themesRepo
 }
 
 func NewThemes(cfg config.Config) (*Theme, error) {
-	repo, err := repo.NewThemes(cfg)
+	repo, err := data.NewThemes(cfg)
 	if err != nil {
 		return nil, err
 	}

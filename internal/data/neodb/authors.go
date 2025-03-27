@@ -43,7 +43,7 @@ func (a *AuthorsImpl) Create(ctx context.Context, author *AuthorModel) error {
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			CREATE (au:AuthorModel { id: $id, name: $name, status: $status })
+			CREATE (au:Author { id: $id, name: $name, status: $status })
 			RETURN au
 		`
 		params := map[string]any{
@@ -71,7 +71,7 @@ func (a *AuthorsImpl) Delete(ctx context.Context, id uuid.UUID) error {
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (au:AuthorModel { id: $id })
+			MATCH (au:Author { id: $id })
 			DETACH DELETE au
 		`
 		params := map[string]any{
@@ -97,7 +97,7 @@ func (a *AuthorsImpl) UpdateName(ctx context.Context, id uuid.UUID, name string)
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (au:AuthorModel { id: $id })
+			MATCH (au:Author { id: $id })
 			SET au.name = $name
 			RETURN au
 		`
@@ -126,7 +126,7 @@ func (a *AuthorsImpl) UpdateStatus(ctx context.Context, id uuid.UUID, status mod
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (au:AuthorModel { id: $id })
+			MATCH (au:Author { id: $id })
 			SET au.status = $status
 			RETURN au
 		`
@@ -155,7 +155,7 @@ func (a *AuthorsImpl) GetByID(ctx context.Context, ID uuid.UUID) (*AuthorModel, 
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (au:AuthorModel { id: $id })
+			MATCH (au:Author { id: $id })
 			RETURN au
 			LIMIT 1
 		`

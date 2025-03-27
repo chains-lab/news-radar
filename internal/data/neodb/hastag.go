@@ -38,8 +38,8 @@ func (h *Hashtag) Create(ctx context.Context, articleID uuid.UUID, tag string) e
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (art:ArticleModel { id: $articleID })
-			MATCH (t:TagModels { name: $tagName })
+			MATCH (art:Article { id: $articleID })
+			MATCH (t:Tag { name: $tagName })
 			MERGE (art)-[r:HAS_TAG]->(t)
 		`
 		params := map[string]any{
@@ -67,7 +67,7 @@ func (h *Hashtag) Delete(ctx context.Context, articleID uuid.UUID, tag string) e
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (art:ArticleModel { id: $articleID })-[r:HAS_TAG]->(t:TagModels { name: $tagName })
+			MATCH (art:Article { id: $articleID })-[r:HAS_TAG]->(t:Tag { name: $tagName })
 			DELETE r
 		`
 		params := map[string]any{
@@ -95,7 +95,7 @@ func (h *Hashtag) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]*mo
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (h:ArticleModel { id: $id })-[:HAS_TAG]->(t:TagModels)
+			MATCH (h:Article { id: $id })-[:HAS_TAG]->(t:Tag)
 			RETURN t
 		`
 		params := map[string]any{
@@ -143,7 +143,7 @@ func (h *Hashtag) SetForArticle(ctx context.Context, articleID uuid.UUID, tags [
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		deleteCypher := `
-			MATCH (h:ArticleModel { id: $id })-[r:HAS_TAG]->(:TagModels)
+			MATCH (h:Article { id: $id })-[r:HAS_TAG]->(:Tag)
 			DELETE r
 		`
 		params := map[string]any{"id": articleID.String()}
@@ -153,13 +153,13 @@ func (h *Hashtag) SetForArticle(ctx context.Context, articleID uuid.UUID, tags [
 		}
 
 		createCypher := `
-			MATCH (h:ArticleModel { id: $id })
-			FOREACH (tagName IN $TagsImpl |
-				MATCH (t:TagModels { name: tagName })
+			MATCH (h:Article { id: $id })
+			FOREACH (tagName IN $tags |
+				MATCH (t:Tag { name: tagName })
 				MERGE (h)-[:HAS_TAG]->(t)
 			)
 		`
-		params["TagsImpl"] = tags
+		params["$tags"] = tags
 		_, err = tx.Run(createCypher, params)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create new HAS_TAG relationships: %w", err)

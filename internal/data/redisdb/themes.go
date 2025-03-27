@@ -13,7 +13,7 @@ type ThemeModels struct {
 	Icon  string `json:"icon"`
 }
 
-const themesNamespace = "ThemesImpl"
+const themesNamespace = "themes"
 
 type ThemesImpl struct {
 	client *redis.Client

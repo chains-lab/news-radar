@@ -39,7 +39,7 @@ func (u *UsersImpl) Create(ctx context.Context, user UserModels) error {
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		cypher := `
-			CREATE (u:UserModels {id: $id})
+			CREATE (u:User {id: $id})
 		`
 		_, err := tx.Run(cypher, map[string]interface{}{
 			"id": user.ID.String(),
@@ -58,7 +58,7 @@ func (u *UsersImpl) Delete(ctx context.Context, id uuid.UUID) error {
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		cypher := `
-			MATCH (u:UserModels {id: $id})
+			MATCH (u:User {id: $id})
 			DETACH DELETE u
 		`
 		_, err := tx.Run(cypher, map[string]interface{}{
@@ -78,7 +78,7 @@ func (u *UsersImpl) Get(ctx context.Context, id uuid.UUID) (*UserModels, error) 
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		cypher := `
-			MATCH (u:UserModels {id: $id})
+			MATCH (u:User {id: $id})
 			RETURN u
 		`
 		result, err := tx.Run(cypher, map[string]interface{}{

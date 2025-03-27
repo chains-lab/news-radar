@@ -35,8 +35,8 @@ func (l *LikesImpl) Create(ctx context.Context, userID uuid.UUID, articleID uuid
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		cypher := `
-			MATCH (u:UserModels { id: $userID })
-			MATCH (a:ArticleModel { id: $articleID })
+			MATCH (u:User { id: $userID })
+			MATCH (a:Article { id: $articleID })
 			MERGE (u)-[:LIKED]->(a)
 		`
 		params := map[string]interface{}{
@@ -63,7 +63,7 @@ func (l *LikesImpl) Delete(ctx context.Context, userID uuid.UUID, articleID uuid
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		cypher := `
-			MATCH (u:UserModels { id: $userID })-[l:LIKED]->(a:ArticleModel { id: $articleID })
+			MATCH (u:User { id: $userID })-[l:LIKED]->(a:Article { id: $articleID })
 			DELETE l
 		`
 		params := map[string]interface{}{
@@ -90,7 +90,7 @@ func (l *LikesImpl) GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UU
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (u:UserModels { id: $userID })-[l:LIKED]->(a:ArticleModel)
+			MATCH (u:User { id: $userID })-[l:LIKED]->(a:Article)
 			RETURN a.id AS articleID
 		`
 		params := map[string]interface{}{
@@ -137,7 +137,7 @@ func (l *LikesImpl) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]u
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (a:ArticleModel { id: $articleID })<-[l:LIKED]-(u:UserModels)
+			MATCH (a:Article { id: $articleID })<-[l:LIKED]-(u:User)
 			RETURN u.id AS userID
 		`
 		params := map[string]interface{}{

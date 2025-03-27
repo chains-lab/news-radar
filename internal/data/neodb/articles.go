@@ -44,7 +44,7 @@ func (a *ArticlesImpl) Create(ctx context.Context, article *ArticleModel) error 
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			CREATE (a:ArticleModel { 
+			CREATE (a:Article { 
 				id: $id, 
 				created_at: $created_at,
 				status: $status
@@ -76,7 +76,7 @@ func (a *ArticlesImpl) Delete(ctx context.Context, id uuid.UUID) error {
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (a:ArticleModel { id: $id })
+			MATCH (a:Article { id: $id })
 			DETACH DELETE a
 		`
 		params := map[string]any{
@@ -103,7 +103,7 @@ func (a *ArticlesImpl) UpdateStatus(ctx context.Context, ID uuid.UUID, status mo
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (a:ArticleModel { id: $id })
+			MATCH (a:Article { id: $id })
 			SET a.status = $status
 			RETURN a
 		`
@@ -129,7 +129,7 @@ func (a *ArticlesImpl) Get(ctx context.Context, ID uuid.UUID) (*ArticleModel, er
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (a:ArticleModel { id: $id })
+			MATCH (a:Article { id: $id })
 			RETURN a
 			LIMIT 1
 		`

@@ -1,4 +1,4 @@
-package repo
+package data
 
 import (
 	"context"
@@ -10,10 +10,10 @@ import (
 	"github.com/recovery-flow/news-radar/internal/data/neodb"
 )
 
-type AuthorsRedis interface {
+type authorsRedis interface {
 }
 
-type AuthorsMongo interface {
+type authorsMongo interface {
 	New() *mongodb.AuthorsQ
 
 	Insert(ctx context.Context, author *mongodb.AuthorModel) (*mongodb.AuthorModel, error)
@@ -32,7 +32,7 @@ type AuthorsMongo interface {
 	Sort(field string, ascending bool) *mongodb.AuthorsQ
 }
 
-type AuthorsNeo interface {
+type authorsNeo interface {
 	Create(ctx context.Context, author *neodb.AuthorModel) error
 	Delete(ctx context.Context, ID uuid.UUID) error
 
@@ -43,9 +43,9 @@ type AuthorsNeo interface {
 }
 
 type Authors struct {
-	redis AuthorsRedis
-	mongo AuthorsMongo
-	neo   AuthorsNeo
+	redis authorsRedis
+	mongo authorsMongo
+	neo   authorsNeo
 }
 
 func NewAuthors(cfg config.Config) (*Authors, error) {

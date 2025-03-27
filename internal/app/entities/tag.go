@@ -5,10 +5,10 @@ import (
 
 	"github.com/recovery-flow/news-radar/internal/app/models"
 	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/repo"
+	"github.com/recovery-flow/news-radar/internal/data"
 )
 
-type TagsRepo interface {
+type tagsRepo interface {
 	Create(ctx context.Context, tag models.Tag) error
 	Delete(ctx context.Context, name string) error
 	Update(ctx context.Context, name string, fields map[string]any) error
@@ -16,11 +16,11 @@ type TagsRepo interface {
 }
 
 type Tags struct {
-	data TagsRepo
+	data tagsRepo
 }
 
 func NewTags(cfg config.Config) (*Tags, error) {
-	repo, err := repo.NewTags(cfg)
+	repo, err := data.NewTags(cfg)
 	if err != nil {
 		return nil, err
 	}

@@ -38,7 +38,7 @@ func (t *ThemesImpl) Create(ctx context.Context, theme ThemeModels) error {
 	defer session.Close()
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			CREATE (th:ThemeModels {
+			CREATE (th:Theme {
 				name: $name,
 				status: $status,
 				created_at: $created_at
@@ -67,7 +67,7 @@ func (t *ThemesImpl) Delete(ctx context.Context, themeName string) error {
 	defer session.Close()
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (th:ThemeModels { name: $name })
+			MATCH (th:Theme { name: $name })
 			DETACH DELETE th
 		`
 		params := map[string]any{
@@ -91,7 +91,7 @@ func (t *ThemesImpl) UpdateName(ctx context.Context, name string, newName string
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (t:ThemeModels { name: $name })
+			MATCH (t:Theme { name: $name })
 			SET t.name = $newName
 			RETURN t
 		`
@@ -119,7 +119,7 @@ func (t *ThemesImpl) UpdateStatus(ctx context.Context, name string, status model
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (t:ThemeModels { name: $name })
+			MATCH (t:Theme { name: $name })
 			SET t.status = $status
 			RETURN t
 		`
@@ -146,8 +146,8 @@ func (t *ThemesImpl) Select(ctx context.Context) ([]ThemeModels, error) {
 	defer session.Close()
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (th:ThemeModels)
-			OPTIONAL MATCH (th)<-[r:TOPIC]-(:ArticleModel)
+			MATCH (th:Theme)
+			OPTIONAL MATCH (th)<-[r:TOPIC]-(:Article)
 			WITH th, count(r) as popularity
 			RETURN th ORDER BY popularity DESC
 		`
@@ -195,7 +195,7 @@ func (t *ThemesImpl) Get(ctx context.Context, name string) (*ThemeModels, error)
 	defer session.Close()
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (t:ThemeModels)
+			MATCH (t:Theme)
 			WHERE toLower(t.name) CONTAINS toLower($name)
 			RETURN t
 		`

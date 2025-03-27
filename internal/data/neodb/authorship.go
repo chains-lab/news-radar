@@ -36,8 +36,8 @@ func (a *Authorship) Create(ctx context.Context, articleID uuid.UUID, authorID u
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-            MATCH (art:ArticleModel { id: $articleID })
-            MATCH (auth:AuthorModel { id: $authorID })
+            MATCH (art:Article { id: $articleID })
+            MATCH (auth:Author { id: $authorID })
             MERGE (art)-[:AUTHORED_BY]->(auth)
         `
 		params := map[string]any{
@@ -62,7 +62,7 @@ func (a *Authorship) Delete(ctx context.Context, articleID uuid.UUID, authorID u
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (art:ArticleModel { id: $articleID })-[r:AUTHORED_BY]->(auth:AuthorModel { id: $authorID })
+			MATCH (art:Article { id: $articleID })-[r:AUTHORED_BY]->(auth:Author { id: $authorID })
 			DELETE r
 		`
 		params := map[string]any{
@@ -89,7 +89,7 @@ func (a *Authorship) SetForArticle(ctx context.Context, articleID uuid.UUID, aut
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		deleteCypher := `
-			MATCH (a:ArticleModel { id: $id })-[r:AUTHORED_BY]->(:AuthorModel)
+			MATCH (a:Article { id: $id })-[r:AUTHORED_BY]->(:Author)
 			DELETE r
 		`
 		params := map[string]any{
@@ -106,13 +106,13 @@ func (a *Authorship) SetForArticle(ctx context.Context, articleID uuid.UUID, aut
 		}
 
 		createCypher := `
-			MATCH (a:ArticleModel { id: $id })
-			FOREACH (authorId IN $AuthorsImpl |
-				MATCH (au:AuthorModel { id: authorId })
+			MATCH (a:Article { id: $id })
+			FOREACH (authorId IN $authors |
+				MATCH (au:Author { id: authorId })
 				MERGE (a)-[:AUTHORED_BY]->(au)
 			)
 		`
-		params["AuthorsImpl"] = authorIDs
+		params["authors"] = authorIDs
 
 		_, err = tx.Run(createCypher, params)
 		if err != nil {
@@ -133,7 +133,7 @@ func (a *Authorship) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (a:ArticleModel { id: $id })-[:AUTHORED_BY]->(au:AuthorModel)
+			MATCH (a:Article { id: $id })-[:AUTHORED_BY]->(au:Author)
 			RETURN au.id AS authorID
 		`
 		params := map[string]any{
@@ -176,7 +176,7 @@ func (a *Authorship) GetForAuthor(ctx context.Context, authorID uuid.UUID) ([]uu
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (au:AuthorModel { id: $id })<-[:AUTHORED_BY]-(art:ArticleModel)
+			MATCH (au:Author { id: $id })<-[:AUTHORED_BY]-(art:Article)
 			RETURN art.id AS articleID
 		`
 		params := map[string]any{

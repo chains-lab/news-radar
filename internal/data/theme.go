@@ -1,4 +1,4 @@
-package repo
+package data
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/recovery-flow/news-radar/internal/data/redisdb"
 )
 
-type ThemesRedis interface {
+type themesRedis interface {
 	Add(ctx context.Context, tag redisdb.ThemeModels) error
 	Get(ctx context.Context, tag string) (*redisdb.ThemeModels, error)
 	Delete(ctx context.Context, tag string) error
@@ -20,7 +20,7 @@ type ThemesRedis interface {
 	Drop(ctx context.Context) error
 }
 
-type ThemesNeo interface {
+type themesNeo interface {
 	Create(ctx context.Context, theme neodb.ThemeModels) error
 	Delete(ctx context.Context, name string) error
 	Get(ctx context.Context, name string) (*neodb.ThemeModels, error)
@@ -32,8 +32,8 @@ type ThemesNeo interface {
 }
 
 type Themes struct {
-	redis ThemesRedis
-	neo   ThemesNeo
+	redis themesRedis
+	neo   themesNeo
 }
 
 func NewThemes(cfg config.Config) (*Themes, error) {
