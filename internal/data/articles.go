@@ -48,23 +48,23 @@ type ArticlesRepo struct {
 }
 
 func NewArticles(cfg config.Config) (*ArticlesRepo, error) {
-	mongo, err := mongodb.NewArticles(cfg.Database.Mongo.URI, cfg.Database.Mongo.Name)
+	mongo, err := mongodb.NewArticles(cfg)
 	if err != nil {
 		return nil, err
 	}
-	neo, err := neodb.NewArticles(cfg.Database.Neo4j.URI, cfg.Database.Neo4j.Username, cfg.Database.Neo4j.Password)
+	neo, err := neodb.NewArticles(cfg)
 	if err != nil {
 		return nil, err
 	}
-	hashtag, err := neodb.NewHashtag(cfg.Database.Neo4j.URI, cfg.Database.Neo4j.Username, cfg.Database.Neo4j.Password)
+	hashtagNeo, err := neodb.NewHashtag(cfg)
 	if err != nil {
 		return nil, err
 	}
-	authorship, err := neodb.NewAuthorship(cfg.Database.Neo4j.URI, cfg.Database.Neo4j.Username, cfg.Database.Neo4j.Password)
+	authorshipNeo, err := neodb.NewAuthorship(cfg)
 	if err != nil {
 		return nil, err
 	}
-	about, err := neodb.NewAbout(cfg.Database.Neo4j.URI, cfg.Database.Neo4j.Username, cfg.Database.Neo4j.Password)
+	aboutNeo, err := neodb.NewAbout(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -72,9 +72,9 @@ func NewArticles(cfg config.Config) (*ArticlesRepo, error) {
 		mongo: mongo,
 		neo:   neo,
 
-		hashtag:    hashtag,
-		authorship: authorship,
-		about:      about,
+		hashtag:    hashtagNeo,
+		authorship: authorshipNeo,
+		about:      aboutNeo,
 	}, nil
 }
 

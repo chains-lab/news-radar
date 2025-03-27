@@ -15,8 +15,16 @@ import (
 
 type Listener struct {
 	cfg *config.Config
-	app app.App
+	app *app.App
 	log *logrus.Entry
+}
+
+func NewListener(cfg *config.Config, app *app.App) *Listener {
+	return &Listener{
+		cfg: cfg,
+		app: app,
+		log: cfg.Log().WithField("listener", "kafka"),
+	}
 }
 
 func (l *Listener) Listen(ctx context.Context, cfg *config.Config) {

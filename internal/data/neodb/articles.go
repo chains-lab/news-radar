@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 	"github.com/recovery-flow/news-radar/internal/app/models"
+	"github.com/recovery-flow/news-radar/internal/config"
 )
 
 type ArticleModel struct {
@@ -20,8 +21,8 @@ type ArticlesImpl struct {
 	driver neo4j.Driver
 }
 
-func NewArticles(uri, username, password string) (*ArticlesImpl, error) {
-	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""))
+func NewArticles(cfg config.Config) (*ArticlesImpl, error) {
+	driver, err := neo4j.NewDriver(cfg.Database.Neo4j.URI, neo4j.BasicAuth(cfg.Database.Neo4j.Username, cfg.Database.Neo4j.Password, ""))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create neo4j driver: %w", err)
 	}

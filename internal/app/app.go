@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/recovery-flow/news-radar/internal/app/entities"
@@ -77,5 +78,9 @@ func NewApp(cfg config.Config) (*App, error) {
 }
 
 func (a *App) Testacion() {
+
+}
+
+func (a *App) CreateArticle(Id uuid.UUID, Title string, Content string, Author string, CreatedAt time.Time, UpdatedAt time.Time) {
 
 }

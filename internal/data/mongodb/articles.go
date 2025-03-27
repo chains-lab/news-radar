@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/recovery-flow/news-radar/internal/app/models"
+	"github.com/recovery-flow/news-radar/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -39,14 +40,14 @@ type ArticlesQ struct {
 	skip    int64
 }
 
-func NewArticles(uri, dbName string) (*ArticlesQ, error) {
-	clientOptions := options.Client().ApplyURI(uri)
+func NewArticles(cfg config.Config) (*ArticlesQ, error) {
+	clientOptions := options.Client().ApplyURI(cfg.Database.Mongo.URI)
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
 	}
 
-	database := client.Database(dbName)
+	database := client.Database(cfg.Database.Mongo.Name)
 	coll := database.Collection(ArticlesCollection)
 
 	return &ArticlesQ{

@@ -10,7 +10,7 @@ import (
 	"github.com/recovery-flow/news-radar/internal/workers/eventlistener"
 )
 
-func runServices(ctx context.Context, wg *sync.WaitGroup, app app.App, cfg *config.Config) {
+func runServices(ctx context.Context, wg *sync.WaitGroup, app *app.App, cfg *config.Config) {
 	run := func(f func()) {
 		wg.Add(1)
 		go func() {
@@ -22,5 +22,5 @@ func runServices(ctx context.Context, wg *sync.WaitGroup, app app.App, cfg *conf
 	API := api.NewAPI(cfg, app)
 	run(func() { API.Run(ctx) })
 
-	run(func() { eventlistener.Listen(ctx, cfg, app) })
+	run(func() { eventlistener.NewListener(cfg, app) })
 }

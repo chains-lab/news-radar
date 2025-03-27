@@ -36,7 +36,7 @@ func Run(args []string) bool {
 
 	svc, err := app.NewApp(*cfg)
 	if err != nil {
-		logger.WithError(err).Error("failed to create svc")
+		logger.WithError(err).Error("failed to create app")
 		return false
 	}
 
