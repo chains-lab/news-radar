@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type Author struct {
+type AuthorModel struct {
 	ID        uuid.UUID  `json:"id" bson:"id"`
 	Name      string     `json:"name" bson:"name"`
 	Desc      *string    `json:"desc" bson:"desc"`
@@ -24,29 +24,10 @@ type Author struct {
 }
 
 const (
-	AuthorsCollection = "authors"
+	AuthorsCollection = "AuthorsQ"
 )
 
-type Authors interface {
-	New() Authors
-
-	Insert(ctx context.Context, author *Author) (*Author, error)
-	Delete(ctx context.Context) error
-	Count(ctx context.Context) (int64, error)
-	Select(ctx context.Context) ([]*Author, error)
-	Get(ctx context.Context) (*Author, error)
-
-	FiltersID(id uuid.UUID) Authors
-	FiltersName(name string) Authors
-
-	Update(ctx context.Context, fields map[string]any) (*Author, error)
-
-	Limit(limit int64) Authors
-	Skip(skip int64) Authors
-	Sort(field string, ascending bool) Authors
-}
-
-type authors struct {
+type AuthorsQ struct {
 	client     *mongo.Client
 	database   *mongo.Database
 	collection *mongo.Collection
@@ -57,7 +38,7 @@ type authors struct {
 	skip    int64
 }
 
-func NewAuthors(uri, dbName string) (Authors, error) {
+func NewAuthors(uri, dbName string) (*AuthorsQ, error) {
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
@@ -67,7 +48,7 @@ func NewAuthors(uri, dbName string) (Authors, error) {
 	database := client.Database(dbName)
 	coll := database.Collection(AuthorsCollection)
 
-	return &authors{
+	return &AuthorsQ{
 		client:     client,
 		database:   database,
 		collection: coll,
@@ -78,8 +59,8 @@ func NewAuthors(uri, dbName string) (Authors, error) {
 	}, nil
 }
 
-func (a *authors) New() Authors {
-	return &authors{
+func (a *AuthorsQ) New() *AuthorsQ {
+	return &AuthorsQ{
 		client:     a.client,
 		database:   a.database,
 		collection: a.collection,
@@ -90,7 +71,7 @@ func (a *authors) New() Authors {
 	}
 }
 
-func (a *authors) Insert(ctx context.Context, author *Author) (*Author, error) {
+func (a *AuthorsQ) Insert(ctx context.Context, author *AuthorModel) (*AuthorModel, error) {
 	_, err := a.collection.InsertOne(ctx, author)
 	if err != nil {
 		return nil, fmt.Errorf("failed to insert author: %w", err)
@@ -98,34 +79,34 @@ func (a *authors) Insert(ctx context.Context, author *Author) (*Author, error) {
 	return author, nil
 }
 
-func (a *authors) Delete(ctx context.Context) error {
+func (a *AuthorsQ) Delete(ctx context.Context) error {
 	_, err := a.collection.DeleteOne(ctx, a.filters)
 	if err != nil {
-		return fmt.Errorf("failed to delete authors: %w", err)
+		return fmt.Errorf("failed to delete AuthorsQ: %w", err)
 	}
 	return nil
 }
 
-func (a *authors) Count(ctx context.Context) (int64, error) {
+func (a *AuthorsQ) Count(ctx context.Context) (int64, error) {
 	return a.collection.CountDocuments(ctx, a.filters)
 }
 
-func (a *authors) Select(ctx context.Context) ([]*Author, error) {
+func (a *AuthorsQ) Select(ctx context.Context) ([]AuthorModel, error) {
 	cursor, err := a.collection.Find(ctx, a.filters)
 	if err != nil {
-		return nil, fmt.Errorf("failed to select authors: %w", err)
+		return nil, fmt.Errorf("failed to select AuthorsQ: %w", err)
 	}
 	defer cursor.Close(ctx)
 
-	var aths []*Author
+	var aths []AuthorModel
 	if err = cursor.All(ctx, &aths); err != nil {
-		return nil, fmt.Errorf("failed to decode authors: %w", err)
+		return nil, fmt.Errorf("failed to decode AuthorsQ: %w", err)
 	}
 	return aths, nil
 }
 
-func (a *authors) Get(ctx context.Context) (*Author, error) {
-	var ath Author
+func (a *AuthorsQ) Get(ctx context.Context) (*AuthorModel, error) {
+	var ath AuthorModel
 	err := a.collection.FindOne(ctx, a.filters).Decode(&ath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get author: %w", err)
@@ -133,12 +114,12 @@ func (a *authors) Get(ctx context.Context) (*Author, error) {
 	return &ath, nil
 }
 
-func (a *authors) FiltersID(id uuid.UUID) Authors {
+func (a *AuthorsQ) FiltersID(id uuid.UUID) *AuthorsQ {
 	a.filters["_id"] = id
 	return a
 }
 
-func (a *authors) FiltersName(name string) Authors {
+func (a *AuthorsQ) FiltersName(name string) *AuthorsQ {
 	a.filters["name"] = bson.M{
 		"$regex":   fmt.Sprintf(".*%s.*", name),
 		"$options": "i",
@@ -146,7 +127,7 @@ func (a *authors) FiltersName(name string) Authors {
 	return a
 }
 
-func (a *authors) Update(ctx context.Context, fields map[string]any) (*Author, error) {
+func (a *AuthorsQ) Update(ctx context.Context, fields map[string]any) (*AuthorModel, error) {
 	validFields := map[string]bool{
 		"name":       true,
 		"desc":       true,
@@ -165,7 +146,7 @@ func (a *authors) Update(ctx context.Context, fields map[string]any) (*Author, e
 	}
 
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
-	var updated Author
+	var updated AuthorModel
 	err := a.collection.FindOneAndUpdate(ctx, a.filters, bson.M{"$set": updateFields}, opts).Decode(&updated)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update document: %w", err)
@@ -180,17 +161,17 @@ func (a *authors) Update(ctx context.Context, fields map[string]any) (*Author, e
 	return &updated, nil
 }
 
-func (a *authors) Limit(limit int64) Authors {
+func (a *AuthorsQ) Limit(limit int64) *AuthorsQ {
 	a.limit = limit
 	return a
 }
 
-func (a *authors) Skip(skip int64) Authors {
+func (a *AuthorsQ) Skip(skip int64) *AuthorsQ {
 	a.skip = skip
 	return a
 }
 
-func (a *authors) Sort(field string, ascending bool) Authors {
+func (a *AuthorsQ) Sort(field string, ascending bool) *AuthorsQ {
 	order := 1
 	if !ascending {
 		order = -1

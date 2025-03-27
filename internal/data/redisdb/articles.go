@@ -1,7 +1,4 @@
 package redisdb
 
-type Articles interface {
-}
-
-type articles struct {
+type Articles struct {
 }

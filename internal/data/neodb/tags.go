@@ -9,28 +9,17 @@ import (
 	"github.com/recovery-flow/news-radar/internal/app/models"
 )
 
-type Tag struct {
+type TagModels struct {
 	Name      string           `json:"name"`
 	Status    models.TagStatus `json:"status"`
 	CreatedAt time.Time        `json:"created_at"`
 }
 
-type Tags interface {
-	Create(ctx context.Context, tag Tag) error
-	Delete(ctx context.Context, name string) error
-
-	UpdateStatus(ctx context.Context, name string, status models.TagStatus) error
-	//UpdateName(ctx context.Context, name string, newName string) error
-
-	Get(ctx context.Context, name string) (*Tag, error)
-	Select(ctx context.Context) ([]Tag, error)
-}
-
-type tags struct {
+type TagsImpl struct {
 	driver neo4j.Driver
 }
 
-func NewTags(uri, username, password string) (Tags, error) {
+func NewTags(uri, username, password string) (*TagsImpl, error) {
 	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create neo4j driver: %w", err)
@@ -40,12 +29,12 @@ func NewTags(uri, username, password string) (Tags, error) {
 		return nil, fmt.Errorf("failed to verify connectivity: %w", err)
 	}
 
-	return &tags{
+	return &TagsImpl{
 		driver: driver,
 	}, nil
 }
 
-func (t *tags) Create(ctx context.Context, tag Tag) error {
+func (t *TagsImpl) Create(ctx context.Context, tag TagModels) error {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -54,7 +43,7 @@ func (t *tags) Create(ctx context.Context, tag Tag) error {
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			CREATE (t:Tag {
+			CREATE (t:TagModels {
 				name: $name,
 				status: $status,
 				created_at: $created_at
@@ -76,7 +65,7 @@ func (t *tags) Create(ctx context.Context, tag Tag) error {
 	return err
 }
 
-func (t *tags) Delete(ctx context.Context, name string) error {
+func (t *TagsImpl) Delete(ctx context.Context, name string) error {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -85,7 +74,7 @@ func (t *tags) Delete(ctx context.Context, name string) error {
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (t:Tag { name: $name })
+			MATCH (t:TagModels { name: $name })
 			DETACH DELETE t
 		`
 		params := map[string]any{
@@ -100,7 +89,7 @@ func (t *tags) Delete(ctx context.Context, name string) error {
 	return err
 }
 
-func (t *tags) UpdateStatus(ctx context.Context, name string, status models.TagStatus) error {
+func (t *TagsImpl) UpdateStatus(ctx context.Context, name string, status models.TagStatus) error {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -109,7 +98,7 @@ func (t *tags) UpdateStatus(ctx context.Context, name string, status models.TagS
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (t:Tag { name: $name })
+			MATCH (t:TagModels { name: $name })
 			SET t.status = $status
 			RETURN t
 		`
@@ -128,7 +117,7 @@ func (t *tags) UpdateStatus(ctx context.Context, name string, status models.TagS
 	return err
 }
 
-func (t *tags) UpdateName(ctx context.Context, name string, newName string) error {
+func (t *TagsImpl) UpdateName(ctx context.Context, name string, newName string) error {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -137,7 +126,7 @@ func (t *tags) UpdateName(ctx context.Context, name string, newName string) erro
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (t:Tag { name: $name })
+			MATCH (t:TagModels { name: $name })
 			SET t.name = $newName
 			RETURN t
 		`
@@ -156,7 +145,7 @@ func (t *tags) UpdateName(ctx context.Context, name string, newName string) erro
 	return err
 }
 
-func (t *tags) Get(ctx context.Context, name string) (*Tag, error) {
+func (t *TagsImpl) Get(ctx context.Context, name string) (*TagModels, error) {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return nil, err
@@ -164,7 +153,7 @@ func (t *tags) Get(ctx context.Context, name string) (*Tag, error) {
 	defer session.Close()
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (t:Tag)
+			MATCH (t:TagModels)
 			WHERE toLower(t.name) CONTAINS toLower($name)
 			RETURN t
 		`
@@ -199,10 +188,10 @@ func (t *tags) Get(ctx context.Context, name string) (*Tag, error) {
 	if err != nil {
 		return nil, err
 	}
-	return result.(*Tag), nil
+	return result.(*TagModels), nil
 }
 
-func (t *tags) Select(ctx context.Context) ([]Tag, error) {
+func (t *TagsImpl) Select(ctx context.Context) ([]TagModels, error) {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return nil, err
@@ -210,8 +199,8 @@ func (t *tags) Select(ctx context.Context) ([]Tag, error) {
 	defer session.Close()
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (t:Tag)
-			OPTIONAL MATCH (t)<-[r:ABOUT]-(:Article)
+			MATCH (t:TagModels)
+			OPTIONAL MATCH (t)<-[r:ABOUT]-(:ArticleModel)
 			WITH t, count(r) as popularity
 			RETURN t ORDER BY popularity DESC
 		`
@@ -248,5 +237,5 @@ func (t *tags) Select(ctx context.Context) ([]Tag, error) {
 	if err != nil {
 		return nil, err
 	}
-	return result.([]Tag), nil
+	return result.([]TagModels), nil
 }

@@ -8,40 +8,72 @@ import (
 	"github.com/recovery-flow/news-radar/internal/config"
 	"github.com/recovery-flow/news-radar/internal/data/mongodb"
 	"github.com/recovery-flow/news-radar/internal/data/neodb"
-	"github.com/recovery-flow/news-radar/internal/data/redisdb"
 )
 
-type Article interface {
-	Create(ctx context.Context, article models.Article) error
-	Update(ctx context.Context, ID uuid.UUID, fields map[string]any) error
+type ArticlesMongo interface {
+	New() *mongodb.ArticlesQ
+
+	Insert(ctx context.Context, article *mongodb.ArticleModel) (*mongodb.ArticleModel, error)
+	Delete(ctx context.Context) error
+	Count(ctx context.Context) (int64, error)
+	Select(ctx context.Context) ([]mongodb.ArticleModel, error)
+	Get(ctx context.Context) (*mongodb.ArticleModel, error)
+
+	FilterID(id uuid.UUID) *mongodb.ArticlesQ
+	FilterTitle(title string) *mongodb.ArticlesQ
+	FilterDate(filters map[string]any, after bool) *mongodb.ArticlesQ
+
+	Update(ctx context.Context, fields map[string]any) (*mongodb.ArticleModel, error)
+
+	Limit(limit int64) *mongodb.ArticlesQ
+	Skip(skip int64) *mongodb.ArticlesQ
+	Sort(field string, ascending bool) *mongodb.ArticlesQ
+}
+
+type ArticlesNeo interface {
+	Create(ctx context.Context, article *neodb.ArticleModel) error
 	Delete(ctx context.Context, ID uuid.UUID) error
+	Get(ctx context.Context, ID uuid.UUID) (*neodb.ArticleModel, error)
 
-	SetTags(ctx context.Context, ID uuid.UUID, tags []string) error
-	AddTag(ctx context.Context, ID uuid.UUID, tag string) error
-	DeleteTag(ctx context.Context, ID uuid.UUID, tag string) error
-
-	SetTheme(ctx context.Context, ID uuid.UUID, theme []string) error
-	AddTheme(ctx context.Context, ID uuid.UUID, theme string) error
-	DeleteTheme(ctx context.Context, ID uuid.UUID, theme string) error
-
-	AddAuthor(ctx context.Context, ID uuid.UUID, author uuid.UUID) error
-	DeleteAuthor(ctx context.Context, ID uuid.UUID, author uuid.UUID) error
-	SetAuthors(ctx context.Context, ID uuid.UUID, authors []uuid.UUID) error
-
-	GetByID(ctx context.Context, ID uuid.UUID) (*models.Article, error)
+	UpdateStatus(ctx context.Context, ID uuid.UUID, status models.ArticleStatus) error
 }
 
-type articles struct {
-	redis redisdb.Articles
-	mongo mongodb.Articles
-	neo   neodb.Articles
+type Hashtag interface {
+	Create(ctx context.Context, articleID uuid.UUID, tag string) error
+	Delete(ctx context.Context, articleID uuid.UUID, tag string) error
 
-	hashtag    neodb.Hashtag
-	authorship neodb.Authorship
-	about      neodb.About
+	SetForArticle(ctx context.Context, articleID uuid.UUID, tags []string) error
+	GetForArticle(ctx context.Context, articleID uuid.UUID) ([]*models.Tag, error)
 }
 
-func NewArticles(cfg config.Config) (Article, error) {
+type Authorship interface {
+	Create(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error
+	Delete(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error
+
+	SetForArticle(ctx context.Context, ID uuid.UUID, author []uuid.UUID) error
+	GetForArticle(ctx context.Context, ID uuid.UUID) ([]uuid.UUID, error)
+
+	GetForAuthor(ctx context.Context, ID uuid.UUID) ([]uuid.UUID, error)
+}
+
+type About interface {
+	Create(ctx context.Context, articleID uuid.UUID, theme string) error
+	Delete(ctx context.Context, articleID uuid.UUID, theme string) error
+
+	SetForArticle(ctx context.Context, articleID uuid.UUID, themes []string) error
+	GetForArticle(ctx context.Context, articleID uuid.UUID) ([]*neodb.ThemeModels, error)
+}
+
+type ArticlesRepo struct {
+	mongo ArticlesMongo
+	neo   ArticlesNeo
+
+	hashtag    Hashtag
+	authorship Authorship
+	about      About
+}
+
+func NewArticles(cfg config.Config) (*ArticlesRepo, error) {
 	mongo, err := mongodb.NewArticles(cfg.Database.Mongo.URI, cfg.Database.Mongo.Name)
 	if err != nil {
 		return nil, err
@@ -62,8 +94,7 @@ func NewArticles(cfg config.Config) (Article, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &articles{
-		redis: nil,
+	return &ArticlesRepo{
 		mongo: mongo,
 		neo:   neo,
 
@@ -73,8 +104,8 @@ func NewArticles(cfg config.Config) (Article, error) {
 	}, nil
 }
 
-func (a *articles) Create(ctx context.Context, article models.Article) error {
-	err := a.neo.Create(ctx, &neodb.Article{
+func (a *ArticlesRepo) Create(ctx context.Context, article models.Article) error {
+	err := a.neo.Create(ctx, &neodb.ArticleModel{
 		ID:        article.ID,
 		CreatedAt: article.CreatedAt,
 		Status:    article.Status,
@@ -83,7 +114,7 @@ func (a *articles) Create(ctx context.Context, article models.Article) error {
 		return err
 	}
 
-	_, err = a.mongo.New().Insert(ctx, &mongodb.Article{
+	_, err = a.mongo.New().Insert(ctx, &mongodb.ArticleModel{
 		ID:        article.ID,
 		Title:     article.Title,
 		Icon:      article.Icon,
@@ -100,7 +131,7 @@ func (a *articles) Create(ctx context.Context, article models.Article) error {
 	return nil
 }
 
-func (a *articles) Update(ctx context.Context, ID uuid.UUID, fields map[string]any) error {
+func (a *ArticlesRepo) Update(ctx context.Context, ID uuid.UUID, fields map[string]any) error {
 	if _, ok := fields["status"]; ok {
 		st, err := models.ParseArticleStatus(fields["status"].(string))
 		if err != nil {
@@ -120,7 +151,7 @@ func (a *articles) Update(ctx context.Context, ID uuid.UUID, fields map[string]a
 	return nil
 }
 
-func (a *articles) Delete(ctx context.Context, ID uuid.UUID) error {
+func (a *ArticlesRepo) Delete(ctx context.Context, ID uuid.UUID) error {
 	err := a.neo.Delete(ctx, ID)
 	if err != nil {
 		return err
@@ -134,7 +165,7 @@ func (a *articles) Delete(ctx context.Context, ID uuid.UUID) error {
 	return nil
 }
 
-func (a *articles) GetByID(ctx context.Context, ID uuid.UUID) (*models.Article, error) {
+func (a *ArticlesRepo) GetByID(ctx context.Context, ID uuid.UUID) (*models.Article, error) {
 	mongoRes, err := a.mongo.FilterID(ID).Get(ctx)
 	if err != nil {
 		return nil, err
@@ -150,7 +181,7 @@ func (a *articles) GetByID(ctx context.Context, ID uuid.UUID) (*models.Article, 
 	return &res, nil
 }
 
-func (a *articles) SetTags(ctx context.Context, articleID uuid.UUID, tags []string) error {
+func (a *ArticlesRepo) SetTags(ctx context.Context, articleID uuid.UUID, tags []string) error {
 	err := a.hashtag.SetForArticle(ctx, articleID, tags)
 	if err != nil {
 		return err
@@ -158,7 +189,7 @@ func (a *articles) SetTags(ctx context.Context, articleID uuid.UUID, tags []stri
 	return nil
 }
 
-func (a *articles) AddTag(ctx context.Context, articleID uuid.UUID, tag string) error {
+func (a *ArticlesRepo) AddTag(ctx context.Context, articleID uuid.UUID, tag string) error {
 	err := a.hashtag.Create(ctx, articleID, tag)
 	if err != nil {
 		return err
@@ -166,7 +197,7 @@ func (a *articles) AddTag(ctx context.Context, articleID uuid.UUID, tag string) 
 	return nil
 }
 
-func (a *articles) DeleteTag(ctx context.Context, articleID uuid.UUID, tag string) error {
+func (a *ArticlesRepo) DeleteTag(ctx context.Context, articleID uuid.UUID, tag string) error {
 	err := a.hashtag.Delete(ctx, articleID, tag)
 	if err != nil {
 		return err
@@ -174,7 +205,7 @@ func (a *articles) DeleteTag(ctx context.Context, articleID uuid.UUID, tag strin
 	return nil
 }
 
-func (a *articles) SetTheme(ctx context.Context, articleID uuid.UUID, theme []string) error {
+func (a *ArticlesRepo) SetTheme(ctx context.Context, articleID uuid.UUID, theme []string) error {
 	err := a.about.SetForArticle(ctx, articleID, theme)
 	if err != nil {
 		return err
@@ -182,7 +213,7 @@ func (a *articles) SetTheme(ctx context.Context, articleID uuid.UUID, theme []st
 	return nil
 }
 
-func (a *articles) AddTheme(ctx context.Context, articleID uuid.UUID, theme string) error {
+func (a *ArticlesRepo) AddTheme(ctx context.Context, articleID uuid.UUID, theme string) error {
 	err := a.about.Create(ctx, articleID, theme)
 	if err != nil {
 		return err
@@ -190,7 +221,7 @@ func (a *articles) AddTheme(ctx context.Context, articleID uuid.UUID, theme stri
 	return nil
 }
 
-func (a *articles) DeleteTheme(ctx context.Context, articleID uuid.UUID, theme string) error {
+func (a *ArticlesRepo) DeleteTheme(ctx context.Context, articleID uuid.UUID, theme string) error {
 	err := a.about.Delete(ctx, articleID, theme)
 	if err != nil {
 		return err
@@ -198,7 +229,7 @@ func (a *articles) DeleteTheme(ctx context.Context, articleID uuid.UUID, theme s
 	return nil
 }
 
-func (a *articles) SetAuthors(ctx context.Context, articleID uuid.UUID, authors []uuid.UUID) error {
+func (a *ArticlesRepo) SetAuthors(ctx context.Context, articleID uuid.UUID, authors []uuid.UUID) error {
 	err := a.authorship.SetForArticle(ctx, articleID, authors)
 	if err != nil {
 		return err
@@ -207,7 +238,7 @@ func (a *articles) SetAuthors(ctx context.Context, articleID uuid.UUID, authors 
 	return nil
 }
 
-func (a *articles) AddAuthor(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error {
+func (a *ArticlesRepo) AddAuthor(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error {
 	err := a.authorship.Create(ctx, articleID, authorID)
 	if err != nil {
 		return err
@@ -216,7 +247,7 @@ func (a *articles) AddAuthor(ctx context.Context, articleID uuid.UUID, authorID 
 	return nil
 }
 
-func (a *articles) DeleteAuthor(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error {
+func (a *ArticlesRepo) DeleteAuthor(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error {
 	err := a.authorship.Delete(ctx, articleID, authorID)
 	if err != nil {
 		return err
@@ -225,7 +256,7 @@ func (a *articles) DeleteAuthor(ctx context.Context, articleID uuid.UUID, author
 	return nil
 }
 
-func createModelArticle(neo neodb.Article, mongo mongodb.Article) models.Article {
+func createModelArticle(neo neodb.ArticleModel, mongo mongodb.ArticleModel) models.Article {
 	return models.Article{
 		ID:        mongo.ID,
 		Title:     mongo.Title,

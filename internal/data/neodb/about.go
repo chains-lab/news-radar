@@ -10,19 +10,11 @@ import (
 	"github.com/recovery-flow/news-radar/internal/app/models"
 )
 
-type About interface {
-	Create(ctx context.Context, articleID uuid.UUID, theme string) error
-	Delete(ctx context.Context, articleID uuid.UUID, theme string) error
-
-	SetForArticle(ctx context.Context, articleID uuid.UUID, themes []string) error
-	GetForArticle(ctx context.Context, articleID uuid.UUID) ([]*Theme, error)
-}
-
-type about struct {
+type About struct {
 	driver neo4j.Driver
 }
 
-func NewAbout(uri, username, password string) (About, error) {
+func NewAbout(uri, username, password string) (*About, error) {
 	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create neo4j driver: %w", err)
@@ -32,12 +24,12 @@ func NewAbout(uri, username, password string) (About, error) {
 		return nil, fmt.Errorf("failed to verify connectivity: %w", err)
 	}
 
-	return &about{
+	return &About{
 		driver: driver,
 	}, nil
 }
 
-func (a *about) Create(ctx context.Context, articleID uuid.UUID, theme string) error {
+func (a *About) Create(ctx context.Context, articleID uuid.UUID, theme string) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -46,8 +38,8 @@ func (a *about) Create(ctx context.Context, articleID uuid.UUID, theme string) e
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (art:Article { id: $articleID })
-			MATCH (th:Theme { name: $theme })
+			MATCH (art:ArticleModel { id: $articleID })
+			MATCH (th:ThemeModels { name: $theme })
 			MERGE (art)-[r:ABOUT]->(th)
 		`
 		params := map[string]any{
@@ -65,7 +57,7 @@ func (a *about) Create(ctx context.Context, articleID uuid.UUID, theme string) e
 	return err
 }
 
-func (a *about) Delete(ctx context.Context, articleID uuid.UUID, theme string) error {
+func (a *About) Delete(ctx context.Context, articleID uuid.UUID, theme string) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -74,7 +66,7 @@ func (a *about) Delete(ctx context.Context, articleID uuid.UUID, theme string) e
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (art:Article { id: $articleID })-[r:ABOUT]->(th:Theme { name: $themeName })
+			MATCH (art:ArticleModel { id: $articleID })-[r:ABOUT]->(th:ThemeModels { name: $themeName })
 			DELETE r
 		`
 		params := map[string]any{
@@ -92,7 +84,7 @@ func (a *about) Delete(ctx context.Context, articleID uuid.UUID, theme string) e
 	return err
 }
 
-func (a *about) SetForArticle(ctx context.Context, articleID uuid.UUID, themes []string) error {
+func (a *About) SetForArticle(ctx context.Context, articleID uuid.UUID, themes []string) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -101,7 +93,7 @@ func (a *about) SetForArticle(ctx context.Context, articleID uuid.UUID, themes [
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		deleteCypher := `
-			MATCH (a:Article { id: $articleID })-[r:ABOUT]->(:Theme)
+			MATCH (a:ArticleModel { id: $articleID })-[r:ABOUT]->(:ThemeModels)
 			DELETE r
 		`
 		params := map[string]any{"articleID": articleID.String()}
@@ -111,13 +103,13 @@ func (a *about) SetForArticle(ctx context.Context, articleID uuid.UUID, themes [
 		}
 
 		createCypher := `
-			MATCH (a:Article { id: $articleID })
-			FOREACH (themeName IN $themes |
-				MATCH (th:Theme { name: themeName })
+			MATCH (a:ArticleModel { id: $articleID })
+			FOREACH (themeName IN $ThemesImpl |
+				MATCH (th:ThemeModels { name: themeName })
 				MERGE (a)-[:ABOUT]->(th)
 			)
 		`
-		params["themes"] = themes
+		params["ThemesImpl"] = themes
 		_, err = tx.Run(createCypher, params)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create new ABOUT relationships: %w", err)
@@ -127,7 +119,7 @@ func (a *about) SetForArticle(ctx context.Context, articleID uuid.UUID, themes [
 	return err
 }
 
-func (a *about) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]*Theme, error) {
+func (a *About) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]*ThemeModels, error) {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return nil, err
@@ -136,7 +128,7 @@ func (a *about) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]*Them
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (a:Article { id: $articleID })-[:ABOUT]->(th:Theme)
+			MATCH (a:ArticleModel { id: $articleID })-[:ABOUT]->(th:ThemeModels)
 			RETURN th
 		`
 		params := map[string]any{
@@ -148,7 +140,7 @@ func (a *about) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]*Them
 			return nil, err
 		}
 
-		var themesList []*Theme
+		var themesList []*ThemeModels
 		for records.Next() {
 			record := records.Record()
 			node, ok := record.Get("th")
@@ -160,7 +152,7 @@ func (a *about) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]*Them
 			if err != nil {
 				return nil, err
 			}
-			theme := &Theme{
+			theme := &ThemeModels{
 				Name:   props["name"].(string),
 				Status: status,
 			}
@@ -176,5 +168,5 @@ func (a *about) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]*Them
 	if err != nil {
 		return nil, err
 	}
-	return result.([]*Theme), nil
+	return result.([]*ThemeModels), nil
 }

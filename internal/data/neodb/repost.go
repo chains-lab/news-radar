@@ -7,18 +7,11 @@ import (
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
 
-type Reposts interface {
-	Create(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error
-
-	GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
-	GetForArticle(ctx context.Context, articleID uuid.UUID) ([]uuid.UUID, error)
-}
-
-type reposts struct {
+type RepostsImpl struct {
 	driver neo4j.Driver
 }
 
-func NewReposts(uri, username, password string) (Reposts, error) {
+func NewReposts(uri, username, password string) (*RepostsImpl, error) {
 	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""))
 	if err != nil {
 		return nil, err
@@ -28,12 +21,12 @@ func NewReposts(uri, username, password string) (Reposts, error) {
 		return nil, err
 	}
 
-	return &reposts{
+	return &RepostsImpl{
 		driver: driver,
 	}, nil
 }
 
-func (r *reposts) Create(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error {
+func (r *RepostsImpl) Create(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error {
 	session, err := r.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -42,8 +35,8 @@ func (r *reposts) Create(ctx context.Context, userID uuid.UUID, articleID uuid.U
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		cypher := `
-			MATCH (u:User { id: $userID })
-			MATCH (a:Article { id: $articleID })
+			MATCH (u:UserModels { id: $userID })
+			MATCH (a:ArticleModel { id: $articleID })
 			MERGE (u)-[:REPOSTED]->(a)
 		`
 		params := map[string]interface{}{
@@ -61,7 +54,7 @@ func (r *reposts) Create(ctx context.Context, userID uuid.UUID, articleID uuid.U
 	return nil
 }
 
-func (r *reposts) GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+func (r *RepostsImpl) GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
 	session, err := r.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return nil, err
@@ -70,7 +63,7 @@ func (r *reposts) GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		cypher := `
-			MATCH (u:User { id: $userID })-[:REPOSTED]->(a:Article)
+			MATCH (u:UserModels { id: $userID })-[:REPOSTED]->(a:ArticleModel)
 			RETURN a.id
 		`
 		params := map[string]interface{}{
@@ -101,7 +94,7 @@ func (r *reposts) GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID
 	return result.([]uuid.UUID), nil
 }
 
-func (r *reposts) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]uuid.UUID, error) {
+func (r *RepostsImpl) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]uuid.UUID, error) {
 	session, err := r.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return nil, err
@@ -110,7 +103,7 @@ func (r *reposts) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]uui
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		cypher := `
-			MATCH (u:User)-[:REPOSTED]->(a:Article { id: $articleID })
+			MATCH (u:UserModels)-[:REPOSTED]->(a:ArticleModel { id: $articleID })
 			RETURN u.id
 		`
 		params := map[string]interface{}{

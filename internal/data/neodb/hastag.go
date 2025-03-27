@@ -10,19 +10,11 @@ import (
 	"github.com/recovery-flow/news-radar/internal/app/models"
 )
 
-type Hashtag interface {
-	Create(ctx context.Context, articleID uuid.UUID, tag string) error
-	Delete(ctx context.Context, articleID uuid.UUID, tag string) error
-
-	SetForArticle(ctx context.Context, articleID uuid.UUID, tags []string) error
-	GetForArticle(ctx context.Context, articleID uuid.UUID) ([]*models.Tag, error)
-}
-
-type hashtag struct {
+type Hashtag struct {
 	driver neo4j.Driver
 }
 
-func NewHashtag(uri, username, password string) (Hashtag, error) {
+func NewHashtag(uri, username, password string) (*Hashtag, error) {
 	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create neo4j driver: %w", err)
@@ -32,12 +24,12 @@ func NewHashtag(uri, username, password string) (Hashtag, error) {
 		return nil, fmt.Errorf("failed to verify connectivity: %w", err)
 	}
 
-	return &hashtag{
+	return &Hashtag{
 		driver: driver,
 	}, nil
 }
 
-func (h *hashtag) Create(ctx context.Context, articleID uuid.UUID, tag string) error {
+func (h *Hashtag) Create(ctx context.Context, articleID uuid.UUID, tag string) error {
 	session, err := h.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -46,8 +38,8 @@ func (h *hashtag) Create(ctx context.Context, articleID uuid.UUID, tag string) e
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (art:Article { id: $articleID })
-			MATCH (t:Tag { name: $tagName })
+			MATCH (art:ArticleModel { id: $articleID })
+			MATCH (t:TagModels { name: $tagName })
 			MERGE (art)-[r:HAS_TAG]->(t)
 		`
 		params := map[string]any{
@@ -66,7 +58,7 @@ func (h *hashtag) Create(ctx context.Context, articleID uuid.UUID, tag string) e
 	return err
 }
 
-func (h *hashtag) Delete(ctx context.Context, articleID uuid.UUID, tag string) error {
+func (h *Hashtag) Delete(ctx context.Context, articleID uuid.UUID, tag string) error {
 	session, err := h.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -75,7 +67,7 @@ func (h *hashtag) Delete(ctx context.Context, articleID uuid.UUID, tag string) e
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (art:Article { id: $articleID })-[r:HAS_TAG]->(t:Tag { name: $tagName })
+			MATCH (art:ArticleModel { id: $articleID })-[r:HAS_TAG]->(t:TagModels { name: $tagName })
 			DELETE r
 		`
 		params := map[string]any{
@@ -94,7 +86,7 @@ func (h *hashtag) Delete(ctx context.Context, articleID uuid.UUID, tag string) e
 	return err
 }
 
-func (h *hashtag) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]*models.Tag, error) {
+func (h *Hashtag) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]*models.Tag, error) {
 	session, err := h.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return nil, err
@@ -103,7 +95,7 @@ func (h *hashtag) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]*mo
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (h:Article { id: $id })-[:HAS_TAG]->(t:Tag)
+			MATCH (h:ArticleModel { id: $id })-[:HAS_TAG]->(t:TagModels)
 			RETURN t
 		`
 		params := map[string]any{
@@ -142,7 +134,7 @@ func (h *hashtag) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]*mo
 	return result.([]*models.Tag), nil
 }
 
-func (h *hashtag) SetForArticle(ctx context.Context, articleID uuid.UUID, tags []string) error {
+func (h *Hashtag) SetForArticle(ctx context.Context, articleID uuid.UUID, tags []string) error {
 	session, err := h.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -151,7 +143,7 @@ func (h *hashtag) SetForArticle(ctx context.Context, articleID uuid.UUID, tags [
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		deleteCypher := `
-			MATCH (h:Article { id: $id })-[r:HAS_TAG]->(:Tag)
+			MATCH (h:ArticleModel { id: $id })-[r:HAS_TAG]->(:TagModels)
 			DELETE r
 		`
 		params := map[string]any{"id": articleID.String()}
@@ -161,13 +153,13 @@ func (h *hashtag) SetForArticle(ctx context.Context, articleID uuid.UUID, tags [
 		}
 
 		createCypher := `
-			MATCH (h:Article { id: $id })
-			FOREACH (tagName IN $tags |
-				MATCH (t:Tag { name: tagName })
+			MATCH (h:ArticleModel { id: $id })
+			FOREACH (tagName IN $TagsImpl |
+				MATCH (t:TagModels { name: tagName })
 				MERGE (h)-[:HAS_TAG]->(t)
 			)
 		`
-		params["tags"] = tags
+		params["TagsImpl"] = tags
 		_, err = tx.Run(createCypher, params)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create new HAS_TAG relationships: %w", err)

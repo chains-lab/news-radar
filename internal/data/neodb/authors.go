@@ -9,27 +9,17 @@ import (
 	"github.com/recovery-flow/news-radar/internal/app/models"
 )
 
-type Author struct {
+type AuthorModel struct {
 	ID     uuid.UUID           `json:"id"`
 	Name   string              `json:"name"`
 	Status models.AuthorStatus `json:"status"`
 }
 
-type Authors interface {
-	Create(ctx context.Context, author *Author) error
-	Delete(ctx context.Context, ID uuid.UUID) error
-
-	UpdateName(ctx context.Context, ID uuid.UUID, name string) error
-	UpdateStatus(ctx context.Context, ID uuid.UUID, status models.AuthorStatus) error
-
-	GetByID(ctx context.Context, ID uuid.UUID) (*Author, error)
-}
-
-type authors struct {
+type AuthorsImpl struct {
 	driver neo4j.Driver
 }
 
-func NewAuthors(uri, username, password string) (Authors, error) {
+func NewAuthors(uri, username, password string) (*AuthorsImpl, error) {
 	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create neo4j driver: %w", err)
@@ -39,12 +29,12 @@ func NewAuthors(uri, username, password string) (Authors, error) {
 		return nil, fmt.Errorf("failed to verify connectivity: %w", err)
 	}
 
-	return &authors{
+	return &AuthorsImpl{
 		driver: driver,
 	}, nil
 }
 
-func (a *authors) Create(ctx context.Context, author *Author) error {
+func (a *AuthorsImpl) Create(ctx context.Context, author *AuthorModel) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -53,7 +43,7 @@ func (a *authors) Create(ctx context.Context, author *Author) error {
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			CREATE (au:Author { id: $id, name: $name, status: $status })
+			CREATE (au:AuthorModel { id: $id, name: $name, status: $status })
 			RETURN au
 		`
 		params := map[string]any{
@@ -72,7 +62,7 @@ func (a *authors) Create(ctx context.Context, author *Author) error {
 	return err
 }
 
-func (a *authors) Delete(ctx context.Context, id uuid.UUID) error {
+func (a *AuthorsImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -81,7 +71,7 @@ func (a *authors) Delete(ctx context.Context, id uuid.UUID) error {
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (au:Author { id: $id })
+			MATCH (au:AuthorModel { id: $id })
 			DETACH DELETE au
 		`
 		params := map[string]any{
@@ -98,7 +88,7 @@ func (a *authors) Delete(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
-func (a *authors) UpdateName(ctx context.Context, id uuid.UUID, name string) error {
+func (a *AuthorsImpl) UpdateName(ctx context.Context, id uuid.UUID, name string) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -107,7 +97,7 @@ func (a *authors) UpdateName(ctx context.Context, id uuid.UUID, name string) err
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (au:Author { id: $id })
+			MATCH (au:AuthorModel { id: $id })
 			SET au.name = $name
 			RETURN au
 		`
@@ -127,7 +117,7 @@ func (a *authors) UpdateName(ctx context.Context, id uuid.UUID, name string) err
 	return err
 }
 
-func (a *authors) UpdateStatus(ctx context.Context, id uuid.UUID, status models.AuthorStatus) error {
+func (a *AuthorsImpl) UpdateStatus(ctx context.Context, id uuid.UUID, status models.AuthorStatus) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -136,7 +126,7 @@ func (a *authors) UpdateStatus(ctx context.Context, id uuid.UUID, status models.
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (au:Author { id: $id })
+			MATCH (au:AuthorModel { id: $id })
 			SET au.status = $status
 			RETURN au
 		`
@@ -156,7 +146,7 @@ func (a *authors) UpdateStatus(ctx context.Context, id uuid.UUID, status models.
 	return err
 }
 
-func (a *authors) GetByID(ctx context.Context, ID uuid.UUID) (*Author, error) {
+func (a *AuthorsImpl) GetByID(ctx context.Context, ID uuid.UUID) (*AuthorModel, error) {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return nil, err
@@ -165,7 +155,7 @@ func (a *authors) GetByID(ctx context.Context, ID uuid.UUID) (*Author, error) {
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (au:Author { id: $id })
+			MATCH (au:AuthorModel { id: $id })
 			RETURN au
 			LIMIT 1
 		`
@@ -193,7 +183,7 @@ func (a *authors) GetByID(ctx context.Context, ID uuid.UUID) (*Author, error) {
 				return nil, fmt.Errorf("failed to parse author status: %w", err)
 			}
 
-			author := Author{
+			author := AuthorModel{
 				ID:     authorID,
 				Name:   props["name"].(string),
 				Status: status,
@@ -205,5 +195,5 @@ func (a *authors) GetByID(ctx context.Context, ID uuid.UUID) (*Author, error) {
 	if err != nil {
 		return nil, err
 	}
-	return result.(*Author), nil
+	return result.(*AuthorModel), nil
 }

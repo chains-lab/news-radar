@@ -8,19 +8,11 @@ import (
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
 
-type Dislikes interface {
-	Create(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error
-	Delete(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error
-
-	GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
-	GetForArticle(ctx context.Context, articleID uuid.UUID) ([]uuid.UUID, error)
-}
-
-type dislikes struct {
+type DislikesImpl struct {
 	driver neo4j.Driver
 }
 
-func NewDislikes(uri, username, password string) (Dislikes, error) {
+func NewDislikes(uri, username, password string) (*DislikesImpl, error) {
 	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""))
 	if err != nil {
 		return nil, err
@@ -30,12 +22,12 @@ func NewDislikes(uri, username, password string) (Dislikes, error) {
 		return nil, err
 	}
 
-	return &dislikes{
+	return &DislikesImpl{
 		driver: driver,
 	}, nil
 }
 
-func (d *dislikes) Create(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error {
+func (d *DislikesImpl) Create(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error {
 	session, err := d.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -44,8 +36,8 @@ func (d *dislikes) Create(ctx context.Context, userID uuid.UUID, articleID uuid.
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (u:User { id: $userID })
-			MATCH (a:Article { id: $articleID })
+			MATCH (u:UserModels { id: $userID })
+			MATCH (a:ArticleModel { id: $articleID })
 			MERGE (u)-[:DISLIKED]->(a)
 		`
 		params := map[string]interface{}{
@@ -62,7 +54,7 @@ func (d *dislikes) Create(ctx context.Context, userID uuid.UUID, articleID uuid.
 	return err
 }
 
-func (d *dislikes) Delete(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error {
+func (d *DislikesImpl) Delete(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error {
 	session, err := d.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -71,7 +63,7 @@ func (d *dislikes) Delete(ctx context.Context, userID uuid.UUID, articleID uuid.
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (u:User { id: $userID })-[r:DISLIKED]->(a:Article { id: $articleID })
+			MATCH (u:UserModels { id: $userID })-[r:DISLIKED]->(a:ArticleModel { id: $articleID })
 			DELETE r
 		`
 		params := map[string]interface{}{
@@ -88,7 +80,7 @@ func (d *dislikes) Delete(ctx context.Context, userID uuid.UUID, articleID uuid.
 	return err
 }
 
-func (d *dislikes) GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+func (d *DislikesImpl) GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
 	session, err := d.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return nil, err
@@ -97,7 +89,7 @@ func (d *dislikes) GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUI
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (u:User { id: $userID })-[r:DISLIKED]->(a:Article)
+			MATCH (u:UserModels { id: $userID })-[r:DISLIKED]->(a:ArticleModel)
 			RETURN a.id AS articleID
 		`
 		params := map[string]interface{}{
@@ -132,7 +124,7 @@ func (d *dislikes) GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUI
 	return result.([]uuid.UUID), nil
 }
 
-func (d *dislikes) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]uuid.UUID, error) {
+func (d *DislikesImpl) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]uuid.UUID, error) {
 	session, err := d.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return nil, err
@@ -141,7 +133,7 @@ func (d *dislikes) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]uu
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (a:Article { id: $articleID })<-[r:DISLIKED]-(u:User)
+			MATCH (a:ArticleModel { id: $articleID })<-[r:DISLIKED]-(u:UserModels)
 			RETURN u.id AS userID
 		`
 		params := map[string]interface{}{

@@ -10,25 +10,17 @@ import (
 	"github.com/recovery-flow/news-radar/internal/app/models"
 )
 
-type Article struct {
+type ArticleModel struct {
 	ID        uuid.UUID
 	CreatedAt time.Time
 	Status    models.ArticleStatus
 }
 
-type Articles interface {
-	Create(ctx context.Context, article *Article) error
-	Delete(ctx context.Context, ID uuid.UUID) error
-	Get(ctx context.Context, ID uuid.UUID) (*Article, error)
-
-	UpdateStatus(ctx context.Context, ID uuid.UUID, status models.ArticleStatus) error
-}
-
-type articles struct {
+type ArticlesImpl struct {
 	driver neo4j.Driver
 }
 
-func NewArticles(uri, username, password string) (Articles, error) {
+func NewArticles(uri, username, password string) (*ArticlesImpl, error) {
 	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create neo4j driver: %w", err)
@@ -38,12 +30,12 @@ func NewArticles(uri, username, password string) (Articles, error) {
 		return nil, fmt.Errorf("failed to verify connectivity: %w", err)
 	}
 
-	return &articles{
+	return &ArticlesImpl{
 		driver: driver,
 	}, nil
 }
 
-func (a *articles) Create(ctx context.Context, article *Article) error {
+func (a *ArticlesImpl) Create(ctx context.Context, article *ArticleModel) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -52,7 +44,7 @@ func (a *articles) Create(ctx context.Context, article *Article) error {
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			CREATE (a:Article { 
+			CREATE (a:ArticleModel { 
 				id: $id, 
 				created_at: $created_at,
 				status: $status
@@ -75,7 +67,7 @@ func (a *articles) Create(ctx context.Context, article *Article) error {
 	return err
 }
 
-func (a *articles) Delete(ctx context.Context, id uuid.UUID) error {
+func (a *ArticlesImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -84,7 +76,7 @@ func (a *articles) Delete(ctx context.Context, id uuid.UUID) error {
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (a:Article { id: $id })
+			MATCH (a:ArticleModel { id: $id })
 			DETACH DELETE a
 		`
 		params := map[string]any{
@@ -102,7 +94,7 @@ func (a *articles) Delete(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
-func (a *articles) UpdateStatus(ctx context.Context, ID uuid.UUID, status models.ArticleStatus) error {
+func (a *ArticlesImpl) UpdateStatus(ctx context.Context, ID uuid.UUID, status models.ArticleStatus) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -111,7 +103,7 @@ func (a *articles) UpdateStatus(ctx context.Context, ID uuid.UUID, status models
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (a:Article { id: $id })
+			MATCH (a:ArticleModel { id: $id })
 			SET a.status = $status
 			RETURN a
 		`
@@ -128,7 +120,7 @@ func (a *articles) UpdateStatus(ctx context.Context, ID uuid.UUID, status models
 	return err
 }
 
-func (a *articles) Get(ctx context.Context, ID uuid.UUID) (*Article, error) {
+func (a *ArticlesImpl) Get(ctx context.Context, ID uuid.UUID) (*ArticleModel, error) {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return nil, err
@@ -137,7 +129,7 @@ func (a *articles) Get(ctx context.Context, ID uuid.UUID) (*Article, error) {
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (a:Article { id: $id })
+			MATCH (a:ArticleModel { id: $id })
 			RETURN a
 			LIMIT 1
 		`
@@ -157,7 +149,7 @@ func (a *articles) Get(ctx context.Context, ID uuid.UUID) (*Article, error) {
 			}
 			n := node.(neo4j.Node)
 			props := n.Props()
-			article := &Article{
+			article := &ArticleModel{
 				ID: ID,
 			}
 			if createdAtStr, ok := props["created_at"].(string); ok {
@@ -177,5 +169,5 @@ func (a *articles) Get(ctx context.Context, ID uuid.UUID) (*Article, error) {
 	if err != nil {
 		return nil, err
 	}
-	return result.(*Article), nil
+	return result.(*ArticleModel), nil
 }

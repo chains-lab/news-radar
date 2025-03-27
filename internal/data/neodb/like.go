@@ -7,19 +7,11 @@ import (
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
 
-type Likes interface {
-	Create(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error
-	Delete(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error
-
-	GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
-	GetForArticle(ctx context.Context, articleID uuid.UUID) ([]uuid.UUID, error)
-}
-
-type likes struct {
+type LikesImpl struct {
 	driver neo4j.Driver
 }
 
-func NewLikes(uri, username, password string) (Likes, error) {
+func NewLikes(uri, username, password string) (*LikesImpl, error) {
 	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""))
 	if err != nil {
 		return nil, err
@@ -29,12 +21,12 @@ func NewLikes(uri, username, password string) (Likes, error) {
 		return nil, err
 	}
 
-	return &likes{
+	return &LikesImpl{
 		driver: driver,
 	}, nil
 }
 
-func (l *likes) Create(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error {
+func (l *LikesImpl) Create(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error {
 	session, err := l.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -43,8 +35,8 @@ func (l *likes) Create(ctx context.Context, userID uuid.UUID, articleID uuid.UUI
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		cypher := `
-			MATCH (u:User { id: $userID })
-			MATCH (a:Article { id: $articleID })
+			MATCH (u:UserModels { id: $userID })
+			MATCH (a:ArticleModel { id: $articleID })
 			MERGE (u)-[:LIKED]->(a)
 		`
 		params := map[string]interface{}{
@@ -62,7 +54,7 @@ func (l *likes) Create(ctx context.Context, userID uuid.UUID, articleID uuid.UUI
 	return err
 }
 
-func (l *likes) Delete(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error {
+func (l *LikesImpl) Delete(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error {
 	session, err := l.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -71,7 +63,7 @@ func (l *likes) Delete(ctx context.Context, userID uuid.UUID, articleID uuid.UUI
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 		cypher := `
-			MATCH (u:User { id: $userID })-[l:LIKED]->(a:Article { id: $articleID })
+			MATCH (u:UserModels { id: $userID })-[l:LIKED]->(a:ArticleModel { id: $articleID })
 			DELETE l
 		`
 		params := map[string]interface{}{
@@ -89,7 +81,7 @@ func (l *likes) Delete(ctx context.Context, userID uuid.UUID, articleID uuid.UUI
 	return err
 }
 
-func (l *likes) GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+func (l *LikesImpl) GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
 	session, err := l.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return nil, err
@@ -98,7 +90,7 @@ func (l *likes) GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, 
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (u:User { id: $userID })-[l:LIKED]->(a:Article)
+			MATCH (u:UserModels { id: $userID })-[l:LIKED]->(a:ArticleModel)
 			RETURN a.id AS articleID
 		`
 		params := map[string]interface{}{
@@ -136,7 +128,7 @@ func (l *likes) GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, 
 	return result.([]uuid.UUID), nil
 }
 
-func (l *likes) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]uuid.UUID, error) {
+func (l *LikesImpl) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]uuid.UUID, error) {
 	session, err := l.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return nil, err
@@ -145,7 +137,7 @@ func (l *likes) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]uuid.
 
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (a:Article { id: $articleID })<-[l:LIKED]-(u:User)
+			MATCH (a:ArticleModel { id: $articleID })<-[l:LIKED]-(u:UserModels)
 			RETURN u.id AS userID
 		`
 		params := map[string]interface{}{

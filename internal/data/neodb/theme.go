@@ -9,28 +9,17 @@ import (
 	"github.com/recovery-flow/news-radar/internal/app/models"
 )
 
-type Theme struct {
+type ThemeModels struct {
 	Name      string             `json:"name"`
 	Status    models.ThemeStatus `json:"status"`
 	CreatedAt time.Time          `json:"created_at"`
 }
 
-type Themes interface {
-	Create(ctx context.Context, theme Theme) error
-	Delete(ctx context.Context, name string) error
-	Get(ctx context.Context, name string) (*Theme, error)
-
-	UpdateStatus(ctx context.Context, name string, status models.ThemeStatus) error
-	//UpdateName(ctx context.Context, name string, newName string) error
-
-	Select(ctx context.Context) ([]*Theme, error)
-}
-
-type themes struct {
+type ThemesImpl struct {
 	driver neo4j.Driver
 }
 
-func NewThemes(uri, username, password string) (Themes, error) {
+func NewThemes(uri, username, password string) (*ThemesImpl, error) {
 	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create neo4j driver: %w", err)
@@ -38,10 +27,10 @@ func NewThemes(uri, username, password string) (Themes, error) {
 	if err = driver.VerifyConnectivity(); err != nil {
 		return nil, fmt.Errorf("failed to verify connectivity: %w", err)
 	}
-	return &themes{driver: driver}, nil
+	return &ThemesImpl{driver: driver}, nil
 }
 
-func (t *themes) Create(ctx context.Context, theme Theme) error {
+func (t *ThemesImpl) Create(ctx context.Context, theme ThemeModels) error {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -49,7 +38,7 @@ func (t *themes) Create(ctx context.Context, theme Theme) error {
 	defer session.Close()
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			CREATE (th:Theme {
+			CREATE (th:ThemeModels {
 				name: $name,
 				status: $status,
 				created_at: $created_at
@@ -70,7 +59,7 @@ func (t *themes) Create(ctx context.Context, theme Theme) error {
 	return err
 }
 
-func (t *themes) Delete(ctx context.Context, themeName string) error {
+func (t *ThemesImpl) Delete(ctx context.Context, themeName string) error {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -78,7 +67,7 @@ func (t *themes) Delete(ctx context.Context, themeName string) error {
 	defer session.Close()
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (th:Theme { name: $name })
+			MATCH (th:ThemeModels { name: $name })
 			DETACH DELETE th
 		`
 		params := map[string]any{
@@ -93,7 +82,7 @@ func (t *themes) Delete(ctx context.Context, themeName string) error {
 	return err
 }
 
-func (t *themes) UpdateName(ctx context.Context, name string, newName string) error {
+func (t *ThemesImpl) UpdateName(ctx context.Context, name string, newName string) error {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -102,7 +91,7 @@ func (t *themes) UpdateName(ctx context.Context, name string, newName string) er
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (t:Theme { name: $name })
+			MATCH (t:ThemeModels { name: $name })
 			SET t.name = $newName
 			RETURN t
 		`
@@ -121,7 +110,7 @@ func (t *themes) UpdateName(ctx context.Context, name string, newName string) er
 	return err
 }
 
-func (t *themes) UpdateStatus(ctx context.Context, name string, status models.ThemeStatus) error {
+func (t *ThemesImpl) UpdateStatus(ctx context.Context, name string, status models.ThemeStatus) error {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -130,7 +119,7 @@ func (t *themes) UpdateStatus(ctx context.Context, name string, status models.Th
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (t:Theme { name: $name })
+			MATCH (t:ThemeModels { name: $name })
 			SET t.status = $status
 			RETURN t
 		`
@@ -149,7 +138,7 @@ func (t *themes) UpdateStatus(ctx context.Context, name string, status models.Th
 	return err
 }
 
-func (t *themes) Select(ctx context.Context) ([]*Theme, error) {
+func (t *ThemesImpl) Select(ctx context.Context) ([]ThemeModels, error) {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return nil, err
@@ -157,8 +146,8 @@ func (t *themes) Select(ctx context.Context) ([]*Theme, error) {
 	defer session.Close()
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (th:Theme)
-			OPTIONAL MATCH (th)<-[r:TOPIC]-(:Article)
+			MATCH (th:ThemeModels)
+			OPTIONAL MATCH (th)<-[r:TOPIC]-(:ArticleModel)
 			WITH th, count(r) as popularity
 			RETURN th ORDER BY popularity DESC
 		`
@@ -166,7 +155,7 @@ func (t *themes) Select(ctx context.Context) ([]*Theme, error) {
 		if err != nil {
 			return nil, err
 		}
-		var themesList []*Theme
+		var themesList []*ThemeModels
 		for records.Next() {
 			record := records.Record()
 			node, ok := record.Get("th")
@@ -178,7 +167,7 @@ func (t *themes) Select(ctx context.Context) ([]*Theme, error) {
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse theme status: %w", err)
 			}
-			theme := &Theme{
+			theme := &ThemeModels{
 				Name:   props["name"].(string),
 				Status: status,
 			}
@@ -195,10 +184,10 @@ func (t *themes) Select(ctx context.Context) ([]*Theme, error) {
 	if err != nil {
 		return nil, err
 	}
-	return result.([]*Theme), nil
+	return result.([]ThemeModels), nil
 }
 
-func (t *themes) Get(ctx context.Context, name string) (*Theme, error) {
+func (t *ThemesImpl) Get(ctx context.Context, name string) (*ThemeModels, error) {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return nil, err
@@ -206,7 +195,7 @@ func (t *themes) Get(ctx context.Context, name string) (*Theme, error) {
 	defer session.Close()
 	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (t:Theme)
+			MATCH (t:ThemeModels)
 			WHERE toLower(t.name) CONTAINS toLower($name)
 			RETURN t
 		`
@@ -215,7 +204,7 @@ func (t *themes) Get(ctx context.Context, name string) (*Theme, error) {
 		if err != nil {
 			return nil, err
 		}
-		var theme Theme
+		var theme ThemeModels
 		record := records.Record()
 		node, ok := record.Get("t")
 		if !ok {
@@ -226,7 +215,7 @@ func (t *themes) Get(ctx context.Context, name string) (*Theme, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse theme status: %w", err)
 		}
-		theme = Theme{
+		theme = ThemeModels{
 			Name:   props["name"].(string),
 			Status: status,
 		}
@@ -242,5 +231,5 @@ func (t *themes) Get(ctx context.Context, name string) (*Theme, error) {
 	if err != nil {
 		return nil, err
 	}
-	return result.(*Theme), nil
+	return result.(*ThemeModels), nil
 }

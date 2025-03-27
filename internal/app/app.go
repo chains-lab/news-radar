@@ -5,18 +5,30 @@ import (
 	"github.com/recovery-flow/news-radar/internal/config"
 )
 
-type App interface {
+type Article interface {
 }
 
-type app struct {
-	articles entities.Articles
-	authors  entities.Authors
-	tags     entities.Tags
-	themes   entities.Themes
-	user     entities.User
+type Author interface {
 }
 
-func NewApp(cfg config.Config) (App, error) {
+type Tag interface {
+}
+
+type Theme interface {
+}
+
+type User interface {
+}
+
+type App struct {
+	articles Article
+	authors  Author
+	tags     Tag
+	themes   Theme
+	user     User
+}
+
+func NewApp(cfg config.Config) (*App, error) {
 	articles, err := entities.NewArticles(cfg)
 	if err != nil {
 		return nil, err
@@ -42,7 +54,7 @@ func NewApp(cfg config.Config) (App, error) {
 		return nil, err
 	}
 
-	return &app{
+	return &App{
 		articles: articles,
 		authors:  authors,
 		tags:     tags,

@@ -9,32 +9,47 @@ import (
 	"github.com/recovery-flow/news-radar/internal/data/redisdb"
 )
 
-type Tags interface {
-	Create(ctx context.Context, tag models.Tag) error
+type TagsRedis interface {
+	Add(ctx context.Context, tag redisdb.TagModels) error
+	Get(ctx context.Context, tag string) (*redisdb.TagModels, error)
+	Delete(ctx context.Context, tag string) error
+
+	UpdateIcon(ctx context.Context, tag string, icon string) error
+	UpdateColor(ctx context.Context, tag string, color string) error
+
+	Drop(ctx context.Context) error
+}
+
+type TagsNeo interface {
+	Create(ctx context.Context, tag neodb.TagModels) error
 	Delete(ctx context.Context, name string) error
-	Update(ctx context.Context, name string, fields map[string]any) error
-	Get(ctx context.Context, name string) (*models.Tag, error)
+
+	UpdateStatus(ctx context.Context, name string, status models.TagStatus) error
+	//UpdateName(ctx context.Context, name string, newName string) error
+
+	Get(ctx context.Context, name string) (*neodb.TagModels, error)
+	Select(ctx context.Context) ([]neodb.TagModels, error)
 }
 
-type tags struct {
-	redis redisdb.Tags
-	neo   neodb.Tags
+type Tags struct {
+	redis TagsRedis
+	neo   TagsNeo
 }
 
-func NewTags(cfg config.Config) (Tags, error) {
+func NewTags(cfg config.Config) (*Tags, error) {
 	neo, err := neodb.NewTags(cfg.Database.Neo4j.URI, cfg.Database.Neo4j.Username, cfg.Database.Neo4j.Password)
 	if err != nil {
 		return nil, err
 	}
 	redis := redisdb.NewTags(cfg.Database.Redis.Addr, cfg.Database.Redis.Password, cfg.Database.Redis.DB)
-	return &tags{
+	return &Tags{
 		neo:   neo,
 		redis: redis,
 	}, nil
 }
 
-func (t *tags) Create(ctx context.Context, tag models.Tag) error {
-	neoTag := neodb.Tag{
+func (t *Tags) Create(ctx context.Context, tag models.Tag) error {
+	neoTag := neodb.TagModels{
 		Name:      tag.Name,
 		Status:    tag.Status,
 		CreatedAt: tag.CreatedAt,
@@ -44,7 +59,7 @@ func (t *tags) Create(ctx context.Context, tag models.Tag) error {
 		return err
 	}
 
-	err = t.redis.Add(ctx, redisdb.Tag{
+	err = t.redis.Add(ctx, redisdb.TagModels{
 		Name:  tag.Name,
 		Color: tag.Color,
 		Icon:  tag.Icon,
@@ -56,7 +71,7 @@ func (t *tags) Create(ctx context.Context, tag models.Tag) error {
 	return nil
 }
 
-func (t *tags) Delete(ctx context.Context, name string) error {
+func (t *Tags) Delete(ctx context.Context, name string) error {
 	err := t.neo.Delete(ctx, name)
 	if err != nil {
 		return err
@@ -70,7 +85,7 @@ func (t *tags) Delete(ctx context.Context, name string) error {
 	return nil
 }
 
-func (t *tags) Update(ctx context.Context, name string, fields map[string]any) error {
+func (t *Tags) Update(ctx context.Context, name string, fields map[string]any) error {
 	if _, ok := fields["color"]; ok {
 		err := t.redis.UpdateColor(ctx, name, fields["color"].(string))
 		if err != nil {
@@ -99,7 +114,7 @@ func (t *tags) Update(ctx context.Context, name string, fields map[string]any) e
 	return nil
 }
 
-func (t *tags) Get(ctx context.Context, name string) (*models.Tag, error) {
+func (t *Tags) Get(ctx context.Context, name string) (*models.Tag, error) {
 	neoTag, err := t.neo.Get(ctx, name)
 	if err != nil {
 		return nil, err
@@ -115,7 +130,7 @@ func (t *tags) Get(ctx context.Context, name string) (*models.Tag, error) {
 	return &tag, nil
 }
 
-func createModelsTag(neo neodb.Tag, redis redisdb.Tag) models.Tag {
+func createModelsTag(neo neodb.TagModels, redis redisdb.TagModels) models.Tag {
 	return models.Tag{
 		Name:      neo.Name,
 		Color:     redis.Color,

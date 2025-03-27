@@ -8,27 +8,42 @@ import (
 	"github.com/recovery-flow/news-radar/internal/data/neodb"
 )
 
-type Users interface {
-	Create(ctx context.Context, userID uuid.UUID) error
-	Get(ctx context.Context, userID uuid.UUID) (*neodb.User, error)
-
-	AddLike(ctx context.Context, userID, articleID uuid.UUID) error
-	RemoveLike(ctx context.Context, userID, articleID uuid.UUID) error
-
-	AddDislike(ctx context.Context, userID, articleID uuid.UUID) error
-	RemoveDislike(ctx context.Context, userID, articleID uuid.UUID) error
-
-	AddRepost(ctx context.Context, userID, articleID uuid.UUID) error
+type UsersNeo interface {
+	Create(ctx context.Context, user neodb.UserModels) error
+	Get(ctx context.Context, id uuid.UUID) (*neodb.UserModels, error)
 }
 
-type users struct {
-	neo      neodb.Users
-	likes    neodb.Likes
-	reposts  neodb.Reposts
-	dislikes neodb.Dislikes
+type Likes interface {
+	Create(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error
+	Delete(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error
+
+	GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
+	GetForArticle(ctx context.Context, articleID uuid.UUID) ([]uuid.UUID, error)
 }
 
-func NewUsers(cfg config.Config) (Users, error) {
+type Reposts interface {
+	Create(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error
+
+	GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
+	GetForArticle(ctx context.Context, articleID uuid.UUID) ([]uuid.UUID, error)
+}
+
+type Dislikes interface {
+	Create(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error
+	Delete(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error
+
+	GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
+	GetForArticle(ctx context.Context, articleID uuid.UUID) ([]uuid.UUID, error)
+}
+
+type Users struct {
+	neo      UsersNeo
+	likes    Likes
+	reposts  Reposts
+	dislikes Dislikes
+}
+
+func NewUsers(cfg config.Config) (*Users, error) {
 	neo, err := neodb.NewUsers(cfg.Database.Neo4j.URI, cfg.Database.Neo4j.Username, cfg.Database.Neo4j.Password)
 	if err != nil {
 		return nil, err
@@ -49,7 +64,7 @@ func NewUsers(cfg config.Config) (Users, error) {
 		return nil, err
 	}
 
-	return &users{
+	return &Users{
 		neo:      neo,
 		likes:    likes,
 		reposts:  reposts,
@@ -57,32 +72,32 @@ func NewUsers(cfg config.Config) (Users, error) {
 	}, nil
 }
 
-func (u *users) Create(ctx context.Context, userID uuid.UUID) error {
-	return u.neo.Create(ctx, neodb.User{
+func (u *Users) Create(ctx context.Context, userID uuid.UUID) error {
+	return u.neo.Create(ctx, neodb.UserModels{
 		ID: userID,
 	})
 }
 
-func (u *users) Get(ctx context.Context, userID uuid.UUID) (*neodb.User, error) {
+func (u *Users) Get(ctx context.Context, userID uuid.UUID) (*neodb.UserModels, error) {
 	return u.neo.Get(ctx, userID)
 }
 
-func (u *users) AddLike(ctx context.Context, userID, articleID uuid.UUID) error {
+func (u *Users) AddLike(ctx context.Context, userID, articleID uuid.UUID) error {
 	return u.likes.Create(ctx, userID, articleID)
 }
 
-func (u *users) RemoveLike(ctx context.Context, userID, articleID uuid.UUID) error {
+func (u *Users) RemoveLike(ctx context.Context, userID, articleID uuid.UUID) error {
 	return u.likes.Delete(ctx, userID, articleID)
 }
 
-func (u *users) AddDislike(ctx context.Context, userID, articleID uuid.UUID) error {
+func (u *Users) AddDislike(ctx context.Context, userID, articleID uuid.UUID) error {
 	return u.dislikes.Create(ctx, userID, articleID)
 }
 
-func (u *users) RemoveDislike(ctx context.Context, userID, articleID uuid.UUID) error {
+func (u *Users) RemoveDislike(ctx context.Context, userID, articleID uuid.UUID) error {
 	return u.dislikes.Delete(ctx, userID, articleID)
 }
 
-func (u *users) AddRepost(ctx context.Context, userID, articleID uuid.UUID) error {
+func (u *Users) AddRepost(ctx context.Context, userID, articleID uuid.UUID) error {
 	return u.reposts.Create(ctx, userID, articleID)
 }

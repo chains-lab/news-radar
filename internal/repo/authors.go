@@ -8,24 +8,47 @@ import (
 	"github.com/recovery-flow/news-radar/internal/config"
 	"github.com/recovery-flow/news-radar/internal/data/mongodb"
 	"github.com/recovery-flow/news-radar/internal/data/neodb"
-	"github.com/recovery-flow/news-radar/internal/data/redisdb"
 )
 
-type Authors interface {
-	Create(ctx context.Context, author models.Author) error
-	Update(ctx context.Context, ID uuid.UUID, fields map[string]any) error
+type AuthorsRedis interface {
+}
+
+type AuthorsMongo interface {
+	New() *mongodb.AuthorsQ
+
+	Insert(ctx context.Context, author *mongodb.AuthorModel) (*mongodb.AuthorModel, error)
+	Delete(ctx context.Context) error
+	Count(ctx context.Context) (int64, error)
+	Select(ctx context.Context) ([]mongodb.AuthorModel, error)
+	Get(ctx context.Context) (*mongodb.AuthorModel, error)
+
+	FiltersID(id uuid.UUID) *mongodb.AuthorsQ
+	FiltersName(name string) *mongodb.AuthorsQ
+
+	Update(ctx context.Context, fields map[string]any) (*mongodb.AuthorModel, error)
+
+	Limit(limit int64) *mongodb.AuthorsQ
+	Skip(skip int64) *mongodb.AuthorsQ
+	Sort(field string, ascending bool) *mongodb.AuthorsQ
+}
+
+type AuthorsNeo interface {
+	Create(ctx context.Context, author *neodb.AuthorModel) error
 	Delete(ctx context.Context, ID uuid.UUID) error
 
-	GetByID(ctx context.Context, ID uuid.UUID) (*models.Author, error)
+	UpdateName(ctx context.Context, ID uuid.UUID, name string) error
+	UpdateStatus(ctx context.Context, ID uuid.UUID, status models.AuthorStatus) error
+
+	GetByID(ctx context.Context, ID uuid.UUID) (*neodb.AuthorModel, error)
 }
 
-type authors struct {
-	redis redisdb.Authors
-	mongo mongodb.Authors
-	neo   neodb.Authors
+type Authors struct {
+	redis AuthorsRedis
+	mongo AuthorsMongo
+	neo   AuthorsNeo
 }
 
-func NewAuthors(cfg config.Config) (Authors, error) {
+func NewAuthors(cfg config.Config) (*Authors, error) {
 	mongo, err := mongodb.NewAuthors(cfg.Database.Mongo.URI, cfg.Database.Mongo.Name)
 	if err != nil {
 		return nil, err
@@ -34,15 +57,15 @@ func NewAuthors(cfg config.Config) (Authors, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &authors{
+	return &Authors{
 		redis: nil,
 		mongo: mongo,
 		neo:   neo,
 	}, nil
 }
 
-func (a *authors) Create(ctx context.Context, author models.Author) error {
-	if err := a.neo.Create(ctx, &neodb.Author{
+func (a *Authors) Create(ctx context.Context, author models.Author) error {
+	if err := a.neo.Create(ctx, &neodb.AuthorModel{
 		ID:     author.ID,
 		Name:   author.Name,
 		Status: author.Status,
@@ -50,7 +73,7 @@ func (a *authors) Create(ctx context.Context, author models.Author) error {
 		return err
 	}
 
-	_, err := a.mongo.New().Insert(ctx, &mongodb.Author{
+	_, err := a.mongo.New().Insert(ctx, &mongodb.AuthorModel{
 		ID:        author.ID,
 		Name:      author.Name,
 		CreatedAt: author.CreatedAt,
@@ -62,7 +85,7 @@ func (a *authors) Create(ctx context.Context, author models.Author) error {
 	return nil
 }
 
-func (a *authors) Update(ctx context.Context, ID uuid.UUID, fields map[string]any) error {
+func (a *Authors) Update(ctx context.Context, ID uuid.UUID, fields map[string]any) error {
 	if _, ok := fields["status"]; ok {
 		status, err := models.ParseAuthorStatus(fields["status"].(string))
 		if err != nil {
@@ -87,7 +110,7 @@ func (a *authors) Update(ctx context.Context, ID uuid.UUID, fields map[string]an
 	return nil
 }
 
-func (a *authors) Delete(ctx context.Context, ID uuid.UUID) error {
+func (a *Authors) Delete(ctx context.Context, ID uuid.UUID) error {
 	if err := a.neo.Delete(ctx, ID); err != nil {
 		return err
 	}
@@ -99,7 +122,7 @@ func (a *authors) Delete(ctx context.Context, ID uuid.UUID) error {
 	return nil
 }
 
-func (a *authors) GetByID(ctx context.Context, ID uuid.UUID) (*models.Author, error) {
+func (a *Authors) GetByID(ctx context.Context, ID uuid.UUID) (*models.Author, error) {
 	mongo, err := a.mongo.New().FiltersID(ID).Get(ctx)
 	if err != nil {
 		return nil, err
@@ -115,7 +138,7 @@ func (a *authors) GetByID(ctx context.Context, ID uuid.UUID) (*models.Author, er
 	return res, nil
 }
 
-func createModelsAuthor(neo neodb.Author, mongo mongodb.Author) *models.Author {
+func createModelsAuthor(neo neodb.AuthorModel, mongo mongodb.AuthorModel) *models.Author {
 	return &models.Author{
 		ID:        mongo.ID,
 		Name:      mongo.Name,

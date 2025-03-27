@@ -1,29 +1,45 @@
 package entities
 
 import (
+	"context"
+
+	"github.com/google/uuid"
+	"github.com/recovery-flow/news-radar/internal/app/models"
 	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/events/writer"
 	"github.com/recovery-flow/news-radar/internal/repo"
 )
 
-type Articles interface {
+type ArticlesRepo interface {
+	Create(ctx context.Context, article models.Article) error
+	Update(ctx context.Context, ID uuid.UUID, fields map[string]any) error
+	Delete(ctx context.Context, ID uuid.UUID) error
+
+	SetTags(ctx context.Context, ID uuid.UUID, tags []string) error
+	AddTag(ctx context.Context, ID uuid.UUID, tag string) error
+	DeleteTag(ctx context.Context, ID uuid.UUID, tag string) error
+
+	SetTheme(ctx context.Context, ID uuid.UUID, theme []string) error
+	AddTheme(ctx context.Context, ID uuid.UUID, theme string) error
+	DeleteTheme(ctx context.Context, ID uuid.UUID, theme string) error
+
+	AddAuthor(ctx context.Context, ID uuid.UUID, author uuid.UUID) error
+	DeleteAuthor(ctx context.Context, ID uuid.UUID, author uuid.UUID) error
+	SetAuthors(ctx context.Context, ID uuid.UUID, authors []uuid.UUID) error
+
+	GetByID(ctx context.Context, ID uuid.UUID) (*models.Article, error)
 }
 
-type articles struct {
-	data   repo.Article
-	events writer.Reaction
+type Articles struct {
+	data ArticlesRepo
 }
 
-func NewArticles(cfg config.Config) (Articles, error) {
+func NewArticles(cfg config.Config) (*Articles, error) {
 	repo, err := repo.NewArticles(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	events := writer.NewReactions(cfg)
-
-	return &articles{
-		data:   repo,
-		events: events,
+	return &Articles{
+		data: repo,
 	}, nil
 }
