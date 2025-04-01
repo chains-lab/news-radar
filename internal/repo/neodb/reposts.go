@@ -40,8 +40,8 @@ func (r *RepostsImpl) Create(ctx context.Context, userID uuid.UUID, articleID uu
 	go func() {
 		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 			cypher := `
-				MATCH (u:UserModels { id: $userID })
-				MATCH (a:ArticleModel { id: $articleID })
+				MATCH (u:UserNeo { id: $userID })
+				MATCH (a:ArticleNeo { id: $articleID })
 				MERGE (u)-[:REPOSTED]->(a)
 			`
 
@@ -192,7 +192,7 @@ func (r *RepostsImpl) GetForArticle(ctx context.Context, articleID uuid.UUID) ([
 	go func() {
 		result, err := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
 			cypher := `
-				MATCH (u:users)-[:REPOSTED]->(a:ArticleModel { id: $articleID })
+				MATCH (u:users)-[:REPOSTED]->(a:ArticleNeo { id: $articleID })
 				RETURN u.id AS userID
 			`
 

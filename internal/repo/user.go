@@ -1,17 +1,17 @@
-package data
+package repo
 
 import (
 	"context"
 
 	"github.com/google/uuid"
 	"github.com/hs-zavet/news-radar/internal/config"
-	"github.com/hs-zavet/news-radar/internal/data/models"
-	"github.com/hs-zavet/news-radar/internal/data/neodb"
+	"github.com/hs-zavet/news-radar/internal/repo/modelsdb"
+	"github.com/hs-zavet/news-radar/internal/repo/neodb"
 )
 
 type usersNeo interface {
-	Create(ctx context.Context, user neodb.UserModels) error
-	Get(ctx context.Context, id uuid.UUID) (neodb.UserModels, error)
+	Create(ctx context.Context, user modelsdb.UserNeo) error
+	Get(ctx context.Context, id uuid.UUID) (modelsdb.UserNeo, error)
 }
 
 type Users struct {
@@ -33,21 +33,21 @@ func (u *Users) Create(userID uuid.UUID) error {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	return u.neo.Create(ctxSync, neodb.UserModels{
+	return u.neo.Create(ctxSync, modelsdb.UserNeo{
 		ID: userID,
 	})
 }
 
-func (u *Users) Get(userID uuid.UUID) (models.User, error) {
+func (u *Users) Get(userID uuid.UUID) (modelsdb.User, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
 	user, err := u.neo.Get(ctxSync, userID)
 	if err != nil {
-		return models.User{}, err
+		return modelsdb.User{}, err
 	}
 
-	res := models.NewUser(user)
+	res := modelsdb.NewUser(user)
 	//if err != nil {
 	//	return models.User{}, err
 	//}

@@ -1,17 +1,15 @@
 package entities
 
 import (
-	"context"
-
 	"github.com/google/uuid"
-	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/data"
-	"github.com/recovery-flow/news-radar/internal/data/neodb"
+	"github.com/hs-zavet/news-radar/internal/config"
+	"github.com/hs-zavet/news-radar/internal/repo"
+	"github.com/hs-zavet/news-radar/internal/repo/modelsdb"
 )
 
 type userRepo interface {
-	Create(ctx context.Context, userID uuid.UUID) error
-	Get(ctx context.Context, userID uuid.UUID) (*neodb.UserModels, error)
+	Create(userID uuid.UUID) error
+	Get(userID uuid.UUID) (modelsdb.User, error)
 }
 
 type User struct {
@@ -19,7 +17,7 @@ type User struct {
 }
 
 func NewUser(cfg config.Config) (*User, error) {
-	repo, err := data.NewUsers(cfg)
+	repo, err := repo.NewUsers(cfg)
 	if err != nil {
 		return nil, err
 	}

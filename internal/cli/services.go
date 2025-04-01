@@ -4,10 +4,10 @@ import (
 	"context"
 	"sync"
 
-	"github.com/recovery-flow/news-radar/internal/api"
-	"github.com/recovery-flow/news-radar/internal/app"
-	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/workers/eventlistener"
+	"github.com/hs-zavet/news-radar/internal/api"
+	"github.com/hs-zavet/news-radar/internal/app"
+	"github.com/hs-zavet/news-radar/internal/config"
+	"github.com/hs-zavet/news-radar/internal/workers/eventlistener"
 )
 
 func runServices(ctx context.Context, wg *sync.WaitGroup, app *app.App, cfg *config.Config) {

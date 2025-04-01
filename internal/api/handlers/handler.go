@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/recovery-flow/news-radar/internal/app"
+	"github.com/hs-zavet/news-radar/internal/app"
 	"github.com/sirupsen/logrus"
 )
 

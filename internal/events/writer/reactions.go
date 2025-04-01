@@ -7,8 +7,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/events"
+	"github.com/hs-zavet/news-radar/internal/config"
+	"github.com/hs-zavet/news-radar/internal/events"
 	"github.com/segmentio/kafka-go"
 )
 

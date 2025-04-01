@@ -291,10 +291,10 @@ func (c *APIClient) prepareRequest(
 
 	// Detect postBody type and post.
 	if postBody != nil {
-		contentType := headerParams["Content-Type"]
+		contentType := headerParams["Content-Section"]
 		if contentType == "" {
 			contentType = detectContentType(postBody)
-			headerParams["Content-Type"] = contentType
+			headerParams["Content-Section"] = contentType
 		}
 
 		body, err = setBody(postBody, contentType)
@@ -304,7 +304,7 @@ func (c *APIClient) prepareRequest(
 	}
 
 	// add form parameters and file if available.
-	if strings.HasPrefix(headerParams["Content-Type"], "multipart/form-data") && len(formParams) > 0 || (len(formFiles) > 0) {
+	if strings.HasPrefix(headerParams["Content-Section"], "multipart/form-data") && len(formParams) > 0 || (len(formFiles) > 0) {
 		if body != nil {
 			return nil, errors.New("Cannot specify postBody and multipart form at the same time.")
 		}
@@ -337,15 +337,15 @@ func (c *APIClient) prepareRequest(
 			}
 		}
 
-		// Set the Boundary in the Content-Type
-		headerParams["Content-Type"] = w.FormDataContentType()
+		// Set the Boundary in the Content-Section
+		headerParams["Content-Section"] = w.FormDataContentType()
 
 		// Set Content-Length
 		headerParams["Content-Length"] = fmt.Sprintf("%d", body.Len())
 		w.Close()
 	}
 
-	if strings.HasPrefix(headerParams["Content-Type"], "application/x-www-form-urlencoded") && len(formParams) > 0 {
+	if strings.HasPrefix(headerParams["Content-Section"], "application/x-www-form-urlencoded") && len(formParams) > 0 {
 		if body != nil {
 			return nil, errors.New("Cannot specify postBody and x-www-form-urlencoded form at the same time.")
 		}

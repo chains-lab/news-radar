@@ -1,11 +1,11 @@
-package data
+package repo
 
 import (
 	"context"
 
 	"github.com/google/uuid"
 	"github.com/hs-zavet/news-radar/internal/config"
-	"github.com/hs-zavet/news-radar/internal/data/neodb"
+	"github.com/hs-zavet/news-radar/internal/repo/neodb"
 )
 
 type reactionRepo interface {

@@ -1,17 +1,16 @@
-package data
+package repo
 
 import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/hs-zavet/news-radar/internal/data/neodb"
 )
 
 type hashtag interface {
 	Create(ctx context.Context, articleID uuid.UUID, tag string) error
 	Delete(ctx context.Context, articleID uuid.UUID, tag string) error
 
-	GetForArticle(ctx context.Context, articleID uuid.UUID) ([]neodb.TagModels, error)
+	GetForArticle(ctx context.Context, articleID uuid.UUID) ([]string, error)
 
 	SetForArticle(ctx context.Context, articleID uuid.UUID, tags []string) error
 }

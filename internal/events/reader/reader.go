@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/recovery-flow/news-radar/internal/events"
+	"github.com/hs-zavet/news-radar/internal/events"
 	"github.com/segmentio/kafka-go"
 	"github.com/sirupsen/logrus"
 )

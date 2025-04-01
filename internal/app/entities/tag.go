@@ -1,18 +1,16 @@
 package entities
 
 import (
-	"context"
-
-	"github.com/recovery-flow/news-radar/internal/app/models"
-	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/data"
+	"github.com/hs-zavet/news-radar/internal/config"
+	"github.com/hs-zavet/news-radar/internal/repo"
+	"github.com/hs-zavet/news-radar/internal/repo/modelsdb"
 )
 
 type tagsRepo interface {
-	Create(ctx context.Context, tag models.Tag) error
-	Delete(ctx context.Context, name string) error
-	Update(ctx context.Context, name string, fields map[string]any) error
-	Get(ctx context.Context, name string) (*models.Tag, error)
+	Create(tag modelsdb.Tag) error
+	Delete(name string) error
+	Update(name string, fields map[string]any) error
+	Get(name string) (modelsdb.Tag, error)
 }
 
 type Tags struct {
@@ -20,12 +18,12 @@ type Tags struct {
 }
 
 func NewTags(cfg config.Config) (*Tags, error) {
-	repo, err := data.NewTags(cfg)
+	data, err := repo.NewTags(cfg)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Tags{
-		data: repo,
+		data: data,
 	}, nil
 }

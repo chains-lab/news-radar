@@ -1,12 +1,11 @@
 package app
 
 import (
-	"context"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/news-radar/internal/app/entities"
-	"github.com/recovery-flow/news-radar/internal/config"
+	"github.com/hs-zavet/news-radar/internal/app/entities"
+	"github.com/hs-zavet/news-radar/internal/config"
 )
 
 type Article interface {
@@ -25,13 +24,6 @@ type User interface {
 }
 
 type Reaction interface {
-	MakeLike(ctx context.Context, userID, articleID uuid.UUID) error
-	RemoveLike(ctx context.Context, userID, articleID uuid.UUID) error
-
-	MakeDislike(ctx context.Context, userID, articleID uuid.UUID) error
-	RemoveDislike(ctx context.Context, userID, articleID uuid.UUID) error
-
-	MakeRepost(ctx context.Context, userID, articleID uuid.UUID) error
 }
 
 type App struct {

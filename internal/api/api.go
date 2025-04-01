@@ -4,12 +4,12 @@ import (
 	"context"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/recovery-flow/comtools/httpkit"
-	"github.com/recovery-flow/news-radar/internal/api/handlers"
-	"github.com/recovery-flow/news-radar/internal/app"
-	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/tokens"
-	"github.com/recovery-flow/tokens/identity"
+	"github.com/hs-zavet/comtools/httpkit"
+	"github.com/hs-zavet/news-radar/internal/api/handlers"
+	"github.com/hs-zavet/news-radar/internal/app"
+	"github.com/hs-zavet/news-radar/internal/config"
+	"github.com/hs-zavet/tokens"
+	"github.com/hs-zavet/tokens/identity"
 	"github.com/sirupsen/logrus"
 )
 

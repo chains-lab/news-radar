@@ -65,13 +65,13 @@ func (a *TestAPIService) TestPostExecute(r ApiTestPostRequest) (*http.Response, 
 	localVarQueryParams := url.Values{}
 	localVarFormParams := url.Values{}
 
-	// to determine the Content-Type header
+	// to determine the Content-Section header
 	localVarHTTPContentTypes := []string{}
 
-	// set Content-Type header
+	// set Content-Section header
 	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
 	if localVarHTTPContentType != "" {
-		localVarHeaderParams["Content-Type"] = localVarHTTPContentType
+		localVarHeaderParams["Content-Section"] = localVarHTTPContentType
 	}
 
 	// to determine the Accept header

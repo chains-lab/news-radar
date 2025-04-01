@@ -9,9 +9,9 @@ import (
 	"syscall"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/recovery-flow/comtools/logkit"
-	"github.com/recovery-flow/news-radar/internal/app"
-	"github.com/recovery-flow/news-radar/internal/config"
+	"github.com/hs-zavet/comtools/logkit"
+	"github.com/hs-zavet/news-radar/internal/app"
+	"github.com/hs-zavet/news-radar/internal/config"
 )
 
 func Run(args []string) bool {

@@ -109,7 +109,7 @@ func (h *Hashtag) Delete(ctx context.Context, articleID uuid.UUID, tag string) e
 	}
 }
 
-func (h *Hashtag) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]TagModels, error) {
+func (h *Hashtag) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]string, error) {
 	session, err := h.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return nil, err
@@ -117,13 +117,13 @@ func (h *Hashtag) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]Tag
 	defer session.Close()
 
 	type resultWrapper struct {
-		tags []TagModels
+		tags []string
 		err  error
 	}
 	resultChan := make(chan resultWrapper, 1)
 
 	go func() {
-		result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
+		res, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
 			cypher := `
 				MATCH (a:Article { id: $id })-[:HAS_TAG]->(t:Tag)
 				RETURN t
@@ -138,7 +138,7 @@ func (h *Hashtag) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]Tag
 				return nil, err
 			}
 
-			var tagsList []TagModels
+			var tagsList []string
 			for records.Next() {
 				record := records.Record()
 				node, ok := record.Get("t")
@@ -153,10 +153,11 @@ func (h *Hashtag) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]Tag
 
 				props := n.Props()
 
-				tag := TagModels{
-					Name:   props["name"].(string),
-					Status: props["status"].(string),
+				tag, ok := props["name"].(string)
+				if !ok {
+					continue
 				}
+
 				tagsList = append(tagsList, tag)
 			}
 			return tagsList, nil
@@ -165,12 +166,14 @@ func (h *Hashtag) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]Tag
 			resultChan <- resultWrapper{nil, err}
 			return
 		}
-		tags, ok := result.([]TagModels)
+
+		tagsList, ok := res.([]string)
 		if !ok {
 			resultChan <- resultWrapper{nil, fmt.Errorf("unexpected result type")}
 			return
 		}
-		resultChan <- resultWrapper{tags, nil}
+
+		resultChan <- resultWrapper{tagsList, nil}
 	}()
 
 	select {

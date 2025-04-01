@@ -5,14 +5,9 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/hs-zavet/news-radar/internal/repo/modelsdb"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
-
-type AuthorModel struct {
-	ID     uuid.UUID `json:"id"`
-	Name   string    `json:"name"`
-	Status string    `json:"status"`
-}
 
 type AuthorsImpl struct {
 	driver neo4j.Driver
@@ -33,7 +28,7 @@ func NewAuthors(uri, username, password string) (*AuthorsImpl, error) {
 	}, nil
 }
 
-func (a *AuthorsImpl) Create(ctx context.Context, author AuthorModel) error {
+func (a *AuthorsImpl) Create(ctx context.Context, author modelsdb.AuthorNeo) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -193,16 +188,16 @@ func (a *AuthorsImpl) UpdateStatus(ctx context.Context, id uuid.UUID, status str
 	}
 }
 
-func (a *AuthorsImpl) GetByID(ctx context.Context, ID uuid.UUID) (AuthorModel, error) {
+func (a *AuthorsImpl) GetByID(ctx context.Context, ID uuid.UUID) (modelsdb.AuthorNeo, error) {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
-		return AuthorModel{}, err
+		return modelsdb.AuthorNeo{}, err
 	}
 
 	defer session.Close()
 
 	type resultWrapper struct {
-		author AuthorModel
+		author modelsdb.AuthorNeo
 		err    error
 	}
 
@@ -239,7 +234,7 @@ func (a *AuthorsImpl) GetByID(ctx context.Context, ID uuid.UUID) (AuthorModel, e
 					return nil, fmt.Errorf("failed to parse author id: %w", err)
 				}
 
-				author := AuthorModel{
+				author := modelsdb.AuthorNeo{
 					ID:     authorID,
 					Name:   props["name"].(string),
 					Status: props["status"].(string),
@@ -256,7 +251,7 @@ func (a *AuthorsImpl) GetByID(ctx context.Context, ID uuid.UUID) (AuthorModel, e
 			return
 		}
 
-		author, ok := result.(AuthorModel)
+		author, ok := result.(modelsdb.AuthorNeo)
 		if !ok {
 			resultChan <- resultWrapper{err: fmt.Errorf("invalid result type")}
 			return
@@ -269,6 +264,6 @@ func (a *AuthorsImpl) GetByID(ctx context.Context, ID uuid.UUID) (AuthorModel, e
 	case res := <-resultChan:
 		return res.author, res.err
 	case <-ctx.Done():
-		return AuthorModel{}, ctx.Err()
+		return modelsdb.AuthorNeo{}, ctx.Err()
 	}
 }

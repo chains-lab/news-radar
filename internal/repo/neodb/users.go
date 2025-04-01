@@ -5,12 +5,9 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/hs-zavet/news-radar/internal/repo/modelsdb"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
-
-type UserModels struct {
-	ID uuid.UUID `json:"id"`
-}
 
 type UsersImpl struct {
 	driver neo4j.Driver
@@ -31,7 +28,7 @@ func NewUsers(uri, username, password string) (*UsersImpl, error) {
 	}, nil
 }
 
-func (u *UsersImpl) Create(ctx context.Context, user UserModels) error {
+func (u *UsersImpl) Create(ctx context.Context, user modelsdb.UserNeo) error {
 	session, err := u.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -96,15 +93,15 @@ func (u *UsersImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 }
 
-func (u *UsersImpl) Get(ctx context.Context, id uuid.UUID) (UserModels, error) {
+func (u *UsersImpl) Get(ctx context.Context, id uuid.UUID) (modelsdb.UserNeo, error) {
 	session, err := u.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
-		return UserModels{}, err
+		return modelsdb.UserNeo{}, err
 	}
 	defer session.Close()
 
 	type resultWrapper struct {
-		user UserModels
+		user modelsdb.UserNeo
 		err  error
 	}
 	resultChan := make(chan resultWrapper, 1)
@@ -128,7 +125,7 @@ func (u *UsersImpl) Get(ctx context.Context, id uuid.UUID) (UserModels, error) {
 			}
 
 			record := res.Record()
-			user := UserModels{}
+			user := modelsdb.UserNeo{}
 			idVal := record.GetByIndex(0)
 			idStr, ok := idVal.(string)
 			if !ok {
@@ -142,12 +139,12 @@ func (u *UsersImpl) Get(ctx context.Context, id uuid.UUID) (UserModels, error) {
 			return user, nil
 		})
 		if err != nil {
-			resultChan <- resultWrapper{UserModels{}, err}
+			resultChan <- resultWrapper{modelsdb.UserNeo{}, err}
 			return
 		}
-		user, ok := result.(UserModels)
+		user, ok := result.(modelsdb.UserNeo)
 		if !ok {
-			resultChan <- resultWrapper{UserModels{}, fmt.Errorf("unexpected result type")}
+			resultChan <- resultWrapper{modelsdb.UserNeo{}, fmt.Errorf("unexpected result type")}
 			return
 		}
 		resultChan <- resultWrapper{user, nil}
@@ -157,6 +154,6 @@ func (u *UsersImpl) Get(ctx context.Context, id uuid.UUID) (UserModels, error) {
 	case res := <-resultChan:
 		return res.user, res.err
 	case <-ctx.Done():
-		return UserModels{}, ctx.Err()
+		return modelsdb.UserNeo{}, ctx.Err()
 	}
 }

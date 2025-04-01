@@ -4,9 +4,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/hs-zavet/comtools/logkit"
 	_ "github.com/lib/pq" // postgres driver don`t delete
 	"github.com/pkg/errors"
-	"github.com/recovery-flow/comtools/logkit"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )

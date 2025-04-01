@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/recovery-flow/news-radar/internal/cli"
+	"github.com/hs-zavet/news-radar/internal/cli"
 )
 
 func main() {

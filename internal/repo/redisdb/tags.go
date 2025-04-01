@@ -4,14 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hs-zavet/news-radar/internal/repo/modelsdb"
 	"github.com/redis/go-redis/v9"
 )
-
-type TagModels struct {
-	Name  string `json:"name"`
-	Color string `json:"color"`
-	Icon  string `json:"icon"`
-}
 
 const tagsNamespace = "tags"
 
@@ -31,7 +26,7 @@ func NewTags(addr, password string, DB int) *TagsImpl {
 	}
 }
 
-func (t *TagsImpl) Add(ctx context.Context, tag TagModels) error {
+func (t *TagsImpl) Add(ctx context.Context, tag modelsdb.TagRedis) error {
 	nameKey := fmt.Sprintf("%s:name:%s", tagsNamespace, tag.Name)
 
 	data := map[string]interface{}{
@@ -47,15 +42,15 @@ func (t *TagsImpl) Add(ctx context.Context, tag TagModels) error {
 	return nil
 }
 
-func (t *TagsImpl) Get(ctx context.Context, tag string) (TagModels, error) {
+func (t *TagsImpl) Get(ctx context.Context, tag string) (modelsdb.TagRedis, error) {
 	nameKey := fmt.Sprintf("%s:name:%s", tagsNamespace, tag)
 
 	data, err := t.client.HGetAll(ctx, nameKey).Result()
 	if err != nil {
-		return TagModels{}, fmt.Errorf("error getting tag from Redis: %w", err)
+		return modelsdb.TagRedis{}, fmt.Errorf("error getting tag from Redis: %w", err)
 	}
 
-	return TagModels{
+	return modelsdb.TagRedis{
 		Name:  data["name"],
 		Color: data["color"],
 		Icon:  data["icon"],
