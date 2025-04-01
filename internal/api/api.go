@@ -14,30 +14,29 @@ import (
 )
 
 type Api struct {
-	cfg      *config.Config
-	log      *logrus.Logger
-	router   *chi.Mux
-	handlers *handlers.Handler
+	cfg    *config.Config
+	log    *logrus.Logger
+	router *chi.Mux
 }
 
-func NewAPI(cfg *config.Config, app *app.App) Api {
-	h := handlers.NewHandlers(cfg.Log(), app)
+func NewAPI(cfg *config.Config) Api {
 	return Api{
-		log:      cfg.Log(),
-		cfg:      cfg,
-		router:   chi.NewRouter(),
-		handlers: h,
+		log:    cfg.Log(),
+		cfg:    cfg,
+		router: chi.NewRouter(),
 	}
 }
 
-func (a *Api) Run(ctx context.Context) {
+func (a *Api) Run(ctx context.Context, app *app.App) {
 	_ = tokens.AuthMdl(a.cfg.JWT.AccessToken.SecretKey)
 	_ = tokens.IdentityMdl(a.cfg.JWT.AccessToken.SecretKey, identity.Admin, identity.SuperUser)
 
-	a.router.Route("/re-news/news-radar", func(r chi.Router) {
+	h := handlers.NewHandlers(a.cfg.Log(), app)
+
+	a.router.Route("/hs/news-radar", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/articles", func(r chi.Router) {
-				r.Get("/", a.handlers.Test)
+				r.Get("/", h.Test)
 			})
 		})
 	})

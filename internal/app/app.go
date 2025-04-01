@@ -17,9 +17,6 @@ type Author interface {
 type Tag interface {
 }
 
-type Theme interface {
-}
-
 type User interface {
 }
 
@@ -30,7 +27,6 @@ type App struct {
 	articles Article
 	authors  Author
 	tags     Tag
-	themes   Theme
 	user     User
 }
 
@@ -50,11 +46,6 @@ func NewApp(cfg config.Config) (*App, error) {
 		return nil, err
 	}
 
-	themes, err := entities.NewThemes(cfg)
-	if err != nil {
-		return nil, err
-	}
-
 	user, err := entities.NewUser(cfg)
 	if err != nil {
 		return nil, err
@@ -64,13 +55,11 @@ func NewApp(cfg config.Config) (*App, error) {
 		articles: articles,
 		authors:  authors,
 		tags:     tags,
-		themes:   themes,
 		user:     user,
 	}, nil
 }
 
 func (a *App) Testacion() {
-
 }
 
 func (a *App) CreateArticle(Id uuid.UUID, Title string, Content string, Author string, CreatedAt time.Time, UpdatedAt time.Time) {

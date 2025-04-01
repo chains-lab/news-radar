@@ -19,8 +19,8 @@ func runServices(ctx context.Context, wg *sync.WaitGroup, app *app.App, cfg *con
 		}()
 	}
 
-	API := api.NewAPI(cfg, app)
-	run(func() { API.Run(ctx) })
+	API := api.NewAPI(cfg)
+	run(func() { API.Run(ctx, app) })
 
 	run(func() { eventlistener.NewListener(cfg, app) })
 }

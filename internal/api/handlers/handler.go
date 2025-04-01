@@ -7,9 +7,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type App interface {
+	Testacion()
+}
+
 type Handler struct {
 	log *logrus.Logger
-	app *app.App
+	app App
 }
 
 func NewHandlers(log *logrus.Logger, app *app.App) *Handler {
@@ -18,6 +22,7 @@ func NewHandlers(log *logrus.Logger, app *app.App) *Handler {
 		app: app,
 	}
 }
-func (h *Handler) Test(w http.ResponseWriter, r *http.Request) {
 
+func (h *Handler) Test(w http.ResponseWriter, r *http.Request) {
+	h.app.Testacion()
 }

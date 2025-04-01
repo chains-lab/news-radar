@@ -49,16 +49,16 @@ func (l *Listener) Listen(ctx context.Context, cfg *config.Config) {
 			}
 
 			switch event.EventType {
-			case events.RepostEventType:
-				l.app.Repost(ctx, event)
-			case events.LikeEventType:
-				l.app.Like(ctx, event)
-			case events.DislikeEventType:
-				l.app.Dislike(ctx, event)
-			case events.LikeRemoveEventType:
-				l.app.LikeRemove(ctx, event)
-			case events.DislikeRemoveEventType:
-				l.app.DislikeRemove(ctx, event)
+			//case events.RepostEventType:
+			//	l.app.Repost(ctx, event)
+			//case events.LikeEventType:
+			//	l.app.Like(ctx, event)
+			//case events.DislikeEventType:
+			//	l.app.Dislike(ctx, event)
+			//case events.LikeRemoveEventType:
+			//	l.app.LikeRemove(ctx, event)
+			//case events.DislikeRemoveEventType:
+			//	l.app.DislikeRemove(ctx, event)
 			default:
 				l.log.WithField("event", event).Error("Unknown event type")
 			}
@@ -84,8 +84,8 @@ func (l *Listener) Listen(ctx context.Context, cfg *config.Config) {
 			}
 
 			switch event.EventType {
-			case events.AccountCreateType:
-				l.app.AccountCreated(ctx, event)
+			//case events.AccountCreateType:
+			//	l.app.AccountCreated(ctx, event)
 			default:
 				l.log.WithField("event", event).Error("Unknown event type")
 			}
