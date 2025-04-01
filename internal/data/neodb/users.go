@@ -2,6 +2,7 @@ package neodb
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
@@ -35,18 +36,31 @@ func (u *UsersImpl) Create(ctx context.Context, user UserModels) error {
 	if err != nil {
 		return err
 	}
+
 	defer session.Close()
 
-	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
-		cypher := `
-			CREATE (u:User {id: $id})
-		`
-		_, err := tx.Run(cypher, map[string]interface{}{
-			"id": user.ID.String(),
+	resultChan := make(chan error, 1)
+
+	go func() {
+		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+			cypher := `
+				CREATE (u:User {id: $id})
+			`
+			_, err := tx.Run(cypher, map[string]interface{}{
+				"id": user.ID.String(),
+			})
+
+			return nil, err
 		})
-		return nil, err
-	})
-	return err
+		resultChan <- err
+	}()
+
+	select {
+	case err := <-resultChan:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 func (u *UsersImpl) Delete(ctx context.Context, id uuid.UUID) error {
@@ -54,54 +68,95 @@ func (u *UsersImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	if err != nil {
 		return err
 	}
+
 	defer session.Close()
 
-	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
-		cypher := `
-			MATCH (u:User {id: $id})
-			DETACH DELETE u
-		`
-		_, err := tx.Run(cypher, map[string]interface{}{
-			"id": id.String(),
+	resultChan := make(chan error, 1)
+
+	go func() {
+		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+			cypher := `
+				MATCH (u:User {id: $id})
+				DETACH DELETE u
+			`
+			_, err := tx.Run(cypher, map[string]interface{}{
+				"id": id.String(),
+			})
+
+			return nil, err
 		})
-		return nil, err
-	})
-	return err
+		resultChan <- err
+	}()
+
+	select {
+	case err := <-resultChan:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
-func (u *UsersImpl) Get(ctx context.Context, id uuid.UUID) (*UserModels, error) {
+func (u *UsersImpl) Get(ctx context.Context, id uuid.UUID) (UserModels, error) {
 	session, err := u.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
-		return nil, err
+		return UserModels{}, err
 	}
 	defer session.Close()
 
-	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
-		cypher := `
-			MATCH (u:User {id: $id})
-			RETURN u
-		`
-		result, err := tx.Run(cypher, map[string]interface{}{
-			"id": id.String(),
+	type resultWrapper struct {
+		user UserModels
+		err  error
+	}
+	resultChan := make(chan resultWrapper, 1)
+
+	go func() {
+		result, err := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+			cypher := `
+				MATCH (u:User {id: $id})
+				RETURN u
+			`
+
+			res, err := tx.Run(cypher, map[string]interface{}{
+				"id": id.String(),
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			if !res.Next() {
+				return nil, fmt.Errorf("user not found")
+			}
+
+			record := res.Record()
+			user := UserModels{}
+			idVal := record.GetByIndex(0)
+			idStr, ok := idVal.(string)
+			if !ok {
+				return nil, fmt.Errorf("unexpected type for user id")
+			}
+			user.ID, err = uuid.Parse(idStr)
+			if err != nil {
+				return nil, err
+			}
+
+			return user, nil
 		})
 		if err != nil {
-			return nil, err
+			resultChan <- resultWrapper{UserModels{}, err}
+			return
 		}
+		user, ok := result.(UserModels)
+		if !ok {
+			resultChan <- resultWrapper{UserModels{}, fmt.Errorf("unexpected result type")}
+			return
+		}
+		resultChan <- resultWrapper{user, nil}
+	}()
 
-		if !result.Next() {
-			return nil, nil
-		}
-
-		record := result.Record()
-		u := &UserModels{}
-		u.ID, err = uuid.Parse(record.GetByIndex(0).(string))
-		if err != nil {
-			return nil, err
-		}
-		return u, nil
-	})
-	if err != nil {
-		return nil, err
+	select {
+	case res := <-resultChan:
+		return res.user, res.err
+	case <-ctx.Done():
+		return UserModels{}, ctx.Err()
 	}
-	return result.(*UserModels), nil
 }

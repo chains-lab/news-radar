@@ -3,18 +3,15 @@ package neodb
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
+	"github.com/hs-zavet/news-radar/internal/config"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
-	"github.com/recovery-flow/news-radar/internal/app/models"
-	"github.com/recovery-flow/news-radar/internal/config"
 )
 
 type ArticleModel struct {
-	ID        uuid.UUID
-	CreatedAt time.Time
-	Status    models.ArticleStatus
+	ID     uuid.UUID
+	Status string
 }
 
 type ArticlesImpl struct {
@@ -36,36 +33,47 @@ func NewArticles(cfg config.Config) (*ArticlesImpl, error) {
 	}, nil
 }
 
-func (a *ArticlesImpl) Create(ctx context.Context, article *ArticleModel) error {
+func (a *ArticlesImpl) Create(ctx context.Context, article ArticleModel) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
 	}
+
 	defer session.Close()
 
-	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-		cypher := `
-			CREATE (a:Article { 
-				id: $id, 
-				created_at: $created_at,
-				status: $status
-			})		
-			RETURN a
-		`
-		params := map[string]any{
-			"id":         article.ID.String(),
-			"created_at": article.CreatedAt.UTC().Format(time.RFC3339),
-			"status":     article.Status,
-		}
+	resultChan := make(chan error, 1)
 
-		_, err := tx.Run(cypher, params)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create article with relationships: %w", err)
-		}
-		return nil, nil
-	})
+	go func() {
+		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+			cypher := `
+				CREATE (a:Article { 
+					id: $id, 
+					created_at: $created_at,
+					status: $status
+				})		
+				RETURN a
+			`
 
-	return err
+			params := map[string]any{
+				"id":     article.ID.String(),
+				"status": article.Status,
+			}
+
+			_, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create article with relationships: %w", err)
+			}
+			return nil, nil
+		})
+		resultChan <- err
+	}()
+
+	select {
+	case err := <-resultChan:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 func (a *ArticlesImpl) Delete(ctx context.Context, id uuid.UUID) error {
@@ -73,102 +81,153 @@ func (a *ArticlesImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	if err != nil {
 		return err
 	}
+
 	defer session.Close()
 
-	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-		cypher := `
-			MATCH (a:Article { id: $id })
-			DETACH DELETE a
-		`
-		params := map[string]any{
-			"id": id.String(),
-		}
+	resultChan := make(chan error, 1)
 
-		_, err := tx.Run(cypher, params)
-		if err != nil {
-			return nil, fmt.Errorf("failed to delete article: %w", err)
-		}
+	go func() {
+		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+			cypher := `
+				MATCH (a:Article { id: $id })
+				DETACH DELETE a
+			`
 
-		return nil, nil
-	})
+			params := map[string]any{
+				"id": id.String(),
+			}
 
-	return err
+			_, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, fmt.Errorf("failed to delete article: %w", err)
+			}
+
+			return nil, nil
+		})
+		resultChan <- err
+	}()
+
+	select {
+	case err := <-resultChan:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
-func (a *ArticlesImpl) UpdateStatus(ctx context.Context, ID uuid.UUID, status models.ArticleStatus) error {
+func (a *ArticlesImpl) UpdateStatus(ctx context.Context, ID uuid.UUID, status string) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
 	}
+
 	defer session.Close()
 
-	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-		cypher := `
-			MATCH (a:Article { id: $id })
-			SET a.status = $status
-			RETURN a
-		`
-		params := map[string]any{
-			"id":     ID.String(),
-			"status": string(status),
-		}
-		_, err := tx.Run(cypher, params)
-		if err != nil {
-			return nil, fmt.Errorf("failed to set status for article: %w", err)
-		}
-		return nil, nil
-	})
-	return err
+	resultChan := make(chan error, 1)
+
+	go func() {
+		_, err := session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+			cypher := `
+                MATCH (a:Article { id: $id })
+                SET a.status = $status
+                RETURN a
+            `
+
+			params := map[string]interface{}{
+				"id":     ID.String(),
+				"status": status,
+			}
+			_, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, fmt.Errorf("failed to set status for article: %w", err)
+			}
+			return nil, nil
+		})
+		resultChan <- err
+	}()
+
+	select {
+	case err := <-resultChan:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
-func (a *ArticlesImpl) Get(ctx context.Context, ID uuid.UUID) (*ArticleModel, error) {
+func (a *ArticlesImpl) GetByID(ctx context.Context, ID uuid.UUID) (ArticleModel, error) {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
-		return nil, err
+		return ArticleModel{}, err
 	}
 	defer session.Close()
 
-	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
-		cypher := `
-			MATCH (a:Article { id: $id })
-			RETURN a
-			LIMIT 1
-		`
-		params := map[string]any{
-			"id": ID.String(),
+	type resultWrapper struct {
+		article ArticleModel
+		err     error
+	}
+
+	resultChan := make(chan resultWrapper, 1)
+
+	go func() {
+		result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
+			cypher := `
+				MATCH (a:Article { id: $id })
+				RETURN a
+				LIMIT 1
+			`
+
+			params := map[string]any{
+				"id": ID.String(),
+			}
+
+			records, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, err
+			}
+
+			if records.Next() {
+				node, ok := records.Record().Get("a")
+				if !ok {
+					return nil, fmt.Errorf("article not found")
+				}
+
+				n, ok := node.(neo4j.Node)
+				if !ok {
+					return nil, fmt.Errorf("invalid node type")
+				}
+
+				props := n.Props()
+				article := ArticleModel{
+					ID: ID,
+				}
+				if status, ok := props["status"].(string); ok {
+					article.Status = status
+				}
+
+				return article, nil
+			}
+
+			return nil, fmt.Errorf("article not found")
+		})
+
+		if err != nil {
+			resultChan <- resultWrapper{err: err}
+			return
 		}
 
-		records, err := tx.Run(cypher, params)
-		if err != nil {
-			return nil, err
+		article, ok := result.(ArticleModel)
+		if !ok {
+			resultChan <- resultWrapper{err: fmt.Errorf("unexpected result type")}
+			return
 		}
-		if records.Next() {
-			record := records.Record()
-			node, ok := record.Get("a")
-			if !ok {
-				return nil, fmt.Errorf("article not found")
-			}
-			n := node.(neo4j.Node)
-			props := n.Props()
-			article := &ArticleModel{
-				ID: ID,
-			}
-			if createdAtStr, ok := props["created_at"].(string); ok {
-				parsedTime, err := time.Parse(time.RFC3339, createdAtStr)
-				if err != nil {
-					return nil, fmt.Errorf("failed to parse created_at: %w", err)
-				}
-				article.CreatedAt = parsedTime
-			}
-			if statusStr, ok := props["status"].(string); ok {
-				article.Status = models.ArticleStatus(statusStr)
-			}
-			return article, nil
-		}
-		return nil, fmt.Errorf("article not found")
-	})
-	if err != nil {
-		return nil, err
+
+		resultChan <- resultWrapper{article: article, err: nil}
+	}()
+
+	select {
+	case res := <-resultChan:
+		return res.article, res.err
+	case <-ctx.Done():
+		return ArticleModel{}, ctx.Err()
 	}
-	return result.(*ArticleModel), nil
 }

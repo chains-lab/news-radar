@@ -6,13 +6,12 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
-	"github.com/recovery-flow/news-radar/internal/app/models"
 )
 
 type AuthorModel struct {
-	ID     uuid.UUID           `json:"id"`
-	Name   string              `json:"name"`
-	Status models.AuthorStatus `json:"status"`
+	ID     uuid.UUID `json:"id"`
+	Name   string    `json:"name"`
+	Status string    `json:"status"`
 }
 
 type AuthorsImpl struct {
@@ -22,11 +21,11 @@ type AuthorsImpl struct {
 func NewAuthors(uri, username, password string) (*AuthorsImpl, error) {
 	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""))
 	if err != nil {
-		return nil, fmt.Errorf("failed to create neo4j driver: %w", err)
+		return nil, err
 	}
 
 	if err = driver.VerifyConnectivity(); err != nil {
-		return nil, fmt.Errorf("failed to verify connectivity: %w", err)
+		return nil, err
 	}
 
 	return &AuthorsImpl{
@@ -34,32 +33,44 @@ func NewAuthors(uri, username, password string) (*AuthorsImpl, error) {
 	}, nil
 }
 
-func (a *AuthorsImpl) Create(ctx context.Context, author *AuthorModel) error {
+func (a *AuthorsImpl) Create(ctx context.Context, author AuthorModel) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
 	}
+
 	defer session.Close()
 
-	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-		cypher := `
-			CREATE (au:Author { id: $id, name: $name, status: $status })
-			RETURN au
-		`
-		params := map[string]any{
-			"id":     author.ID.String(),
-			"name":   author.Name,
-			"status": author.Status,
-		}
+	resultChan := make(chan error, 1)
 
-		_, err := tx.Run(cypher, params)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create author: %w", err)
-		}
-		return nil, nil
-	})
+	go func() {
+		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+			cypher := `
+				CREATE (au:Author { id: $id, name: $name, status: $status })
+				RETURN au
+			`
 
-	return err
+			params := map[string]any{
+				"id":     author.ID.String(),
+				"name":   author.Name,
+				"status": author.Status,
+			}
+
+			_, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create author: %w", err)
+			}
+			return nil, nil
+		})
+		resultChan <- err
+	}()
+
+	select {
+	case err := <-resultChan:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 func (a *AuthorsImpl) Delete(ctx context.Context, id uuid.UUID) error {
@@ -67,25 +78,37 @@ func (a *AuthorsImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	if err != nil {
 		return err
 	}
+
 	defer session.Close()
 
-	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-		cypher := `
-			MATCH (au:Author { id: $id })
-			DETACH DELETE au
-		`
-		params := map[string]any{
-			"id": id.String(),
-		}
+	resultChan := make(chan error, 1)
 
-		_, err := tx.Run(cypher, params)
-		if err != nil {
-			return nil, fmt.Errorf("failed to delete author: %w", err)
-		}
-		return nil, nil
-	})
+	go func() {
+		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+			cypher := `
+				MATCH (au:Author { id: $id })
+				DETACH DELETE au
+			`
 
-	return err
+			params := map[string]any{
+				"id": id.String(),
+			}
+
+			_, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, fmt.Errorf("failed to delete author: %w", err)
+			}
+			return nil, nil
+		})
+		resultChan <- err
+	}()
+
+	select {
+	case err := <-resultChan:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 func (a *AuthorsImpl) UpdateName(ctx context.Context, id uuid.UUID, name string) error {
@@ -93,107 +116,159 @@ func (a *AuthorsImpl) UpdateName(ctx context.Context, id uuid.UUID, name string)
 	if err != nil {
 		return err
 	}
+
 	defer session.Close()
 
-	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-		cypher := `
-			MATCH (au:Author { id: $id })
-			SET au.name = $name
-			RETURN au
-		`
+	resultChan := make(chan error, 1)
 
-		params := map[string]any{
-			"id":   id.String(),
-			"name": name,
-		}
+	go func() {
+		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+			cypher := `
+				MATCH (au:Author { id: $id })
+				SET au.name = $name
+				RETURN au
+			`
 
-		_, err := tx.Run(cypher, params)
-		if err != nil {
-			return nil, fmt.Errorf("failed to update author: %w", err)
-		}
-		return nil, nil
-	})
+			params := map[string]any{
+				"id":   id.String(),
+				"name": name,
+			}
+
+			_, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, fmt.Errorf("failed to update author: %w", err)
+			}
+			return nil, nil
+		})
+		resultChan <- err
+	}()
+
+	select {
+	case err := <-resultChan:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 
 	return err
 }
 
-func (a *AuthorsImpl) UpdateStatus(ctx context.Context, id uuid.UUID, status models.AuthorStatus) error {
+func (a *AuthorsImpl) UpdateStatus(ctx context.Context, id uuid.UUID, status string) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
 	}
+
 	defer session.Close()
 
-	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-		cypher := `
-			MATCH (au:Author { id: $id })
-			SET au.status = $status
-			RETURN au
-		`
+	resultChan := make(chan error, 1)
 
-		params := map[string]any{
-			"id":     id.String(),
-			"status": status,
-		}
+	go func() {
+		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+			cypher := `
+				MATCH (au:Author { id: $id })
+				SET au.status = $status
+				RETURN au
+			`
 
-		_, err := tx.Run(cypher, params)
-		if err != nil {
-			return nil, fmt.Errorf("failed to update author: %w", err)
-		}
-		return nil, nil
-	})
+			params := map[string]any{
+				"id":     id.String(),
+				"status": status,
+			}
 
-	return err
+			_, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, fmt.Errorf("failed to update author: %w", err)
+			}
+			return nil, nil
+		})
+		resultChan <- err
+	}()
+
+	select {
+	case err := <-resultChan:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
-func (a *AuthorsImpl) GetByID(ctx context.Context, ID uuid.UUID) (*AuthorModel, error) {
+func (a *AuthorsImpl) GetByID(ctx context.Context, ID uuid.UUID) (AuthorModel, error) {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
-		return nil, err
+		return AuthorModel{}, err
 	}
+
 	defer session.Close()
 
-	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
-		cypher := `
-			MATCH (au:Author { id: $id })
-			RETURN au
-			LIMIT 1
-		`
-		params := map[string]any{
-			"id": ID.String(),
-		}
-		record, err := tx.Run(cypher, params)
-		if err != nil {
-			return nil, err
-		}
-		if record.Next() {
-			node, ok := record.Record().Get("au")
-			if !ok {
-				return nil, fmt.Errorf("author not found")
-			}
-			n := node.(neo4j.Node)
-			props := n.Props()
-
-			authorID, err := uuid.Parse(props["id"].(string))
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse author id: %w", err)
-			}
-			status, err := models.ParseAuthorStatus(props["status"].(string))
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse author status: %w", err)
-			}
-
-			author := AuthorModel{
-				ID:     authorID,
-				Name:   props["name"].(string),
-				Status: status,
-			}
-			return author, nil
-		}
-		return nil, fmt.Errorf("author not found")
-	})
-	if err != nil {
-		return nil, err
+	type resultWrapper struct {
+		author AuthorModel
+		err    error
 	}
-	return result.(*AuthorModel), nil
+
+	resultChan := make(chan resultWrapper, 1)
+
+	go func() {
+		result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
+			cypher := `
+				MATCH (au:Author { id: $id })
+				RETURN au
+				LIMIT 1
+			`
+
+			params := map[string]any{
+				"id": ID.String(),
+			}
+
+			record, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, err
+			}
+
+			if record.Next() {
+				node, ok := record.Record().Get("au")
+				if !ok {
+					return nil, fmt.Errorf("author not found")
+				}
+
+				n := node.(neo4j.Node)
+				props := n.Props()
+
+				authorID, err := uuid.Parse(props["id"].(string))
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse author id: %w", err)
+				}
+
+				author := AuthorModel{
+					ID:     authorID,
+					Name:   props["name"].(string),
+					Status: props["status"].(string),
+				}
+
+				return author, nil
+			}
+
+			return nil, fmt.Errorf("author not found")
+		})
+
+		if err != nil {
+			resultChan <- resultWrapper{err: err}
+			return
+		}
+
+		author, ok := result.(AuthorModel)
+		if !ok {
+			resultChan <- resultWrapper{err: fmt.Errorf("invalid result type")}
+			return
+		}
+
+		resultChan <- resultWrapper{author: author}
+	}()
+
+	select {
+	case res := <-resultChan:
+		return res.author, res.err
+	case <-ctx.Done():
+		return AuthorModel{}, ctx.Err()
+	}
 }

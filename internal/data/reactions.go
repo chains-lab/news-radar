@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/data/neodb"
+	"github.com/hs-zavet/news-radar/internal/config"
+	"github.com/hs-zavet/news-radar/internal/data/neodb"
 )
 
 type reactionRepo interface {
@@ -45,22 +45,37 @@ func NewReactions(cfg config.Config) (*Reaction, error) {
 	}, nil
 }
 
-func (u *Reaction) CreateLike(ctx context.Context, userID, articleID uuid.UUID) error {
-	return u.likes.Create(ctx, userID, articleID)
+func (u *Reaction) CreateLike(userID, articleID uuid.UUID) error {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	return u.likes.Create(ctxSync, userID, articleID)
 }
 
-func (u *Reaction) RemoveLike(ctx context.Context, userID, articleID uuid.UUID) error {
-	return u.likes.Delete(ctx, userID, articleID)
+func (u *Reaction) RemoveLike(userID, articleID uuid.UUID) error {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	return u.likes.Delete(ctxSync, userID, articleID)
 }
 
-func (u *Reaction) CreateDislike(ctx context.Context, userID, articleID uuid.UUID) error {
-	return u.dislikes.Create(ctx, userID, articleID)
+func (u *Reaction) CreateDislike(userID, articleID uuid.UUID) error {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	return u.dislikes.Create(ctxSync, userID, articleID)
 }
 
-func (u *Reaction) RemoveDislike(ctx context.Context, userID, articleID uuid.UUID) error {
-	return u.dislikes.Delete(ctx, userID, articleID)
+func (u *Reaction) RemoveDislike(userID, articleID uuid.UUID) error {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	return u.dislikes.Delete(ctxSync, userID, articleID)
 }
 
-func (u *Reaction) CreateRepost(ctx context.Context, userID, articleID uuid.UUID) error {
-	return u.reposts.Create(ctx, userID, articleID)
+func (u *Reaction) CreateRepost(userID, articleID uuid.UUID) error {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	return u.reposts.Create(ctxSync, userID, articleID)
 }

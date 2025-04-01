@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/news-radar/internal/app/models"
-	"github.com/recovery-flow/news-radar/internal/config"
-	"github.com/recovery-flow/news-radar/internal/data/mongodb"
-	"github.com/recovery-flow/news-radar/internal/data/neodb"
+	"github.com/hs-zavet/news-radar/internal/config"
+	"github.com/hs-zavet/news-radar/internal/data/models"
+	"github.com/hs-zavet/news-radar/internal/data/mongodb"
+	"github.com/hs-zavet/news-radar/internal/data/neodb"
 )
 
 type authorsRedis interface {
@@ -16,16 +16,16 @@ type authorsRedis interface {
 type authorsMongo interface {
 	New() *mongodb.AuthorsQ
 
-	Insert(ctx context.Context, author *mongodb.AuthorModel) (*mongodb.AuthorModel, error)
+	Insert(ctx context.Context, author mongodb.AuthorModel) (mongodb.AuthorModel, error)
 	Delete(ctx context.Context) error
 	Count(ctx context.Context) (int64, error)
 	Select(ctx context.Context) ([]mongodb.AuthorModel, error)
-	Get(ctx context.Context) (*mongodb.AuthorModel, error)
+	Get(ctx context.Context) (mongodb.AuthorModel, error)
 
 	FiltersID(id uuid.UUID) *mongodb.AuthorsQ
 	FiltersName(name string) *mongodb.AuthorsQ
 
-	Update(ctx context.Context, fields map[string]any) (*mongodb.AuthorModel, error)
+	Update(ctx context.Context, fields map[string]any) (mongodb.AuthorModel, error)
 
 	Limit(limit int64) *mongodb.AuthorsQ
 	Skip(skip int64) *mongodb.AuthorsQ
@@ -33,13 +33,13 @@ type authorsMongo interface {
 }
 
 type authorsNeo interface {
-	Create(ctx context.Context, author *neodb.AuthorModel) error
+	Create(ctx context.Context, author neodb.AuthorModel) error
 	Delete(ctx context.Context, ID uuid.UUID) error
 
-	UpdateName(ctx context.Context, ID uuid.UUID, name string) error
-	UpdateStatus(ctx context.Context, ID uuid.UUID, status models.AuthorStatus) error
+	GetByID(ctx context.Context, ID uuid.UUID) (neodb.AuthorModel, error)
 
-	GetByID(ctx context.Context, ID uuid.UUID) (*neodb.AuthorModel, error)
+	UpdateName(ctx context.Context, ID uuid.UUID, name string) error
+	UpdateStatus(ctx context.Context, ID uuid.UUID, status string) error
 }
 
 type Authors struct {
@@ -64,8 +64,11 @@ func NewAuthors(cfg config.Config) (*Authors, error) {
 	}, nil
 }
 
-func (a *Authors) Create(ctx context.Context, author models.Author) error {
-	if err := a.neo.Create(ctx, &neodb.AuthorModel{
+func (a *Authors) Create(author models.Author) error {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	if err := a.neo.Create(ctxSync, neodb.AuthorModel{
 		ID:     author.ID,
 		Name:   author.Name,
 		Status: author.Status,
@@ -73,7 +76,7 @@ func (a *Authors) Create(ctx context.Context, author models.Author) error {
 		return err
 	}
 
-	_, err := a.mongo.New().Insert(ctx, &mongodb.AuthorModel{
+	_, err := a.mongo.New().Insert(ctxSync, mongodb.AuthorModel{
 		ID:        author.ID,
 		Name:      author.Name,
 		CreatedAt: author.CreatedAt,
@@ -85,24 +88,23 @@ func (a *Authors) Create(ctx context.Context, author models.Author) error {
 	return nil
 }
 
-func (a *Authors) Update(ctx context.Context, ID uuid.UUID, fields map[string]any) error {
-	if _, ok := fields["status"]; ok {
-		status, err := models.ParseAuthorStatus(fields["status"].(string))
-		if err != nil {
-			return err
-		}
-		if err := a.neo.UpdateStatus(ctx, ID, status); err != nil {
+func (a *Authors) Update(ID uuid.UUID, fields map[string]any) error {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	if status, ok := fields["status"].(string); ok {
+		if err := a.neo.UpdateStatus(ctxSync, ID, status); err != nil {
 			return err
 		}
 	}
 
-	if _, ok := fields["name"]; ok {
-		if err := a.neo.UpdateName(ctx, ID, fields["name"].(string)); err != nil {
+	if name, ok := fields["name"].(string); ok {
+		if err := a.neo.UpdateName(ctxSync, ID, name); err != nil {
 			return err
 		}
 	}
 
-	_, err := a.mongo.New().FiltersID(ID).Update(ctx, fields)
+	_, err := a.mongo.New().FiltersID(ID).Update(ctxSync, fields)
 	if err != nil {
 		return err
 	}
@@ -110,45 +112,39 @@ func (a *Authors) Update(ctx context.Context, ID uuid.UUID, fields map[string]an
 	return nil
 }
 
-func (a *Authors) Delete(ctx context.Context, ID uuid.UUID) error {
-	if err := a.neo.Delete(ctx, ID); err != nil {
+func (a *Authors) Delete(ID uuid.UUID) error {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	if err := a.neo.Delete(ctxSync, ID); err != nil {
 		return err
 	}
 
-	if err := a.mongo.New().FiltersID(ID).Delete(ctx); err != nil {
+	if err := a.mongo.New().FiltersID(ID).Delete(ctxSync); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (a *Authors) GetByID(ctx context.Context, ID uuid.UUID) (*models.Author, error) {
-	mongo, err := a.mongo.New().FiltersID(ID).Get(ctx)
+func (a *Authors) GetByID(ID uuid.UUID) (models.Author, error) {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	mongo, err := a.mongo.New().FiltersID(ID).Get(ctxSync)
 	if err != nil {
-		return nil, err
+		return models.Author{}, err
 	}
 
-	neo, err := a.neo.GetByID(ctx, ID)
+	neo, err := a.neo.GetByID(ctxSync, ID)
 	if err != nil {
-		return nil, err
+		return models.Author{}, err
 	}
 
-	res := createModelsAuthor(*neo, *mongo)
+	res, err := models.AuthorsCreateModel(mongo, neo)
+	if err != nil {
+		return models.Author{}, err
+	}
 
 	return res, nil
-}
-
-func createModelsAuthor(neo neodb.AuthorModel, mongo mongodb.AuthorModel) *models.Author {
-	return &models.Author{
-		ID:        mongo.ID,
-		Name:      mongo.Name,
-		CreatedAt: mongo.CreatedAt,
-		Desc:      mongo.Desc,
-		Avatar:    mongo.Avatar,
-		Email:     mongo.Email,
-		Telegram:  mongo.Telegram,
-		Twitter:   mongo.Twitter,
-		UpdatedAt: mongo.UpdatedAt,
-		Status:    neo.Status,
-	}
 }

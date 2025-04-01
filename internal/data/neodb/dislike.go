@@ -32,26 +32,39 @@ func (d *DislikesImpl) Create(ctx context.Context, userID uuid.UUID, articleID u
 	if err != nil {
 		return err
 	}
+
 	defer session.Close()
 
-	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-		cypher := `
-			MATCH (u:User { id: $userID })
-			MATCH (a:Article { id: $articleID })
-			MERGE (u)-[:DISLIKED]->(a)
-		`
-		params := map[string]interface{}{
-			"userID":    userID.String(),
-			"articleID": articleID.String(),
-		}
-		_, err := tx.Run(cypher, params)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create DISLIKED relationship: %w", err)
-		}
-		return nil, nil
-	})
+	resultChan := make(chan error, 1)
 
-	return err
+	go func() {
+		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+			cypher := `
+				MATCH (u:User { id: $userID })
+				MATCH (a:Article { id: $articleID })
+				MERGE (u)-[:DISLIKED]->(a)
+			`
+			params := map[string]interface{}{
+				"userID":    userID.String(),
+				"articleID": articleID.String(),
+			}
+
+			_, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create DISLIKED relationship: %w", err)
+			}
+
+			return nil, nil
+		})
+		resultChan <- err
+	}()
+
+	select {
+	case err := <-resultChan:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 func (d *DislikesImpl) Delete(ctx context.Context, userID uuid.UUID, articleID uuid.UUID) error {
@@ -59,25 +72,39 @@ func (d *DislikesImpl) Delete(ctx context.Context, userID uuid.UUID, articleID u
 	if err != nil {
 		return err
 	}
+
 	defer session.Close()
 
-	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-		cypher := `
-			MATCH (u:User { id: $userID })-[r:DISLIKED]->(a:Article { id: $articleID })
-			DELETE r
-		`
-		params := map[string]interface{}{
-			"userID":    userID.String(),
-			"articleID": articleID.String(),
-		}
-		_, err := tx.Run(cypher, params)
-		if err != nil {
-			return nil, fmt.Errorf("failed to delete DISLIKED relationship: %w", err)
-		}
-		return nil, nil
-	})
+	resultChan := make(chan error, 1)
 
-	return err
+	go func() {
+		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+			cypher := `
+				MATCH (u:User { id: $userID })-[r:DISLIKED]->(a:Article { id: $articleID })
+				DELETE r
+			`
+
+			params := map[string]interface{}{
+				"userID":    userID.String(),
+				"articleID": articleID.String(),
+			}
+
+			_, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, fmt.Errorf("failed to delete DISLIKED relationship: %w", err)
+			}
+
+			return nil, nil
+		})
+		resultChan <- err
+	}()
+
+	select {
+	case err := <-resultChan:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 func (d *DislikesImpl) GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
@@ -87,41 +114,67 @@ func (d *DislikesImpl) GetForUser(ctx context.Context, userID uuid.UUID) ([]uuid
 	}
 	defer session.Close()
 
-	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
-		cypher := `
-			MATCH (u:User { id: $userID })-[r:DISLIKED]->(a:Article)
-			RETURN a.id AS articleID
-		`
-		params := map[string]interface{}{
-			"userID": userID.String(),
-		}
-		records, err := tx.Run(cypher, params)
-		if err != nil {
-			return nil, err
-		}
-		var articleIDs []uuid.UUID
-		for records.Next() {
-			record := records.Record()
-			articleIDVal, ok := record.Get("articleID")
-			if !ok {
-				continue
-			}
-			articleIDStr, ok := articleIDVal.(string)
-			if !ok {
-				continue
-			}
-			parsedID, err := uuid.Parse(articleIDStr)
-			if err != nil {
-				continue
-			}
-			articleIDs = append(articleIDs, parsedID)
-		}
-		return articleIDs, nil
-	})
-	if err != nil {
-		return nil, err
+	type resultWrapper struct {
+		ids []uuid.UUID
+		err error
 	}
-	return result.([]uuid.UUID), nil
+	resultChan := make(chan resultWrapper, 1)
+
+	go func() {
+		result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
+			cypher := `
+				MATCH (u:User { id: $userID })-[r:DISLIKED]->(a:Article)
+				RETURN a.id AS articleID
+			`
+			params := map[string]interface{}{
+				"userID": userID.String(),
+			}
+			records, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, err
+			}
+
+			var articleIDs []uuid.UUID
+			for records.Next() {
+				record := records.Record()
+				articleIDVal, ok := record.Get("articleID")
+				if !ok {
+					continue
+				}
+
+				articleIDStr, ok := articleIDVal.(string)
+				if !ok {
+					continue
+				}
+
+				parsedID, err := uuid.Parse(articleIDStr)
+				if err != nil {
+					continue
+				}
+
+				articleIDs = append(articleIDs, parsedID)
+			}
+			return articleIDs, nil
+		})
+		if err != nil {
+			resultChan <- resultWrapper{nil, err}
+			return
+		}
+
+		ids, ok := result.([]uuid.UUID)
+		if !ok {
+			resultChan <- resultWrapper{nil, fmt.Errorf("unexpected result type")}
+			return
+		}
+		resultChan <- resultWrapper{ids, nil}
+	}()
+
+	select {
+	case res := <-resultChan:
+		return res.ids, res.err
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
 }
 
 func (d *DislikesImpl) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]uuid.UUID, error) {
@@ -131,39 +184,66 @@ func (d *DislikesImpl) GetForArticle(ctx context.Context, articleID uuid.UUID) (
 	}
 	defer session.Close()
 
-	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
-		cypher := `
-			MATCH (a:Article { id: $articleID })<-[r:DISLIKED]-(u:User)
-			RETURN u.id AS userID
-		`
-		params := map[string]interface{}{
-			"articleID": articleID.String(),
-		}
-		records, err := tx.Run(cypher, params)
-		if err != nil {
-			return nil, err
-		}
-		var userIDs []uuid.UUID
-		for records.Next() {
-			record := records.Record()
-			userIDVal, ok := record.Get("userID")
-			if !ok {
-				continue
-			}
-			userIDStr, ok := userIDVal.(string)
-			if !ok {
-				continue
-			}
-			parsedID, err := uuid.Parse(userIDStr)
-			if err != nil {
-				continue
-			}
-			userIDs = append(userIDs, parsedID)
-		}
-		return userIDs, nil
-	})
-	if err != nil {
-		return nil, err
+	type resultWrapper struct {
+		ids []uuid.UUID
+		err error
 	}
-	return result.([]uuid.UUID), nil
+	resultChan := make(chan resultWrapper, 1)
+
+	go func() {
+		result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
+			cypher := `
+				MATCH (a:Article { id: $articleID })<-[r:DISLIKED]-(u:User)
+				RETURN u.id AS userID
+			`
+
+			params := map[string]interface{}{
+				"articleID": articleID.String(),
+			}
+			records, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, err
+			}
+
+			var userIDs []uuid.UUID
+			for records.Next() {
+				record := records.Record()
+				userIDVal, ok := record.Get("userID")
+				if !ok {
+					continue
+				}
+
+				userIDStr, ok := userIDVal.(string)
+				if !ok {
+					continue
+				}
+
+				parsedID, err := uuid.Parse(userIDStr)
+				if err != nil {
+					continue
+				}
+
+				userIDs = append(userIDs, parsedID)
+			}
+			return userIDs, nil
+		})
+		if err != nil {
+			resultChan <- resultWrapper{nil, err}
+			return
+		}
+
+		ids, ok := result.([]uuid.UUID)
+		if !ok {
+			resultChan <- resultWrapper{nil, fmt.Errorf("unexpected result type")}
+			return
+		}
+		resultChan <- resultWrapper{ids, nil}
+	}()
+
+	select {
+	case res := <-resultChan:
+		return res.ids, res.err
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
 }

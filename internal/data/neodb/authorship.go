@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/hs-zavet/news-radar/internal/config"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
-	"github.com/recovery-flow/news-radar/internal/config"
 )
 
 type Authorship struct {
@@ -33,25 +33,39 @@ func (a *Authorship) Create(ctx context.Context, articleID uuid.UUID, authorID u
 	if err != nil {
 		return err
 	}
+
 	defer session.Close()
 
-	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-		cypher := `
-            MATCH (art:Article { id: $articleID })
-            MATCH (auth:Author { id: $authorID })
-            MERGE (art)-[:AUTHORED_BY]->(auth)
-        `
-		params := map[string]any{
-			"articleID": articleID.String(),
-			"authorID":  authorID.String(),
-		}
-		_, err := tx.Run(cypher, params)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create Authorship relationship: %w", err)
-		}
-		return nil, nil
-	})
-	return err
+	resultChan := make(chan error, 1)
+
+	go func() {
+		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+			cypher := `
+				MATCH (art:Article { id: $articleID })
+				MATCH (auth:Author { id: $authorID })
+				MERGE (art)-[:AUTHORED_BY]->(auth)
+			`
+			params := map[string]any{
+				"articleID": articleID.String(),
+				"authorID":  authorID.String(),
+			}
+
+			_, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create Authorship relationship: %w", err)
+			}
+
+			return nil, nil
+		})
+		resultChan <- err
+	}()
+
+	select {
+	case err := <-resultChan:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 func (a *Authorship) Delete(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error {
@@ -59,26 +73,38 @@ func (a *Authorship) Delete(ctx context.Context, articleID uuid.UUID, authorID u
 	if err != nil {
 		return err
 	}
+
 	defer session.Close()
 
-	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-		cypher := `
-			MATCH (art:Article { id: $articleID })-[r:AUTHORED_BY]->(auth:Author { id: $authorID })
-			DELETE r
-		`
-		params := map[string]any{
-			"articleID": articleID.String(),
-			"authorID":  authorID,
-		}
+	resultChan := make(chan error, 1)
 
-		_, err := tx.Run(cypher, params)
-		if err != nil {
-			return nil, fmt.Errorf("failed to delete AUTHOR relationship: %w", err)
-		}
-		return nil, nil
-	})
+	go func() {
+		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+			cypher := `
+				MATCH (art:Article { id: $articleID })-[r:AUTHORED_BY]->(auth:Author { id: $authorID })
+				DELETE r
+			`
+			params := map[string]any{
+				"articleID": articleID.String(),
+				"authorID":  authorID,
+			}
 
-	return err
+			_, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, fmt.Errorf("failed to delete AUTHOR relationship: %w", err)
+			}
+
+			return nil, nil
+		})
+		resultChan <- err
+	}()
+
+	select {
+	case err := <-resultChan:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 func (a *Authorship) SetForArticle(ctx context.Context, articleID uuid.UUID, authors []uuid.UUID) error {
@@ -86,43 +112,55 @@ func (a *Authorship) SetForArticle(ctx context.Context, articleID uuid.UUID, aut
 	if err != nil {
 		return err
 	}
+
 	defer session.Close()
 
-	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-		deleteCypher := `
-			MATCH (a:Article { id: $id })-[r:AUTHORED_BY]->(:Author)
-			DELETE r
-		`
-		params := map[string]any{
-			"id": articleID.String(),
-		}
-		_, err := tx.Run(deleteCypher, params)
-		if err != nil {
-			return nil, fmt.Errorf("failed to delete existing Authorship relationships: %w", err)
-		}
+	resultChan := make(chan error, 1)
 
-		authorIDs := make([]string, len(authors))
-		for i, authID := range authors {
-			authorIDs[i] = authID.String()
-		}
+	go func() {
+		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+			deleteCypher := `
+				MATCH (a:Article { id: $id })-[r:AUTHORED_BY]->(:Author)
+				DELETE r
+			`
+			params := map[string]any{
+				"id": articleID.String(),
+			}
+			_, err := tx.Run(deleteCypher, params)
+			if err != nil {
+				return nil, fmt.Errorf("failed to delete existing Authorship relationships: %w", err)
+			}
 
-		createCypher := `
-			MATCH (a:Article { id: $id })
-			FOREACH (authorId IN $authors |
-				MATCH (au:Author { id: authorId })
-				MERGE (a)-[:AUTHORED_BY]->(au)
-			)
-		`
-		params["authors"] = authorIDs
+			authorIDs := make([]string, len(authors))
+			for i, authID := range authors {
+				authorIDs[i] = authID.String()
+			}
 
-		_, err = tx.Run(createCypher, params)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create new Authorship relationships: %w", err)
-		}
+			createCypher := `
+				MATCH (a:Article { id: $id })
+				FOREACH (authorId IN $authors |
+					MATCH (au:Author { id: authorId })
+					MERGE (a)-[:AUTHORED_BY]->(au)
+				)
+			`
+			params["authors"] = authorIDs
 
-		return nil, nil
-	})
-	return err
+			_, err = tx.Run(createCypher, params)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create new Authorship relationships: %w", err)
+			}
+
+			return nil, nil
+		})
+		resultChan <- err
+	}()
+
+	select {
+	case err := <-resultChan:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 func (a *Authorship) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]uuid.UUID, error) {
@@ -132,40 +170,64 @@ func (a *Authorship) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]
 	}
 	defer session.Close()
 
-	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
-		cypher := `
-			MATCH (a:Article { id: $id })-[:AUTHORED_BY]->(au:Author)
-			RETURN au.id AS authorID
-		`
-		params := map[string]any{
-			"id": articleID.String(),
-		}
-		records, err := tx.Run(cypher, params)
-		if err != nil {
-			return nil, err
-		}
-		var authorIDs []uuid.UUID
-		for records.Next() {
-			record := records.Record()
-			authorIDVal, ok := record.Get("authorID")
-			if !ok {
-				continue
+	type resultWrapper struct {
+		ids []uuid.UUID
+		err error
+	}
+
+	resultChan := make(chan resultWrapper, 1)
+
+	go func() {
+		result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
+			cypher := `
+				MATCH (a:Article { id: $id })-[:AUTHORED_BY]->(au:Author)
+				RETURN au.id AS authorID
+			`
+			params := map[string]any{
+				"id": articleID.String(),
 			}
 
-			if idStr, ok := authorIDVal.(string); ok {
-				uid, err := uuid.Parse(idStr)
-				if err != nil {
+			records, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, err
+			}
+
+			var authorIDs []uuid.UUID
+			for records.Next() {
+				record := records.Record()
+				authorIDVal, ok := record.Get("authorID")
+				if !ok {
 					continue
 				}
-				authorIDs = append(authorIDs, uid)
+				if idStr, ok := authorIDVal.(string); ok {
+					uid, err := uuid.Parse(idStr)
+					if err != nil {
+						continue
+					}
+					authorIDs = append(authorIDs, uid)
+				}
 			}
+			return authorIDs, nil
+		})
+		if err != nil {
+			resultChan <- resultWrapper{nil, err}
+			return
 		}
-		return authorIDs, nil
-	})
-	if err != nil {
-		return nil, err
+
+		ids, ok := result.([]uuid.UUID)
+		if !ok {
+			resultChan <- resultWrapper{nil, fmt.Errorf("unexpected result type")}
+			return
+		}
+		resultChan <- resultWrapper{ids, nil}
+	}()
+
+	select {
+	case res := <-resultChan:
+		return res.ids, res.err
+	case <-ctx.Done():
+		return nil, ctx.Err()
 	}
-	return result.([]uuid.UUID), nil
 }
 
 func (a *Authorship) GetForAuthor(ctx context.Context, authorID uuid.UUID) ([]uuid.UUID, error) {
@@ -175,40 +237,63 @@ func (a *Authorship) GetForAuthor(ctx context.Context, authorID uuid.UUID) ([]uu
 	}
 	defer session.Close()
 
-	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
-		cypher := `
-			MATCH (au:Author { id: $id })<-[:AUTHORED_BY]-(art:Article)
-			RETURN art.id AS articleID
-		`
-		params := map[string]any{
-			"id": authorID.String(),
-		}
-		records, err := tx.Run(cypher, params)
-		if err != nil {
-			return nil, err
-		}
-		var articleIDs []uuid.UUID
-		for records.Next() {
-			record := records.Record()
-			articleIDVal, ok := record.Get("articleID")
-			if !ok {
-				continue
+	type resultWrapper struct {
+		ids []uuid.UUID
+		err error
+	}
+
+	resultChan := make(chan resultWrapper, 1)
+
+	go func() {
+		result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
+			cypher := `
+				MATCH (au:Author { id: $id })<-[:AUTHORED_BY]-(art:Article)
+				RETURN art.id AS articleID
+			`
+			params := map[string]any{
+				"id": authorID.String(),
+			}
+			records, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, err
 			}
 
-			articleIDStr, ok := articleIDVal.(string)
-			if !ok {
-				continue
+			var articleIDs []uuid.UUID
+			for records.Next() {
+				record := records.Record()
+				articleIDVal, ok := record.Get("articleID")
+				if !ok {
+					continue
+				}
+				articleIDStr, ok := articleIDVal.(string)
+				if !ok {
+					continue
+				}
+				parsedID, err := uuid.Parse(articleIDStr)
+				if err != nil {
+					continue
+				}
+				articleIDs = append(articleIDs, parsedID)
 			}
-			parsedID, err := uuid.Parse(articleIDStr)
-			if err != nil {
-				continue
-			}
-			articleIDs = append(articleIDs, parsedID)
+			return articleIDs, nil
+		})
+		if err != nil {
+			resultChan <- resultWrapper{nil, err}
+			return
 		}
-		return articleIDs, nil
-	})
-	if err != nil {
-		return nil, err
+
+		ids, ok := result.([]uuid.UUID)
+		if !ok {
+			resultChan <- resultWrapper{nil, fmt.Errorf("unexpected result type")}
+			return
+		}
+		resultChan <- resultWrapper{ids, nil}
+	}()
+
+	select {
+	case res := <-resultChan:
+		return res.ids, res.err
+	case <-ctx.Done():
+		return nil, ctx.Err()
 	}
-	return result.([]uuid.UUID), nil
 }

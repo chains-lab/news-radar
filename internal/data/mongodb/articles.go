@@ -6,27 +6,31 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/recovery-flow/news-radar/internal/app/models"
-	"github.com/recovery-flow/news-radar/internal/config"
+	"github.com/hs-zavet/news-radar/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type ArticleModel struct {
-	ID        uuid.UUID        `json:"id" bson:"_id"`
-	Title     string           `json:"title" bson:"title"`
-	Icon      string           `json:"icon" bson:"icon"`
-	Desc      string           `json:"desc" bson:"desc"`
-	Content   []models.Section `json:"content,omitempty" bson:"content,omitempty"`
-	Likes     int              `json:"likes" bson:"likes"`
-	Reposts   int              `json:"reposts" bson:"reposts"`
-	UpdatedAt *time.Time       `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
-	CreatedAt time.Time        `json:"created_at" bson:"created_at"`
+	ID        uuid.UUID      `json:"id" bson:"_id"`
+	Title     string         `json:"title" bson:"title"`
+	Icon      string         `json:"icon" bson:"icon"`
+	Desc      string         `json:"desc" bson:"desc"`
+	Content   []SectionModel `json:"content,omitempty" bson:"content,omitempty"`
+	Likes     int            `json:"likes" bson:"likes"`
+	Reposts   int            `json:"reposts" bson:"reposts"`
+	UpdatedAt *time.Time     `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	CreatedAt time.Time      `json:"created_at" bson:"created_at"`
+}
+
+type SectionModel struct {
+	Section string         `json:"section" bson:"section"`
+	Content map[string]any `json:"content" bson:"content"`
 }
 
 const (
-	ArticlesCollection = "Articles"
+	ArticlesCollection = "articles"
 )
 
 type ArticlesQ struct {
@@ -42,6 +46,7 @@ type ArticlesQ struct {
 
 func NewArticles(cfg config.Config) (*ArticlesQ, error) {
 	clientOptions := options.Client().ApplyURI(cfg.Database.Mongo.URI)
+
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
@@ -73,19 +78,21 @@ func (a *ArticlesQ) New() *ArticlesQ {
 	}
 }
 
-func (a *ArticlesQ) Insert(ctx context.Context, article *ArticleModel) (*ArticleModel, error) {
+func (a *ArticlesQ) Insert(ctx context.Context, article ArticleModel) (ArticleModel, error) {
 	_, err := a.collection.InsertOne(ctx, article)
 	if err != nil {
-		return nil, fmt.Errorf("failed to insert article: %w", err)
+		return ArticleModel{}, err
 	}
+
 	return article, nil
 }
 
 func (a *ArticlesQ) Delete(ctx context.Context) error {
 	_, err := a.collection.DeleteOne(ctx, a.filters)
 	if err != nil {
-		return fmt.Errorf("failed to delete article: %w", err)
+		return err
 	}
+
 	return nil
 }
 
@@ -109,26 +116,31 @@ func (a *ArticlesQ) Select(ctx context.Context) ([]ArticleModel, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to select ArticlesQ: %w", err)
 	}
+
 	defer cursor.Close(ctx)
 
 	var arts []ArticleModel
 	if err = cursor.All(ctx, &arts); err != nil {
 		return nil, fmt.Errorf("failed to decode ArticlesQ: %w", err)
 	}
+
 	return arts, nil
 }
 
-func (a *ArticlesQ) Get(ctx context.Context) (*ArticleModel, error) {
+func (a *ArticlesQ) Get(ctx context.Context) (ArticleModel, error) {
 	var art ArticleModel
+
 	err := a.collection.FindOne(ctx, a.filters).Decode(&art)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get article: %w", err)
+		return ArticleModel{}, err
 	}
-	return &art, nil
+
+	return art, nil
 }
 
 func (a *ArticlesQ) FilterID(id uuid.UUID) *ArticlesQ {
 	a.filters["_id"] = id
+
 	return a
 }
 
@@ -137,6 +149,7 @@ func (a *ArticlesQ) FilterTitle(title string) *ArticlesQ {
 		"$regex":   fmt.Sprintf(".*%s.*", title),
 		"$options": "i",
 	}
+
 	return a
 }
 
@@ -183,16 +196,15 @@ func (a *ArticlesQ) FilterDate(filters map[string]any, after bool) *ArticlesQ {
 	return a
 }
 
-func (a *ArticlesQ) Update(ctx context.Context, fields map[string]any) (*ArticleModel, error) {
+func (a *ArticlesQ) Update(ctx context.Context, fields map[string]any) (ArticleModel, error) {
 	validFields := map[string]bool{
-		"title":       true,
-		"icon":        true,
-		"description": true,
-		"AuthorsQ":    true,
-		"content":     true,
-		"likes":       true,
-		"reposts":     true,
-		"updated_at":  true,
+		"title":      true,
+		"icon":       true,
+		"desc":       true,
+		"content":    true,
+		"likes":      true,
+		"reposts":    true,
+		"updated_at": true,
 	}
 	updateFields := bson.M{}
 	for key, value := range fields {
@@ -205,18 +217,21 @@ func (a *ArticlesQ) Update(ctx context.Context, fields map[string]any) (*Article
 	var updated ArticleModel
 	err := a.collection.FindOneAndUpdate(ctx, a.filters, bson.M{"$set": updateFields}, opts).Decode(&updated)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update article: %w", err)
+		return ArticleModel{}, fmt.Errorf("failed to update article: %w", err)
 	}
-	return &updated, nil
+
+	return updated, nil
 }
 
 func (a *ArticlesQ) Limit(limit int64) *ArticlesQ {
 	a.limit = limit
+
 	return a
 }
 
 func (a *ArticlesQ) Skip(skip int64) *ArticlesQ {
 	a.skip = skip
+
 	return a
 }
 
@@ -225,6 +240,8 @@ func (a *ArticlesQ) Sort(field string, ascending bool) *ArticlesQ {
 	if !ascending {
 		order = -1
 	}
+
 	a.sort = bson.D{{Key: field, Value: order}}
+
 	return a
 }

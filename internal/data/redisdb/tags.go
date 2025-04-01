@@ -47,15 +47,15 @@ func (t *TagsImpl) Add(ctx context.Context, tag TagModels) error {
 	return nil
 }
 
-func (t *TagsImpl) Get(ctx context.Context, tag string) (*TagModels, error) {
+func (t *TagsImpl) Get(ctx context.Context, tag string) (TagModels, error) {
 	nameKey := fmt.Sprintf("%s:name:%s", tagsNamespace, tag)
 
 	data, err := t.client.HGetAll(ctx, nameKey).Result()
 	if err != nil {
-		return nil, fmt.Errorf("error getting tag from Redis: %w", err)
+		return TagModels{}, fmt.Errorf("error getting tag from Redis: %w", err)
 	}
 
-	return &TagModels{
+	return TagModels{
 		Name:  data["name"],
 		Color: data["color"],
 		Icon:  data["icon"],
@@ -74,31 +74,39 @@ func (t *TagsImpl) Delete(ctx context.Context, tag string) error {
 
 func (t *TagsImpl) Drop(ctx context.Context) error {
 	pattern := fmt.Sprintf("%s:*", tagsNamespace)
+
 	keys, err := t.client.Keys(ctx, pattern).Result()
 	if err != nil {
 		return fmt.Errorf("error getting keys from Redis: %w", err)
 	}
+
 	if len(keys) == 0 {
 		return nil
 	}
+
 	if err := t.client.Del(ctx, keys...).Err(); err != nil {
 		return fmt.Errorf("error deleting tags from Redis: %w", err)
 	}
+
 	return nil
 }
 
 func (t *TagsImpl) UpdateIcon(ctx context.Context, tag string, icon string) error {
 	nameKey := fmt.Sprintf("%s:name:%s", tagsNamespace, tag)
+
 	if err := t.client.HSet(ctx, nameKey, "icon", icon).Err(); err != nil {
 		return fmt.Errorf("error updating tag icon in Redis: %w", err)
 	}
+
 	return nil
 }
 
 func (t *TagsImpl) UpdateColor(ctx context.Context, tag string, color string) error {
 	nameKey := fmt.Sprintf("%s:name:%s", tagsNamespace, tag)
+
 	if err := t.client.HSet(ctx, nameKey, "color", color).Err(); err != nil {
 		return fmt.Errorf("error updating tag color in Redis: %w", err)
 	}
+
 	return nil
 }
