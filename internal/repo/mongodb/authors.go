@@ -16,7 +16,7 @@ const (
 )
 
 type AuthorModel struct {
-	ID        uuid.UUID  `json:"id" bson:"id"`
+	ID        uuid.UUID  `json:"_id" bson:"_id"`
 	Name      string     `json:"name" bson:"name"`
 	Desc      *string    `json:"desc" bson:"desc"`
 	Avatar    *string    `json:"avatar,omitempty" bson:"avatar,omitempty"`
@@ -38,7 +38,7 @@ type AuthorsQ struct {
 	skip    int64
 }
 
-func NewAuthors(uri, dbName string) (*AuthorsQ, error) {
+func NewAuthors(dbName, uri string) (*AuthorsQ, error) {
 	clientOptions := options.Client().ApplyURI(uri)
 
 	client, err := mongo.Connect(context.TODO(), clientOptions)
@@ -73,7 +73,7 @@ func (a *AuthorsQ) New() *AuthorsQ {
 }
 
 type AuthorInsertInput struct {
-	ID        uuid.UUID `json:"id" bson:"id"`
+	ID        uuid.UUID `json:"_id" bson:"_id"`
 	Name      string    `json:"name" bson:"name"`
 	Desc      *string   `json:"desc" bson:"desc"`
 	Avatar    *string   `json:"avatar,omitempty" bson:"avatar,omitempty"`
@@ -127,7 +127,18 @@ func (a *AuthorsQ) Count(ctx context.Context) (int64, error) {
 }
 
 func (a *AuthorsQ) Select(ctx context.Context) ([]AuthorModel, error) {
-	cursor, err := a.collection.Find(ctx, a.filters)
+	findOptions := options.Find()
+	if a.limit > 0 {
+		findOptions.SetLimit(a.limit)
+	}
+	if a.skip > 0 {
+		findOptions.SetSkip(a.skip)
+	}
+	if len(a.sort) > 0 {
+		findOptions.SetSort(a.sort)
+	}
+
+	cursor, err := a.collection.Find(ctx, a.filters, findOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -154,13 +165,13 @@ func (a *AuthorsQ) Get(ctx context.Context) (AuthorModel, error) {
 	return ath, nil
 }
 
-func (a *AuthorsQ) FiltersID(id uuid.UUID) *AuthorsQ {
+func (a *AuthorsQ) FilterID(id uuid.UUID) *AuthorsQ {
 	a.filters["_id"] = id
 
 	return a
 }
 
-func (a *AuthorsQ) FiltersName(name string) *AuthorsQ {
+func (a *AuthorsQ) FilterName(name string) *AuthorsQ {
 	a.filters["name"] = bson.M{
 		"$regex":   fmt.Sprintf(".*%s.*", name),
 		"$options": "i",
@@ -181,6 +192,7 @@ type AuthorUpdateInput struct {
 
 func (a *AuthorsQ) Update(ctx context.Context, input AuthorUpdateInput) (AuthorModel, error) {
 	updateFields := bson.M{}
+
 	if input.Name != nil {
 		updateFields["name"] = *input.Name
 	}

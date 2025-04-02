@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/hs-zavet/news-radar/internal/config"
 	"github.com/hs-zavet/news-radar/internal/content"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -18,7 +17,7 @@ const (
 )
 
 type ArticleModel struct {
-	ID        uuid.UUID         `json:"id" bson:"_id"`
+	ID        uuid.UUID         `json:"_id" bson:"_id"`
 	Title     string            `json:"title" bson:"title"`
 	Icon      string            `json:"icon" bson:"icon"`
 	Desc      string            `json:"desc" bson:"desc"`
@@ -40,15 +39,15 @@ type ArticlesQ struct {
 	skip    int64
 }
 
-func NewArticles(cfg config.Config) (*ArticlesQ, error) {
-	clientOptions := options.Client().ApplyURI(cfg.Database.Mongo.URI)
+func NewArticles(dbname string, uri string) (*ArticlesQ, error) {
+	clientOptions := options.Client().ApplyURI(uri)
 
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to MongoDB: %w", err)
 	}
 
-	database := client.Database(cfg.Database.Mongo.Name)
+	database := client.Database(dbname)
 	coll := database.Collection(ArticlesCollection)
 
 	return &ArticlesQ{
@@ -75,7 +74,7 @@ func (a *ArticlesQ) New() *ArticlesQ {
 }
 
 type ArticleInsertInput struct {
-	ID        uuid.UUID         `json:"id" bson:"_id"`
+	ID        uuid.UUID         `json:"__id" bson:"_id"`
 	Title     string            `json:"title" bson:"title"`
 	Icon      string            `json:"icon" bson:"icon"`
 	Desc      string            `json:"desc" bson:"desc"`
@@ -253,6 +252,7 @@ func (a *ArticlesQ) Update(ctx context.Context, input ArticleUpdateInput) (Artic
 
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 	var updated ArticleModel
+
 	err := a.collection.FindOneAndUpdate(ctx, a.filters, bson.M{"$set": updateFields}, opts).Decode(&updated)
 	if err != nil {
 		return ArticleModel{}, fmt.Errorf("failed to update article: %w", err)
