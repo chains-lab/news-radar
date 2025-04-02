@@ -4,9 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hs-zavet/news-radar/internal/repo/modelsdb"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
+
+type TagModel struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}
 
 type TagsImpl struct {
 	driver neo4j.Driver
@@ -27,7 +31,12 @@ func NewTags(uri, username, password string) (*TagsImpl, error) {
 	}, nil
 }
 
-func (t *TagsImpl) Create(ctx context.Context, tag modelsdb.TagNeo) error {
+type TagCreateInput struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}
+
+func (t *TagsImpl) Create(ctx context.Context, input TagCreateInput) error {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -49,8 +58,8 @@ func (t *TagsImpl) Create(ctx context.Context, tag modelsdb.TagNeo) error {
 			`
 
 			params := map[string]any{
-				"name":   tag.Name,
-				"status": tag.Status,
+				"name":   input.Name,
+				"status": input.Status,
 			}
 
 			_, err := tx.Run(cypher, params)
@@ -183,15 +192,15 @@ func (t *TagsImpl) UpdateName(ctx context.Context, name string, newName string) 
 	}
 }
 
-func (t *TagsImpl) Get(ctx context.Context, name string) (modelsdb.TagNeo, error) {
+func (t *TagsImpl) Get(ctx context.Context, name string) (TagModel, error) {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
-		return modelsdb.TagNeo{}, err
+		return TagModel{}, err
 	}
 	defer session.Close()
 
 	type resultWrapper struct {
-		tag modelsdb.TagNeo
+		tag TagModel
 		err error
 	}
 	resultChan := make(chan resultWrapper, 1)
@@ -218,21 +227,21 @@ func (t *TagsImpl) Get(ctx context.Context, name string) (modelsdb.TagNeo, error
 				}
 				n := node.(neo4j.Node)
 				props := n.Props()
-				tag := modelsdb.TagNeo{
+				tag := TagModel{
 					Name:   props["name"].(string),
 					Status: props["status"].(string),
 				}
 				return tag, nil
 			}
-			return modelsdb.TagNeo{}, fmt.Errorf("failed to find tag")
+			return TagModel{}, fmt.Errorf("failed to find tag")
 		})
 		if err != nil {
-			resultChan <- resultWrapper{modelsdb.TagNeo{}, err}
+			resultChan <- resultWrapper{TagModel{}, err}
 			return
 		}
-		tag, ok := result.(modelsdb.TagNeo)
+		tag, ok := result.(TagModel)
 		if !ok {
-			resultChan <- resultWrapper{modelsdb.TagNeo{}, fmt.Errorf("unexpected result type")}
+			resultChan <- resultWrapper{TagModel{}, fmt.Errorf("unexpected result type")}
 			return
 		}
 		resultChan <- resultWrapper{tag, nil}
@@ -242,11 +251,11 @@ func (t *TagsImpl) Get(ctx context.Context, name string) (modelsdb.TagNeo, error
 	case res := <-resultChan:
 		return res.tag, res.err
 	case <-ctx.Done():
-		return modelsdb.TagNeo{}, ctx.Err()
+		return TagModel{}, ctx.Err()
 	}
 }
 
-func (t *TagsImpl) Select(ctx context.Context) ([]modelsdb.TagNeo, error) {
+func (t *TagsImpl) Select(ctx context.Context) ([]TagModel, error) {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return nil, err
@@ -254,7 +263,7 @@ func (t *TagsImpl) Select(ctx context.Context) ([]modelsdb.TagNeo, error) {
 	defer session.Close()
 
 	type resultWrapper struct {
-		tags []modelsdb.TagNeo
+		tags []TagModel
 		err  error
 	}
 	resultChan := make(chan resultWrapper, 1)
@@ -272,7 +281,7 @@ func (t *TagsImpl) Select(ctx context.Context) ([]modelsdb.TagNeo, error) {
 			if err != nil {
 				return nil, err
 			}
-			var tagsList []modelsdb.TagNeo
+			var tagsList []TagModel
 			for cursor.Next() {
 				record := cursor.Record()
 				node, ok := record.Get("t")
@@ -284,7 +293,7 @@ func (t *TagsImpl) Select(ctx context.Context) ([]modelsdb.TagNeo, error) {
 					continue
 				}
 				props := n.Props()
-				tag := modelsdb.TagNeo{
+				tag := TagModel{
 					Name:   props["name"].(string),
 					Status: props["status"].(string),
 				}
@@ -296,7 +305,7 @@ func (t *TagsImpl) Select(ctx context.Context) ([]modelsdb.TagNeo, error) {
 			resultChan <- resultWrapper{nil, err}
 			return
 		}
-		tags, ok := result.([]modelsdb.TagNeo)
+		tags, ok := result.([]TagModel)
 		if !ok {
 			resultChan <- resultWrapper{nil, fmt.Errorf("unexpected result type")}
 			return

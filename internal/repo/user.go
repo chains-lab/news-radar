@@ -5,13 +5,16 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hs-zavet/news-radar/internal/config"
-	"github.com/hs-zavet/news-radar/internal/repo/modelsdb"
 	"github.com/hs-zavet/news-radar/internal/repo/neodb"
 )
 
+type UserModel struct {
+	ID uuid.UUID `json:"id"`
+}
+
 type usersNeo interface {
-	Create(ctx context.Context, user modelsdb.UserNeo) error
-	Get(ctx context.Context, id uuid.UUID) (modelsdb.UserNeo, error)
+	Create(ctx context.Context, input neodb.UserCreateInput) error
+	Get(ctx context.Context, id uuid.UUID) (neodb.UserModel, error)
 }
 
 type Users struct {
@@ -29,28 +32,38 @@ func NewUsers(cfg config.Config) (*Users, error) {
 	}, nil
 }
 
-func (u *Users) Create(userID uuid.UUID) error {
+type UserCreateInput struct {
+	ID uuid.UUID `json:"id"`
+}
+
+func (u *Users) Create(input UserCreateInput) error {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	return u.neo.Create(ctxSync, modelsdb.UserNeo{
-		ID: userID,
+	return u.neo.Create(ctxSync, neodb.UserCreateInput{
+		ID: input.ID,
 	})
 }
 
-func (u *Users) Get(userID uuid.UUID) (modelsdb.User, error) {
+func (u *Users) Get(userID uuid.UUID) (UserModel, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
 	user, err := u.neo.Get(ctxSync, userID)
 	if err != nil {
-		return modelsdb.User{}, err
+		return UserModel{}, err
 	}
 
-	res := modelsdb.NewUser(user)
+	res := NewUser(user)
 	//if err != nil {
 	//	return models.User{}, err
 	//}
 
 	return res, nil
+}
+
+func NewUser(neo neodb.UserModel) UserModel {
+	return UserModel{
+		ID: neo.ID,
+	}
 }

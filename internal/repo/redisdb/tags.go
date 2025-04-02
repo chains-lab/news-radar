@@ -3,12 +3,19 @@ package redisdb
 import (
 	"context"
 	"fmt"
+	"time"
 
-	"github.com/hs-zavet/news-radar/internal/repo/modelsdb"
 	"github.com/redis/go-redis/v9"
 )
 
 const tagsNamespace = "tags"
+
+type TagModel struct {
+	Name      string    `json:"name"`
+	Color     string    `json:"color"`
+	Icon      string    `json:"icon"`
+	CreatedAt time.Time `json:"created_at"`
+}
 
 type TagsImpl struct {
 	client *redis.Client
@@ -26,35 +33,26 @@ func NewTags(addr, password string, DB int) *TagsImpl {
 	}
 }
 
-func (t *TagsImpl) Add(ctx context.Context, tag modelsdb.TagRedis) error {
-	nameKey := fmt.Sprintf("%s:name:%s", tagsNamespace, tag.Name)
+type TagCreateInput struct {
+	Name  string `json:"name"`
+	Color string `json:"color"`
+	Icon  string `json:"icon"`
+}
+
+func (t *TagsImpl) Create(ctx context.Context, input TagCreateInput) error {
+	nameKey := fmt.Sprintf("%s:name:%s", tagsNamespace, input.Name)
 
 	data := map[string]interface{}{
-		"name":  tag.Name,
-		"color": tag.Color,
-		"icon":  tag.Icon,
+		"name":  input.Name,
+		"color": input.Color,
+		"icon":  input.Icon,
 	}
 
 	if err := t.client.HSet(ctx, nameKey, data).Err(); err != nil {
-		return fmt.Errorf("error adding tag to Redis: %w", err)
+		return fmt.Errorf("error adding input to Redis: %w", err)
 	}
 
 	return nil
-}
-
-func (t *TagsImpl) Get(ctx context.Context, tag string) (modelsdb.TagRedis, error) {
-	nameKey := fmt.Sprintf("%s:name:%s", tagsNamespace, tag)
-
-	data, err := t.client.HGetAll(ctx, nameKey).Result()
-	if err != nil {
-		return modelsdb.TagRedis{}, fmt.Errorf("error getting tag from Redis: %w", err)
-	}
-
-	return modelsdb.TagRedis{
-		Name:  data["name"],
-		Color: data["color"],
-		Icon:  data["icon"],
-	}, nil
 }
 
 func (t *TagsImpl) Delete(ctx context.Context, tag string) error {
@@ -65,6 +63,21 @@ func (t *TagsImpl) Delete(ctx context.Context, tag string) error {
 	}
 
 	return nil
+}
+
+func (t *TagsImpl) Get(ctx context.Context, tag string) (TagModel, error) {
+	nameKey := fmt.Sprintf("%s:name:%s", tagsNamespace, tag)
+
+	data, err := t.client.HGetAll(ctx, nameKey).Result()
+	if err != nil {
+		return TagModel{}, fmt.Errorf("error getting tag from Redis: %w", err)
+	}
+
+	return TagModel{
+		Name:  data["name"],
+		Color: data["color"],
+		Icon:  data["icon"],
+	}, nil
 }
 
 func (t *TagsImpl) Drop(ctx context.Context) error {

@@ -5,9 +5,12 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/hs-zavet/news-radar/internal/repo/modelsdb"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
+
+type UserModel struct {
+	ID uuid.UUID `json:"id"`
+}
 
 type UsersImpl struct {
 	driver neo4j.Driver
@@ -28,7 +31,11 @@ func NewUsers(uri, username, password string) (*UsersImpl, error) {
 	}, nil
 }
 
-func (u *UsersImpl) Create(ctx context.Context, user modelsdb.UserNeo) error {
+type UserCreateInput struct {
+	ID uuid.UUID `json:"id"`
+}
+
+func (u *UsersImpl) Create(ctx context.Context, input UserCreateInput) error {
 	session, err := u.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -44,7 +51,7 @@ func (u *UsersImpl) Create(ctx context.Context, user modelsdb.UserNeo) error {
 				CREATE (u:User {id: $id})
 			`
 			_, err := tx.Run(cypher, map[string]interface{}{
-				"id": user.ID.String(),
+				"id": input.ID.String(),
 			})
 
 			return nil, err
@@ -93,15 +100,15 @@ func (u *UsersImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 }
 
-func (u *UsersImpl) Get(ctx context.Context, id uuid.UUID) (modelsdb.UserNeo, error) {
+func (u *UsersImpl) Get(ctx context.Context, id uuid.UUID) (UserModel, error) {
 	session, err := u.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
-		return modelsdb.UserNeo{}, err
+		return UserModel{}, err
 	}
 	defer session.Close()
 
 	type resultWrapper struct {
-		user modelsdb.UserNeo
+		user UserModel
 		err  error
 	}
 	resultChan := make(chan resultWrapper, 1)
@@ -125,7 +132,7 @@ func (u *UsersImpl) Get(ctx context.Context, id uuid.UUID) (modelsdb.UserNeo, er
 			}
 
 			record := res.Record()
-			user := modelsdb.UserNeo{}
+			user := UserModel{}
 			idVal := record.GetByIndex(0)
 			idStr, ok := idVal.(string)
 			if !ok {
@@ -139,12 +146,12 @@ func (u *UsersImpl) Get(ctx context.Context, id uuid.UUID) (modelsdb.UserNeo, er
 			return user, nil
 		})
 		if err != nil {
-			resultChan <- resultWrapper{modelsdb.UserNeo{}, err}
+			resultChan <- resultWrapper{UserModel{}, err}
 			return
 		}
-		user, ok := result.(modelsdb.UserNeo)
+		user, ok := result.(UserModel)
 		if !ok {
-			resultChan <- resultWrapper{modelsdb.UserNeo{}, fmt.Errorf("unexpected result type")}
+			resultChan <- resultWrapper{UserModel{}, fmt.Errorf("unexpected result type")}
 			return
 		}
 		resultChan <- resultWrapper{user, nil}
@@ -154,6 +161,6 @@ func (u *UsersImpl) Get(ctx context.Context, id uuid.UUID) (modelsdb.UserNeo, er
 	case res := <-resultChan:
 		return res.user, res.err
 	case <-ctx.Done():
-		return modelsdb.UserNeo{}, ctx.Err()
+		return UserModel{}, ctx.Err()
 	}
 }

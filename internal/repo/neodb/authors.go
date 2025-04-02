@@ -5,9 +5,14 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/hs-zavet/news-radar/internal/repo/modelsdb"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
+
+type AuthorModel struct {
+	ID     uuid.UUID `json:"id"`
+	Name   string    `json:"name"`
+	Status string    `json:"status"`
+}
 
 type AuthorsImpl struct {
 	driver neo4j.Driver
@@ -28,7 +33,13 @@ func NewAuthors(uri, username, password string) (*AuthorsImpl, error) {
 	}, nil
 }
 
-func (a *AuthorsImpl) Create(ctx context.Context, author modelsdb.AuthorNeo) error {
+type AuthorCreateInput struct {
+	ID     uuid.UUID `json:"id"`
+	Name   string    `json:"name"`
+	Status string    `json:"status"`
+}
+
+func (a *AuthorsImpl) Create(ctx context.Context, input AuthorCreateInput) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -46,9 +57,9 @@ func (a *AuthorsImpl) Create(ctx context.Context, author modelsdb.AuthorNeo) err
 			`
 
 			params := map[string]any{
-				"id":     author.ID.String(),
-				"name":   author.Name,
-				"status": author.Status,
+				"id":     input.ID.String(),
+				"name":   input.Name,
+				"status": input.Status,
 			}
 
 			_, err := tx.Run(cypher, params)
@@ -188,16 +199,16 @@ func (a *AuthorsImpl) UpdateStatus(ctx context.Context, id uuid.UUID, status str
 	}
 }
 
-func (a *AuthorsImpl) GetByID(ctx context.Context, ID uuid.UUID) (modelsdb.AuthorNeo, error) {
+func (a *AuthorsImpl) GetByID(ctx context.Context, ID uuid.UUID) (AuthorModel, error) {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
-		return modelsdb.AuthorNeo{}, err
+		return AuthorModel{}, err
 	}
 
 	defer session.Close()
 
 	type resultWrapper struct {
-		author modelsdb.AuthorNeo
+		author AuthorModel
 		err    error
 	}
 
@@ -234,7 +245,7 @@ func (a *AuthorsImpl) GetByID(ctx context.Context, ID uuid.UUID) (modelsdb.Autho
 					return nil, fmt.Errorf("failed to parse author id: %w", err)
 				}
 
-				author := modelsdb.AuthorNeo{
+				author := AuthorModel{
 					ID:     authorID,
 					Name:   props["name"].(string),
 					Status: props["status"].(string),
@@ -251,7 +262,7 @@ func (a *AuthorsImpl) GetByID(ctx context.Context, ID uuid.UUID) (modelsdb.Autho
 			return
 		}
 
-		author, ok := result.(modelsdb.AuthorNeo)
+		author, ok := result.(AuthorModel)
 		if !ok {
 			resultChan <- resultWrapper{err: fmt.Errorf("invalid result type")}
 			return
@@ -264,6 +275,6 @@ func (a *AuthorsImpl) GetByID(ctx context.Context, ID uuid.UUID) (modelsdb.Autho
 	case res := <-resultChan:
 		return res.author, res.err
 	case <-ctx.Done():
-		return modelsdb.AuthorNeo{}, ctx.Err()
+		return AuthorModel{}, ctx.Err()
 	}
 }

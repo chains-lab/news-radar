@@ -6,9 +6,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hs-zavet/news-radar/internal/config"
-	"github.com/hs-zavet/news-radar/internal/repo/modelsdb"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
+
+type ArticleModel struct {
+	ID     uuid.UUID
+	Status string
+}
 
 type ArticlesImpl struct {
 	driver neo4j.Driver
@@ -29,7 +33,12 @@ func NewArticles(cfg config.Config) (*ArticlesImpl, error) {
 	}, nil
 }
 
-func (a *ArticlesImpl) Create(ctx context.Context, article modelsdb.ArticleNeo) error {
+type ArticleInsertInput struct {
+	ID     uuid.UUID
+	Status string
+}
+
+func (a *ArticlesImpl) Create(ctx context.Context, input ArticleInsertInput) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -51,8 +60,8 @@ func (a *ArticlesImpl) Create(ctx context.Context, article modelsdb.ArticleNeo) 
 			`
 
 			params := map[string]any{
-				"id":     article.ID.String(),
-				"status": article.Status,
+				"id":     input.ID.String(),
+				"status": input.Status,
 			}
 
 			_, err := tx.Run(cypher, params)
@@ -150,15 +159,15 @@ func (a *ArticlesImpl) UpdateStatus(ctx context.Context, ID uuid.UUID, status st
 	}
 }
 
-func (a *ArticlesImpl) GetByID(ctx context.Context, ID uuid.UUID) (modelsdb.ArticleNeo, error) {
+func (a *ArticlesImpl) GetByID(ctx context.Context, ID uuid.UUID) (ArticleModel, error) {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
-		return modelsdb.ArticleNeo{}, err
+		return ArticleModel{}, err
 	}
 	defer session.Close()
 
 	type resultWrapper struct {
-		article modelsdb.ArticleNeo
+		article ArticleModel
 		err     error
 	}
 
@@ -193,7 +202,7 @@ func (a *ArticlesImpl) GetByID(ctx context.Context, ID uuid.UUID) (modelsdb.Arti
 				}
 
 				props := n.Props()
-				article := modelsdb.ArticleNeo{
+				article := ArticleModel{
 					ID: ID,
 				}
 				if status, ok := props["status"].(string); ok {
@@ -211,7 +220,7 @@ func (a *ArticlesImpl) GetByID(ctx context.Context, ID uuid.UUID) (modelsdb.Arti
 			return
 		}
 
-		article, ok := result.(modelsdb.ArticleNeo)
+		article, ok := result.(ArticleModel)
 		if !ok {
 			resultChan <- resultWrapper{err: fmt.Errorf("unexpected result type")}
 			return
@@ -224,6 +233,6 @@ func (a *ArticlesImpl) GetByID(ctx context.Context, ID uuid.UUID) (modelsdb.Arti
 	case res := <-resultChan:
 		return res.article, res.err
 	case <-ctx.Done():
-		return modelsdb.ArticleNeo{}, ctx.Err()
+		return ArticleModel{}, ctx.Err()
 	}
 }

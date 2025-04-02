@@ -2,11 +2,12 @@ package repo
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/hs-zavet/news-radar/internal/config"
-	"github.com/hs-zavet/news-radar/internal/repo/modelsdb"
+	"github.com/hs-zavet/news-radar/internal/content"
 	"github.com/hs-zavet/news-radar/internal/repo/mongodb"
 	"github.com/hs-zavet/news-radar/internal/repo/neodb"
 )
@@ -15,38 +16,51 @@ const (
 	dataCtxTimeAisle = 10 * time.Second
 )
 
-type articlesMongo interface {
+type ArticleModel struct {
+	ID        uuid.UUID         `json:"id" bson:"_id"`
+	Title     string            `json:"title" bson:"title"`
+	Icon      string            `json:"icon" bson:"icon"`
+	Desc      string            `json:"desc" bson:"desc"`
+	Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
+	Likes     int               `json:"likes" bson:"likes"`
+	Reposts   int               `json:"reposts" bson:"reposts"`
+	Status    string            `json:"status" bson:"status"`
+	UpdatedAt *time.Time        `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	CreatedAt time.Time         `json:"created_at" bson:"created_at"`
+}
+
+type articlesMongoQ interface {
 	New() *mongodb.ArticlesQ
 
-	Insert(ctx context.Context, article modelsdb.ArticleMongo) (modelsdb.ArticleMongo, error)
+	Insert(ctx context.Context, input mongodb.ArticleInsertInput) error
 	Delete(ctx context.Context) error
 	Count(ctx context.Context) (int64, error)
-	Select(ctx context.Context) ([]modelsdb.ArticleMongo, error)
-	Get(ctx context.Context) (modelsdb.ArticleMongo, error)
+	Select(ctx context.Context) ([]mongodb.ArticleModel, error)
+	Get(ctx context.Context) (mongodb.ArticleModel, error)
 
 	FilterID(id uuid.UUID) *mongodb.ArticlesQ
 	FilterTitle(title string) *mongodb.ArticlesQ
 	FilterDate(filters map[string]any, after bool) *mongodb.ArticlesQ
 
-	Update(ctx context.Context, fields map[string]any) (modelsdb.ArticleMongo, error)
+	Update(ctx context.Context, fields map[string]any) (mongodb.ArticleModel, error)
 
 	Limit(limit int64) *mongodb.ArticlesQ
 	Skip(skip int64) *mongodb.ArticlesQ
 	Sort(field string, ascending bool) *mongodb.ArticlesQ
 }
 
-type articlesNeo interface {
-	Create(ctx context.Context, article modelsdb.ArticleNeo) error
+type articlesNeoQ interface {
+	Create(ctx context.Context, input neodb.ArticleInsertInput) error
 	Delete(ctx context.Context, ID uuid.UUID) error
 
-	GetByID(ctx context.Context, ID uuid.UUID) (modelsdb.ArticleNeo, error)
+	GetByID(ctx context.Context, ID uuid.UUID) (neodb.ArticleModel, error)
 
 	UpdateStatus(ctx context.Context, ID uuid.UUID, status string) error
 }
 
 type ArticlesRepo struct {
-	mongo articlesMongo
-	neo   articlesNeo
+	mongo articlesMongoQ
+	neo   articlesNeoQ
 
 	hashtag    hashtag
 	authorship authorship
@@ -78,27 +92,35 @@ func NewArticles(cfg config.Config) (*ArticlesRepo, error) {
 	}, nil
 }
 
-func (a *ArticlesRepo) Create(article modelsdb.Article) error {
+type ArticleCreateInput struct {
+	ID        uuid.UUID         `json:"id" bson:"_id"`
+	Title     string            `json:"title" bson:"title"`
+	Icon      string            `json:"icon" bson:"icon"`
+	Desc      string            `json:"desc" bson:"desc"`
+	Status    string            `json:"status" bson:"status"`
+	Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
+	CreatedAt time.Time         `json:"created_at" bson:"created_at"`
+}
+
+func (a *ArticlesRepo) Create(input ArticleCreateInput) error {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	_, err := a.mongo.New().Insert(ctxSync, modelsdb.ArticleMongo{
-		ID:        article.ID,
-		Title:     article.Title,
-		Icon:      article.Icon,
-		Desc:      article.Desc,
-		Content:   article.Content,
-		Likes:     article.Likes,
-		Reposts:   article.Reposts,
-		CreatedAt: article.CreatedAt,
+	err := a.mongo.New().Insert(ctxSync, mongodb.ArticleInsertInput{
+		ID:        input.ID,
+		Title:     input.Title,
+		Icon:      input.Icon,
+		Desc:      input.Desc,
+		Content:   input.Content,
+		CreatedAt: input.CreatedAt,
 	})
 	if err != nil {
 		return err
 	}
 
-	err = a.neo.Create(ctxSync, modelsdb.ArticleNeo{
-		ID:     article.ID,
-		Status: article.Status,
+	err = a.neo.Create(ctxSync, neodb.ArticleInsertInput{
+		ID:     input.ID,
+		Status: input.Status,
 	})
 	if err != nil {
 		return err
@@ -145,24 +167,43 @@ func (a *ArticlesRepo) Delete(ID uuid.UUID) error {
 	return nil
 }
 
-func (a *ArticlesRepo) GetByID(ID uuid.UUID) (modelsdb.Article, error) {
+func (a *ArticlesRepo) GetByID(ID uuid.UUID) (ArticleModel, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
 	mongoRes, err := a.mongo.FilterID(ID).Get(ctxSync)
 	if err != nil {
-		return modelsdb.Article{}, err
+		return ArticleModel{}, err
 	}
 
 	neoRes, err := a.neo.GetByID(ctxSync, ID)
 	if err != nil {
-		return modelsdb.Article{}, err
+		return ArticleModel{}, err
 	}
 
-	res, err := modelsdb.CreateArticleModel(mongoRes, neoRes)
+	res, err := CreateArticleModel(mongoRes, neoRes)
 	if err != nil {
-		return modelsdb.Article{}, err
+		return ArticleModel{}, err
 	}
 
 	return res, nil
+}
+
+func CreateArticleModel(mongo mongodb.ArticleModel, neo neodb.ArticleModel) (ArticleModel, error) {
+	if mongo.ID != neo.ID {
+		return ArticleModel{}, fmt.Errorf("mongo and neo IDs do not match")
+	}
+
+	return ArticleModel{
+		ID:        mongo.ID,
+		Title:     mongo.Title,
+		Icon:      mongo.Icon,
+		Desc:      mongo.Desc,
+		Content:   mongo.Content,
+		Likes:     mongo.Likes,
+		Reposts:   mongo.Reposts,
+		Status:    neo.Status,
+		UpdatedAt: mongo.UpdatedAt,
+		CreatedAt: mongo.CreatedAt,
+	}, nil
 }

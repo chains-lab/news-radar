@@ -3,9 +3,9 @@ package mongodb
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
-	"github.com/hs-zavet/news-radar/internal/repo/modelsdb"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -14,6 +14,18 @@ import (
 const (
 	AuthorsCollection = "authors"
 )
+
+type AuthorModel struct {
+	ID        uuid.UUID  `json:"id" bson:"id"`
+	Name      string     `json:"name" bson:"name"`
+	Desc      *string    `json:"desc" bson:"desc"`
+	Avatar    *string    `json:"avatar,omitempty" bson:"avatar,omitempty"`
+	Email     *string    `json:"email,omitempty" bson:"email,omitempty"`
+	Telegram  *string    `json:"telegram,omitempty" bson:"telegram,omitempty"`
+	Twitter   *string    `json:"twitter,omitempty" bson:"twitter,omitempty"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	CreatedAt time.Time  `json:"created_at" bson:"created_at"`
+}
 
 type AuthorsQ struct {
 	client     *mongo.Client
@@ -60,13 +72,45 @@ func (a *AuthorsQ) New() *AuthorsQ {
 	}
 }
 
-func (a *AuthorsQ) Insert(ctx context.Context, author modelsdb.AuthorMongo) (modelsdb.AuthorMongo, error) {
-	_, err := a.collection.InsertOne(ctx, author)
-	if err != nil {
-		return modelsdb.AuthorMongo{}, err
+type AuthorInsertInput struct {
+	ID        uuid.UUID `json:"id" bson:"id"`
+	Name      string    `json:"name" bson:"name"`
+	Desc      *string   `json:"desc" bson:"desc"`
+	Avatar    *string   `json:"avatar,omitempty" bson:"avatar,omitempty"`
+	Email     *string   `json:"email,omitempty" bson:"email,omitempty"`
+	Telegram  *string   `json:"telegram,omitempty" bson:"telegram,omitempty"`
+	Twitter   *string   `json:"twitter,omitempty" bson:"twitter,omitempty"`
+	CreatedAt time.Time `json:"created_at" bson:"created_at"`
+}
+
+func (a *AuthorsQ) Insert(ctx context.Context, input AuthorInsertInput) error {
+	stmt := AuthorModel{
+		ID:        input.ID,
+		Name:      input.Name,
+		CreatedAt: input.CreatedAt,
+	}
+	if input.Desc == nil {
+		stmt.Desc = nil
+	}
+	if input.Avatar == nil {
+		stmt.Avatar = nil
+	}
+	if input.Email == nil {
+		stmt.Email = nil
+	}
+	if input.Telegram == nil {
+		stmt.Telegram = nil
+	}
+	if input.Twitter == nil {
+		stmt.Twitter = nil
 	}
 
-	return author, nil
+	_, err := a.collection.InsertOne(ctx, stmt)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (a *AuthorsQ) Delete(ctx context.Context) error {
@@ -82,7 +126,7 @@ func (a *AuthorsQ) Count(ctx context.Context) (int64, error) {
 	return a.collection.CountDocuments(ctx, a.filters)
 }
 
-func (a *AuthorsQ) Select(ctx context.Context) ([]modelsdb.AuthorMongo, error) {
+func (a *AuthorsQ) Select(ctx context.Context) ([]AuthorModel, error) {
 	cursor, err := a.collection.Find(ctx, a.filters)
 	if err != nil {
 		return nil, err
@@ -90,7 +134,7 @@ func (a *AuthorsQ) Select(ctx context.Context) ([]modelsdb.AuthorMongo, error) {
 
 	defer cursor.Close(ctx)
 
-	var aths []modelsdb.AuthorMongo
+	var aths []AuthorModel
 
 	if err = cursor.All(ctx, &aths); err != nil {
 		return nil, err
@@ -99,12 +143,12 @@ func (a *AuthorsQ) Select(ctx context.Context) ([]modelsdb.AuthorMongo, error) {
 	return aths, nil
 }
 
-func (a *AuthorsQ) Get(ctx context.Context) (modelsdb.AuthorMongo, error) {
-	var ath modelsdb.AuthorMongo
+func (a *AuthorsQ) Get(ctx context.Context) (AuthorModel, error) {
+	var ath AuthorModel
 
 	err := a.collection.FindOne(ctx, a.filters).Decode(&ath)
 	if err != nil {
-		return modelsdb.AuthorMongo{}, err
+		return AuthorModel{}, err
 	}
 
 	return ath, nil
@@ -125,7 +169,7 @@ func (a *AuthorsQ) FiltersName(name string) *AuthorsQ {
 	return a
 }
 
-func (a *AuthorsQ) Update(ctx context.Context, fields map[string]any) (modelsdb.AuthorMongo, error) {
+func (a *AuthorsQ) Update(ctx context.Context, fields map[string]any) (AuthorModel, error) {
 	validFields := map[string]bool{
 		"name":       true,
 		"desc":       true,
@@ -144,11 +188,11 @@ func (a *AuthorsQ) Update(ctx context.Context, fields map[string]any) (modelsdb.
 	}
 
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
-	var updated modelsdb.AuthorMongo
+	var updated AuthorModel
 
 	err := a.collection.FindOneAndUpdate(ctx, a.filters, bson.M{"$set": updateFields}, opts).Decode(&updated)
 	if err != nil {
-		return modelsdb.AuthorMongo{}, err
+		return AuthorModel{}, err
 	}
 
 	for key, value := range updateFields {

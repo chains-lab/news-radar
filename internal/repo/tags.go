@@ -2,17 +2,27 @@ package repo
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/hs-zavet/news-radar/internal/config"
-	"github.com/hs-zavet/news-radar/internal/repo/modelsdb"
 	"github.com/hs-zavet/news-radar/internal/repo/neodb"
 	"github.com/hs-zavet/news-radar/internal/repo/redisdb"
 )
 
+type TagModel struct {
+	Name      string    `json:"name"`
+	Status    string    `json:"status"`
+	Color     string    `json:"color"`
+	Icon      string    `json:"icon"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type tagsRedis interface {
-	Add(ctx context.Context, tag modelsdb.TagRedis) error
-	Get(ctx context.Context, tag string) (modelsdb.TagRedis, error)
+	Create(ctx context.Context, input redisdb.TagCreateInput) error
 	Delete(ctx context.Context, tag string) error
+
+	Get(ctx context.Context, tag string) (redisdb.TagModel, error)
 
 	UpdateIcon(ctx context.Context, tag string, icon string) error
 	UpdateColor(ctx context.Context, tag string, color string) error
@@ -21,14 +31,14 @@ type tagsRedis interface {
 }
 
 type tagsNeo interface {
-	Create(ctx context.Context, tag modelsdb.TagNeo) error
+	Create(ctx context.Context, input neodb.TagCreateInput) error
 	Delete(ctx context.Context, name string) error
 
 	UpdateStatus(ctx context.Context, name string, status string) error
 	//UpdateName(ctx context.Context, name string, newName string) error
 
-	Get(ctx context.Context, name string) (modelsdb.TagNeo, error)
-	Select(ctx context.Context) ([]modelsdb.TagNeo, error)
+	Get(ctx context.Context, name string) (neodb.TagModel, error)
+	Select(ctx context.Context) ([]neodb.TagModel, error)
 }
 
 type Tags struct {
@@ -48,23 +58,30 @@ func NewTags(cfg config.Config) (*Tags, error) {
 	}, nil
 }
 
-func (t *Tags) Create(tag modelsdb.Tag) error {
+type TagCreateInput struct {
+	Name      string    `json:"name"`
+	Status    string    `json:"status"`
+	Color     string    `json:"color"`
+	Icon      string    `json:"icon"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+func (t *Tags) Create(input TagCreateInput) error {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	neoTag := modelsdb.TagNeo{
-		Name:   tag.Name,
-		Status: tag.Status,
-	}
-	err := t.neo.Create(ctxSync, neoTag)
+	err := t.neo.Create(ctxSync, neodb.TagCreateInput{
+		Name:   input.Name,
+		Status: input.Status,
+	})
 	if err != nil {
 		return err
 	}
 
-	err = t.redis.Add(ctxSync, modelsdb.TagRedis{
-		Name:  tag.Name,
-		Color: tag.Color,
-		Icon:  tag.Icon,
+	err = t.redis.Create(ctxSync, redisdb.TagCreateInput{
+		Name:  input.Name,
+		Color: input.Color,
+		Icon:  input.Icon,
 	})
 	if err != nil {
 		return err
@@ -118,24 +135,37 @@ func (t *Tags) Update(name string, fields map[string]any) error {
 	return nil
 }
 
-func (t *Tags) Get(name string) (modelsdb.Tag, error) {
+func (t *Tags) Get(name string) (TagModel, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
 	neoTag, err := t.neo.Get(ctxSync, name)
 	if err != nil {
-		return modelsdb.Tag{}, err
+		return TagModel{}, err
 	}
 
 	redisTag, err := t.redis.Get(ctxSync, name)
 	if err != nil {
-		return modelsdb.Tag{}, err
+		return TagModel{}, err
 	}
 
-	tag, err := modelsdb.TagsCreateModel(redisTag, neoTag)
+	tag, err := TagsCreateModel(redisTag, neoTag)
 	if err != nil {
-		return modelsdb.Tag{}, err
+		return TagModel{}, err
 	}
 
 	return tag, nil
+}
+
+func TagsCreateModel(redis redisdb.TagModel, neo neodb.TagModel) (TagModel, error) {
+	if redis.Name != neo.Name {
+		return TagModel{}, fmt.Errorf("redis and neo names do not match")
+	}
+
+	return TagModel{
+		Status: neo.Status,
+		Name:   redis.Name,
+		Color:  redis.Color,
+		Icon:   redis.Icon,
+	}, nil
 }

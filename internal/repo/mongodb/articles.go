@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hs-zavet/news-radar/internal/config"
-	"github.com/hs-zavet/news-radar/internal/repo/modelsdb"
+	"github.com/hs-zavet/news-radar/internal/content"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -16,6 +16,18 @@ import (
 const (
 	ArticlesCollection = "articles"
 )
+
+type ArticleModel struct {
+	ID        uuid.UUID         `json:"id" bson:"_id"`
+	Title     string            `json:"title" bson:"title"`
+	Icon      string            `json:"icon" bson:"icon"`
+	Desc      string            `json:"desc" bson:"desc"`
+	Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
+	Likes     int               `json:"likes" bson:"likes"`
+	Reposts   int               `json:"reposts" bson:"reposts"`
+	UpdatedAt *time.Time        `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	CreatedAt time.Time         `json:"created_at" bson:"created_at"`
+}
 
 type ArticlesQ struct {
 	client     *mongo.Client
@@ -62,13 +74,32 @@ func (a *ArticlesQ) New() *ArticlesQ {
 	}
 }
 
-func (a *ArticlesQ) Insert(ctx context.Context, article modelsdb.ArticleMongo) (modelsdb.ArticleMongo, error) {
-	_, err := a.collection.InsertOne(ctx, article)
+type ArticleInsertInput struct {
+	ID        uuid.UUID         `json:"id" bson:"_id"`
+	Title     string            `json:"title" bson:"title"`
+	Icon      string            `json:"icon" bson:"icon"`
+	Desc      string            `json:"desc" bson:"desc"`
+	Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
+	CreatedAt time.Time         `json:"created_at" bson:"created_at"`
+}
+
+func (a *ArticlesQ) Insert(ctx context.Context, input ArticleInsertInput) error {
+	_, err := a.collection.InsertOne(ctx, ArticleModel{
+		ID:        input.ID,
+		Title:     input.Title,
+		Icon:      input.Icon,
+		Desc:      input.Desc,
+		Content:   input.Content,
+		Likes:     0,
+		Reposts:   0,
+		UpdatedAt: nil,
+		CreatedAt: input.CreatedAt,
+	})
 	if err != nil {
-		return modelsdb.ArticleMongo{}, err
+		return err
 	}
 
-	return article, nil
+	return nil
 }
 
 func (a *ArticlesQ) Delete(ctx context.Context) error {
@@ -84,7 +115,7 @@ func (a *ArticlesQ) Count(ctx context.Context) (int64, error) {
 	return a.collection.CountDocuments(ctx, a.filters)
 }
 
-func (a *ArticlesQ) Select(ctx context.Context) ([]modelsdb.ArticleMongo, error) {
+func (a *ArticlesQ) Select(ctx context.Context) ([]ArticleModel, error) {
 	findOptions := options.Find()
 	if a.limit > 0 {
 		findOptions.SetLimit(a.limit)
@@ -103,7 +134,7 @@ func (a *ArticlesQ) Select(ctx context.Context) ([]modelsdb.ArticleMongo, error)
 
 	defer cursor.Close(ctx)
 
-	var arts []modelsdb.ArticleMongo
+	var arts []ArticleModel
 	if err = cursor.All(ctx, &arts); err != nil {
 		return nil, fmt.Errorf("failed to decode ArticlesQ: %w", err)
 	}
@@ -111,12 +142,12 @@ func (a *ArticlesQ) Select(ctx context.Context) ([]modelsdb.ArticleMongo, error)
 	return arts, nil
 }
 
-func (a *ArticlesQ) Get(ctx context.Context) (modelsdb.ArticleMongo, error) {
-	var art modelsdb.ArticleMongo
+func (a *ArticlesQ) Get(ctx context.Context) (ArticleModel, error) {
+	var art ArticleModel
 
 	err := a.collection.FindOne(ctx, a.filters).Decode(&art)
 	if err != nil {
-		return modelsdb.ArticleMongo{}, err
+		return ArticleModel{}, err
 	}
 
 	return art, nil
@@ -180,7 +211,7 @@ func (a *ArticlesQ) FilterDate(filters map[string]any, after bool) *ArticlesQ {
 	return a
 }
 
-func (a *ArticlesQ) Update(ctx context.Context, fields map[string]any) (modelsdb.ArticleMongo, error) {
+func (a *ArticlesQ) Update(ctx context.Context, fields map[string]any) (ArticleModel, error) {
 	validFields := map[string]bool{
 		"title":      true,
 		"icon":       true,
@@ -198,10 +229,10 @@ func (a *ArticlesQ) Update(ctx context.Context, fields map[string]any) (modelsdb
 	}
 
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
-	var updated modelsdb.ArticleMongo
+	var updated ArticleModel
 	err := a.collection.FindOneAndUpdate(ctx, a.filters, bson.M{"$set": updateFields}, opts).Decode(&updated)
 	if err != nil {
-		return modelsdb.ArticleMongo{}, fmt.Errorf("failed to update article: %w", err)
+		return ArticleModel{}, fmt.Errorf("failed to update article: %w", err)
 	}
 
 	return updated, nil
