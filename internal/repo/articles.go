@@ -42,7 +42,7 @@ type articlesMongoQ interface {
 	FilterTitle(title string) *mongodb.ArticlesQ
 	FilterDate(filters map[string]any, after bool) *mongodb.ArticlesQ
 
-	Update(ctx context.Context, fields map[string]any) (mongodb.ArticleModel, error)
+	Update(ctx context.Context, input mongodb.ArticleUpdateInput) (mongodb.ArticleModel, error)
 
 	Limit(limit int64) *mongodb.ArticlesQ
 	Skip(skip int64) *mongodb.ArticlesQ
@@ -129,20 +129,39 @@ func (a *ArticlesRepo) Create(input ArticleCreateInput) error {
 	return nil
 }
 
-func (a *ArticlesRepo) Update(ID uuid.UUID, fields map[string]any) error {
+type ArticleUpdateInput struct {
+	Title     *string           `json:"title,omitempty" bson:"title,omitempty"`
+	Icon      *string           `json:"icon,omitempty" bson:"icon,omitempty"`
+	Desc      *string           `json:"desc,omitempty" bson:"desc,omitempty"`
+	Status    *string           `json:"status,omitempty" bson:"status,omitempty"`
+	Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
+	Likes     *int              `json:"likes,omitempty" bson:"likes,omitempty"`
+	Reposts   *int              `json:"reposts,omitempty" bson:"reposts,omitempty"`
+	Dislike   *int              `json:"dislike,omitempty" bson:"dislike,omitempty"`
+	UpdatedAt time.Time         `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+}
+
+func (a *ArticlesRepo) Update(ID uuid.UUID, input ArticleUpdateInput) error {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	if _, ok := fields["status"]; ok {
-		st := fields["status"].(string)
-
-		err := a.neo.UpdateStatus(ctxSync, ID, st)
+	if input.Status != nil {
+		err := a.neo.UpdateStatus(ctxSync, ID, *input.Status)
 		if err != nil {
 			return err
 		}
 	}
 
-	_, err := a.mongo.FilterID(ID).Update(ctxSync, fields)
+	_, err := a.mongo.FilterID(ID).Update(ctxSync, mongodb.ArticleUpdateInput{
+		Title:     input.Title,
+		Icon:      input.Icon,
+		Desc:      input.Desc,
+		Content:   input.Content,
+		Likes:     input.Likes,
+		Reposts:   input.Reposts,
+		Dislike:   input.Dislike,
+		UpdatedAt: input.UpdatedAt,
+	})
 	if err != nil {
 		return err
 	}

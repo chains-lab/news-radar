@@ -36,7 +36,7 @@ type authorsMongo interface {
 	FiltersID(id uuid.UUID) *mongodb.AuthorsQ
 	FiltersName(name string) *mongodb.AuthorsQ
 
-	Update(ctx context.Context, fields map[string]any) (mongodb.AuthorModel, error)
+	Update(ctx context.Context, input mongodb.AuthorUpdateInput) (mongodb.AuthorModel, error)
 
 	Limit(limit int64) *mongodb.AuthorsQ
 	Skip(skip int64) *mongodb.AuthorsQ
@@ -113,23 +113,42 @@ func (a *Authors) Create(input AuthorCreateInput) error {
 	return nil
 }
 
-func (a *Authors) Update(ID uuid.UUID, fields map[string]any) error {
+type AuthorUpdateInput struct {
+	Name      *string   `json:"name" bson:"name"`
+	Status    *string   `json:"status" bson:"status"`
+	Desc      *string   `json:"desc" bson:"desc"`
+	Avatar    *string   `json:"avatar,omitempty" bson:"avatar,omitempty"`
+	Email     *string   `json:"email,omitempty" bson:"email,omitempty"`
+	Telegram  *string   `json:"telegram,omitempty" bson:"telegram,omitempty"`
+	Twitter   *string   `json:"twitter,omitempty" bson:"twitter,omitempty"`
+	UpdatedAt time.Time `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+}
+
+func (a *Authors) Update(ID uuid.UUID, input AuthorUpdateInput) error {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	if status, ok := fields["status"].(string); ok {
-		if err := a.neo.UpdateStatus(ctxSync, ID, status); err != nil {
+	if input.Status == nil {
+		if err := a.neo.UpdateStatus(ctxSync, ID, *input.Status); err != nil {
 			return err
 		}
 	}
 
-	if name, ok := fields["name"].(string); ok {
-		if err := a.neo.UpdateName(ctxSync, ID, name); err != nil {
+	if input.Name == nil {
+		if err := a.neo.UpdateName(ctxSync, ID, *input.Name); err != nil {
 			return err
 		}
 	}
 
-	_, err := a.mongo.New().FiltersID(ID).Update(ctxSync, fields)
+	_, err := a.mongo.New().FiltersID(ID).Update(ctxSync, mongodb.AuthorUpdateInput{
+		Name:      input.Name,
+		Desc:      input.Desc,
+		Avatar:    input.Avatar,
+		Email:     input.Email,
+		Telegram:  input.Telegram,
+		Twitter:   input.Twitter,
+		UpdatedAt: input.UpdatedAt,
+	})
 	if err != nil {
 		return err
 	}

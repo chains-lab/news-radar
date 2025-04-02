@@ -169,23 +169,40 @@ func (a *AuthorsQ) FiltersName(name string) *AuthorsQ {
 	return a
 }
 
-func (a *AuthorsQ) Update(ctx context.Context, fields map[string]any) (AuthorModel, error) {
-	validFields := map[string]bool{
-		"name":       true,
-		"desc":       true,
-		"avatar":     true,
-		"email":      true,
-		"telegram":   true,
-		"twitter":    true,
-		"updated_at": true,
-	}
+type AuthorUpdateInput struct {
+	Name      *string   `json:"name" bson:"name"`
+	Desc      *string   `json:"desc" bson:"desc"`
+	Avatar    *string   `json:"avatar,omitempty" bson:"avatar,omitempty"`
+	Email     *string   `json:"email,omitempty" bson:"email,omitempty"`
+	Telegram  *string   `json:"telegram,omitempty" bson:"telegram,omitempty"`
+	Twitter   *string   `json:"twitter,omitempty" bson:"twitter,omitempty"`
+	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
+}
 
+func (a *AuthorsQ) Update(ctx context.Context, input AuthorUpdateInput) (AuthorModel, error) {
 	updateFields := bson.M{}
-	for key, value := range fields {
-		if validFields[key] {
-			updateFields[key] = value
-		}
+	if input.Name != nil {
+		updateFields["name"] = *input.Name
 	}
+	if input.Desc != nil {
+		updateFields["desc"] = *input.Desc
+	}
+	if input.Avatar != nil {
+		updateFields["avatar"] = *input.Avatar
+	}
+	if input.Email != nil {
+		updateFields["email"] = *input.Email
+	}
+	if input.Telegram != nil {
+		updateFields["telegram"] = *input.Telegram
+	}
+	if input.Twitter != nil {
+		updateFields["twitter"] = *input.Twitter
+	}
+	if len(updateFields) == 0 {
+		return AuthorModel{}, fmt.Errorf("nothing to update")
+	}
+	updateFields["updated_at"] = input.UpdatedAt
 
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 	var updated AuthorModel

@@ -211,22 +211,45 @@ func (a *ArticlesQ) FilterDate(filters map[string]any, after bool) *ArticlesQ {
 	return a
 }
 
-func (a *ArticlesQ) Update(ctx context.Context, fields map[string]any) (ArticleModel, error) {
-	validFields := map[string]bool{
-		"title":      true,
-		"icon":       true,
-		"desc":       true,
-		"content":    true,
-		"likes":      true,
-		"reposts":    true,
-		"updated_at": true,
-	}
+type ArticleUpdateInput struct {
+	Title     *string           `json:"title,omitempty" bson:"title,omitempty"`
+	Icon      *string           `json:"icon,omitempty" bson:"icon,omitempty"`
+	Desc      *string           `json:"desc,omitempty" bson:"desc,omitempty"`
+	Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
+	Likes     *int              `json:"likes,omitempty" bson:"likes,omitempty"`
+	Reposts   *int              `json:"reposts,omitempty" bson:"reposts,omitempty"`
+	Dislike   *int              `json:"dislike,omitempty" bson:"dislike,omitempty"`
+	UpdatedAt time.Time         `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+}
+
+func (a *ArticlesQ) Update(ctx context.Context, input ArticleUpdateInput) (ArticleModel, error) {
 	updateFields := bson.M{}
-	for key, value := range fields {
-		if validFields[key] {
-			updateFields[key] = value
-		}
+
+	if input.Title != nil {
+		updateFields["title"] = *input.Title
 	}
+	if input.Icon != nil {
+		updateFields["icon"] = *input.Icon
+	}
+	if input.Desc != nil {
+		updateFields["desc"] = *input.Desc
+	}
+	if input.Content != nil {
+		updateFields["content"] = input.Content
+	}
+	if input.Likes != nil {
+		updateFields["likes"] = *input.Likes
+	}
+	if input.Reposts != nil {
+		updateFields["reposts"] = *input.Reposts
+	}
+	if input.Dislike != nil {
+		updateFields["dislike"] = *input.Dislike
+	}
+	if len(updateFields) == 0 {
+		return ArticleModel{}, fmt.Errorf("nothing to update")
+	}
+	updateFields["updated_at"] = input.UpdatedAt
 
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 	var updated ArticleModel
