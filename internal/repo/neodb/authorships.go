@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/hs-zavet/news-radar/internal/config"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
 
@@ -13,8 +12,10 @@ type Authorship struct {
 	driver neo4j.Driver
 }
 
-func NewAuthorship(cfg config.Config) (*Authorship, error) {
-	driver, err := neo4j.NewDriver(cfg.Database.Neo4j.URI, neo4j.BasicAuth(cfg.Database.Neo4j.Username, cfg.Database.Neo4j.Password, ""))
+func NewAuthorship(uri, username, password string) (*Authorship, error) {
+	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""), func(c *neo4j.Config) {
+		c.Encrypted = false
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create neo4j driver: %w", err)
 	}

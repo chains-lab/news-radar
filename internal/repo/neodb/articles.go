@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/hs-zavet/news-radar/internal/config"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
 
@@ -18,8 +17,10 @@ type ArticlesImpl struct {
 	driver neo4j.Driver
 }
 
-func NewArticles(cfg config.Config) (*ArticlesImpl, error) {
-	driver, err := neo4j.NewDriver(cfg.Database.Neo4j.URI, neo4j.BasicAuth(cfg.Database.Neo4j.Username, cfg.Database.Neo4j.Password, ""))
+func NewArticles(uri, username, password string) (*ArticlesImpl, error) {
+	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""), func(c *neo4j.Config) {
+		c.Encrypted = false
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create neo4j driver: %w", err)
 	}
@@ -53,7 +54,6 @@ func (a *ArticlesImpl) Create(ctx context.Context, input ArticleInsertInput) err
 			cypher := `
 				CREATE (a:Article { 
 					id: $id, 
-					created_at: $created_at,
 					status: $status
 				})		
 				RETURN a

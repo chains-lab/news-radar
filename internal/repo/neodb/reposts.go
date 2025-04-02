@@ -13,7 +13,9 @@ type RepostsImpl struct {
 }
 
 func NewReposts(uri, username, password string) (*RepostsImpl, error) {
-	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""))
+	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""), func(c *neo4j.Config) {
+		c.Encrypted = false
+	})
 	if err != nil {
 		return nil, err
 	}

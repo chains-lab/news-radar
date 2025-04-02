@@ -19,7 +19,9 @@ type AuthorsImpl struct {
 }
 
 func NewAuthors(uri, username, password string) (*AuthorsImpl, error) {
-	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""))
+	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""), func(c *neo4j.Config) {
+		c.Encrypted = false
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +54,11 @@ func (a *AuthorsImpl) Create(ctx context.Context, input AuthorCreateInput) error
 	go func() {
 		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 			cypher := `
-				CREATE (au:Author { id: $id, name: $name, status: $status })
+				CREATE (au:Author { 
+					id: $id,
+					name: $name, 
+					status: $status 
+				})
 				RETURN au
 			`
 

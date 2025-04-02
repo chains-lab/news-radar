@@ -17,7 +17,9 @@ type UsersImpl struct {
 }
 
 func NewUsers(uri, username, password string) (*UsersImpl, error) {
-	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""))
+	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""), func(c *neo4j.Config) {
+		c.Encrypted = false
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -132,13 +134,20 @@ func (u *UsersImpl) Get(ctx context.Context, id uuid.UUID) (UserModel, error) {
 			}
 
 			record := res.Record()
-			user := UserModel{}
-			idVal := record.GetByIndex(0)
-			idStr, ok := idVal.(string)
+			// Приводим результат к neo4j.Node
+			node, ok := record.GetByIndex(0).(neo4j.Node)
 			if !ok {
-				return nil, fmt.Errorf("unexpected type for user id")
+				return nil, fmt.Errorf("unexpected type: %T", record.GetByIndex(0))
 			}
-			user.ID, err = uuid.Parse(idStr)
+			props := node.Props()
+			// Извлекаем значение свойства "id"
+			idProp, ok := props["id"].(string)
+			if !ok {
+				return nil, fmt.Errorf("id property missing or not a string")
+			}
+
+			user := UserModel{}
+			user.ID, err = uuid.Parse(idProp)
 			if err != nil {
 				return nil, err
 			}

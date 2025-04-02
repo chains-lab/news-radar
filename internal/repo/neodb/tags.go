@@ -17,7 +17,9 @@ type TagsImpl struct {
 }
 
 func NewTags(uri, username, password string) (*TagsImpl, error) {
-	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""))
+	driver, err := neo4j.NewDriver(uri, neo4j.BasicAuth(username, password, ""), func(c *neo4j.Config) {
+		c.Encrypted = false
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create neo4j driver: %w", err)
 	}
@@ -51,8 +53,7 @@ func (t *TagsImpl) Create(ctx context.Context, input TagCreateInput) error {
 			cypher := `
 				CREATE (t:Tag {
 					name: $name,
-					status: $status,
-					created_at: $created_at
+					status: $status
 				})
 				RETURN t
 			`
