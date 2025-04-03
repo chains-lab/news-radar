@@ -1,0 +1,29 @@
+type: object
+required:
+  - links
+properties:
+  links:
+    type: object
+    required:
+      - self
+      - related
+      - data
+    properties:
+      self:
+        type: string
+        description: "Link to participants"
+      related:
+        type: string
+        description: "Link to participants"
+  data:
+    type: object
+    required:
+      - id
+      - type
+    properties:
+      id:
+        type: string
+        description: "resources id"
+      type:
+        type: string
+        description: "resources type"

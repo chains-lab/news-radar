@@ -16,41 +16,38 @@ import (
 	"fmt"
 )
 
-// checks if the TagData type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &TagData{}
+// checks if the Relationships type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &Relationships{}
 
-// TagData struct for TagData
-type TagData struct {
-	// tag name
+// Relationships struct for Relationships
+type Relationships struct {
 	Id string `json:"id"`
 	Type string `json:"type"`
-	Attributes TagAttributes `json:"attributes"`
 }
 
-type _TagData TagData
+type _Relationships Relationships
 
-// NewTagData instantiates a new TagData object
+// NewRelationships instantiates a new Relationships object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewTagData(id string, type_ string, attributes TagAttributes) *TagData {
-	this := TagData{}
+func NewRelationships(id string, type_ string) *Relationships {
+	this := Relationships{}
 	this.Id = id
 	this.Type = type_
-	this.Attributes = attributes
 	return &this
 }
 
-// NewTagDataWithDefaults instantiates a new TagData object
+// NewRelationshipsWithDefaults instantiates a new Relationships object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewTagDataWithDefaults() *TagData {
-	this := TagData{}
+func NewRelationshipsWithDefaults() *Relationships {
+	this := Relationships{}
 	return &this
 }
 
 // GetId returns the Id field value
-func (o *TagData) GetId() string {
+func (o *Relationships) GetId() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -61,7 +58,7 @@ func (o *TagData) GetId() string {
 
 // GetIdOk returns a tuple with the Id field value
 // and a boolean to check if the value has been set.
-func (o *TagData) GetIdOk() (*string, bool) {
+func (o *Relationships) GetIdOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -69,12 +66,12 @@ func (o *TagData) GetIdOk() (*string, bool) {
 }
 
 // SetId sets field value
-func (o *TagData) SetId(v string) {
+func (o *Relationships) SetId(v string) {
 	o.Id = v
 }
 
 // GetType returns the Type field value
-func (o *TagData) GetType() string {
+func (o *Relationships) GetType() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -85,7 +82,7 @@ func (o *TagData) GetType() string {
 
 // GetTypeOk returns a tuple with the Type field value
 // and a boolean to check if the value has been set.
-func (o *TagData) GetTypeOk() (*string, bool) {
+func (o *Relationships) GetTypeOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -93,35 +90,11 @@ func (o *TagData) GetTypeOk() (*string, bool) {
 }
 
 // SetType sets field value
-func (o *TagData) SetType(v string) {
+func (o *Relationships) SetType(v string) {
 	o.Type = v
 }
 
-// GetAttributes returns the Attributes field value
-func (o *TagData) GetAttributes() TagAttributes {
-	if o == nil {
-		var ret TagAttributes
-		return ret
-	}
-
-	return o.Attributes
-}
-
-// GetAttributesOk returns a tuple with the Attributes field value
-// and a boolean to check if the value has been set.
-func (o *TagData) GetAttributesOk() (*TagAttributes, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Attributes, true
-}
-
-// SetAttributes sets field value
-func (o *TagData) SetAttributes(v TagAttributes) {
-	o.Attributes = v
-}
-
-func (o TagData) MarshalJSON() ([]byte, error) {
+func (o Relationships) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -129,22 +102,20 @@ func (o TagData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o TagData) ToMap() (map[string]interface{}, error) {
+func (o Relationships) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["id"] = o.Id
 	toSerialize["type"] = o.Type
-	toSerialize["attributes"] = o.Attributes
 	return toSerialize, nil
 }
 
-func (o *TagData) UnmarshalJSON(data []byte) (err error) {
+func (o *Relationships) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
 		"id",
 		"type",
-		"attributes",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -161,53 +132,53 @@ func (o *TagData) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varTagData := _TagData{}
+	varRelationships := _Relationships{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varTagData)
+	err = decoder.Decode(&varRelationships)
 
 	if err != nil {
 		return err
 	}
 
-	*o = TagData(varTagData)
+	*o = Relationships(varRelationships)
 
 	return err
 }
 
-type NullableTagData struct {
-	value *TagData
+type NullableRelationships struct {
+	value *Relationships
 	isSet bool
 }
 
-func (v NullableTagData) Get() *TagData {
+func (v NullableRelationships) Get() *Relationships {
 	return v.value
 }
 
-func (v *NullableTagData) Set(val *TagData) {
+func (v *NullableRelationships) Set(val *Relationships) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableTagData) IsSet() bool {
+func (v NullableRelationships) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableTagData) Unset() {
+func (v *NullableRelationships) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableTagData(val *TagData) *NullableTagData {
-	return &NullableTagData{value: val, isSet: true}
+func NewNullableRelationships(val *Relationships) *NullableRelationships {
+	return &NullableRelationships{value: val, isSet: true}
 }
 
-func (v NullableTagData) MarshalJSON() ([]byte, error) {
+func (v NullableRelationships) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableTagData) UnmarshalJSON(src []byte) error {
+func (v *NullableRelationships) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

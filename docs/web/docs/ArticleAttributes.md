@@ -8,9 +8,9 @@ Name | Type | Description | Notes
 **Status** | **string** | Article status | 
 **Icon** | **string** | Article link | 
 **Desc** | **string** | Article description | 
-**Content** | [**Content**](Content.md) |  | 
-**Likes** | **int32** | Article likes | 
-**Reposts** | **int32** | Article reposts | 
+**Content** | [**[]Content**](Content.md) |  | 
+**Likes** | **int64** | Article likes | 
+**Reposts** | **int64** | Article reposts | 
 **UpdatedAt** | Pointer to **time.Time** | Updated at | [optional] 
 **CreatedAt** | **time.Time** | Created at | 
 
@@ -18,7 +18,7 @@ Name | Type | Description | Notes
 
 ### NewArticleAttributes
 
-`func NewArticleAttributes(title string, status string, icon string, desc string, content Content, likes int32, reposts int32, createdAt time.Time, ) *ArticleAttributes`
+`func NewArticleAttributes(title string, status string, icon string, desc string, content []Content, likes int64, reposts int64, createdAt time.Time, ) *ArticleAttributes`
 
 NewArticleAttributes instantiates a new ArticleAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -115,60 +115,60 @@ SetDesc sets Desc field to given value.
 
 ### GetContent
 
-`func (o *ArticleAttributes) GetContent() Content`
+`func (o *ArticleAttributes) GetContent() []Content`
 
 GetContent returns the Content field if non-nil, zero value otherwise.
 
 ### GetContentOk
 
-`func (o *ArticleAttributes) GetContentOk() (*Content, bool)`
+`func (o *ArticleAttributes) GetContentOk() (*[]Content, bool)`
 
 GetContentOk returns a tuple with the Content field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetContent
 
-`func (o *ArticleAttributes) SetContent(v Content)`
+`func (o *ArticleAttributes) SetContent(v []Content)`
 
 SetContent sets Content field to given value.
 
 
 ### GetLikes
 
-`func (o *ArticleAttributes) GetLikes() int32`
+`func (o *ArticleAttributes) GetLikes() int64`
 
 GetLikes returns the Likes field if non-nil, zero value otherwise.
 
 ### GetLikesOk
 
-`func (o *ArticleAttributes) GetLikesOk() (*int32, bool)`
+`func (o *ArticleAttributes) GetLikesOk() (*int64, bool)`
 
 GetLikesOk returns a tuple with the Likes field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetLikes
 
-`func (o *ArticleAttributes) SetLikes(v int32)`
+`func (o *ArticleAttributes) SetLikes(v int64)`
 
 SetLikes sets Likes field to given value.
 
 
 ### GetReposts
 
-`func (o *ArticleAttributes) GetReposts() int32`
+`func (o *ArticleAttributes) GetReposts() int64`
 
 GetReposts returns the Reposts field if non-nil, zero value otherwise.
 
 ### GetRepostsOk
 
-`func (o *ArticleAttributes) GetRepostsOk() (*int32, bool)`
+`func (o *ArticleAttributes) GetRepostsOk() (*int64, bool)`
 
 GetRepostsOk returns a tuple with the Reposts field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetReposts
 
-`func (o *ArticleAttributes) SetReposts(v int32)`
+`func (o *ArticleAttributes) SetReposts(v int64)`
 
 SetReposts sets Reposts field to given value.
 

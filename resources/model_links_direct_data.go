@@ -16,41 +16,40 @@ import (
 	"fmt"
 )
 
-// checks if the TagData type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &TagData{}
+// checks if the LinksDirectData type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &LinksDirectData{}
 
-// TagData struct for TagData
-type TagData struct {
-	// tag name
+// LinksDirectData struct for LinksDirectData
+type LinksDirectData struct {
+	// resources id
 	Id string `json:"id"`
+	// resources type
 	Type string `json:"type"`
-	Attributes TagAttributes `json:"attributes"`
 }
 
-type _TagData TagData
+type _LinksDirectData LinksDirectData
 
-// NewTagData instantiates a new TagData object
+// NewLinksDirectData instantiates a new LinksDirectData object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewTagData(id string, type_ string, attributes TagAttributes) *TagData {
-	this := TagData{}
+func NewLinksDirectData(id string, type_ string) *LinksDirectData {
+	this := LinksDirectData{}
 	this.Id = id
 	this.Type = type_
-	this.Attributes = attributes
 	return &this
 }
 
-// NewTagDataWithDefaults instantiates a new TagData object
+// NewLinksDirectDataWithDefaults instantiates a new LinksDirectData object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewTagDataWithDefaults() *TagData {
-	this := TagData{}
+func NewLinksDirectDataWithDefaults() *LinksDirectData {
+	this := LinksDirectData{}
 	return &this
 }
 
 // GetId returns the Id field value
-func (o *TagData) GetId() string {
+func (o *LinksDirectData) GetId() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -61,7 +60,7 @@ func (o *TagData) GetId() string {
 
 // GetIdOk returns a tuple with the Id field value
 // and a boolean to check if the value has been set.
-func (o *TagData) GetIdOk() (*string, bool) {
+func (o *LinksDirectData) GetIdOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -69,12 +68,12 @@ func (o *TagData) GetIdOk() (*string, bool) {
 }
 
 // SetId sets field value
-func (o *TagData) SetId(v string) {
+func (o *LinksDirectData) SetId(v string) {
 	o.Id = v
 }
 
 // GetType returns the Type field value
-func (o *TagData) GetType() string {
+func (o *LinksDirectData) GetType() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -85,7 +84,7 @@ func (o *TagData) GetType() string {
 
 // GetTypeOk returns a tuple with the Type field value
 // and a boolean to check if the value has been set.
-func (o *TagData) GetTypeOk() (*string, bool) {
+func (o *LinksDirectData) GetTypeOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -93,35 +92,11 @@ func (o *TagData) GetTypeOk() (*string, bool) {
 }
 
 // SetType sets field value
-func (o *TagData) SetType(v string) {
+func (o *LinksDirectData) SetType(v string) {
 	o.Type = v
 }
 
-// GetAttributes returns the Attributes field value
-func (o *TagData) GetAttributes() TagAttributes {
-	if o == nil {
-		var ret TagAttributes
-		return ret
-	}
-
-	return o.Attributes
-}
-
-// GetAttributesOk returns a tuple with the Attributes field value
-// and a boolean to check if the value has been set.
-func (o *TagData) GetAttributesOk() (*TagAttributes, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Attributes, true
-}
-
-// SetAttributes sets field value
-func (o *TagData) SetAttributes(v TagAttributes) {
-	o.Attributes = v
-}
-
-func (o TagData) MarshalJSON() ([]byte, error) {
+func (o LinksDirectData) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -129,22 +104,20 @@ func (o TagData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o TagData) ToMap() (map[string]interface{}, error) {
+func (o LinksDirectData) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["id"] = o.Id
 	toSerialize["type"] = o.Type
-	toSerialize["attributes"] = o.Attributes
 	return toSerialize, nil
 }
 
-func (o *TagData) UnmarshalJSON(data []byte) (err error) {
+func (o *LinksDirectData) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
 		"id",
 		"type",
-		"attributes",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -161,53 +134,53 @@ func (o *TagData) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varTagData := _TagData{}
+	varLinksDirectData := _LinksDirectData{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varTagData)
+	err = decoder.Decode(&varLinksDirectData)
 
 	if err != nil {
 		return err
 	}
 
-	*o = TagData(varTagData)
+	*o = LinksDirectData(varLinksDirectData)
 
 	return err
 }
 
-type NullableTagData struct {
-	value *TagData
+type NullableLinksDirectData struct {
+	value *LinksDirectData
 	isSet bool
 }
 
-func (v NullableTagData) Get() *TagData {
+func (v NullableLinksDirectData) Get() *LinksDirectData {
 	return v.value
 }
 
-func (v *NullableTagData) Set(val *TagData) {
+func (v *NullableLinksDirectData) Set(val *LinksDirectData) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableTagData) IsSet() bool {
+func (v NullableLinksDirectData) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableTagData) Unset() {
+func (v *NullableLinksDirectData) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableTagData(val *TagData) *NullableTagData {
-	return &NullableTagData{value: val, isSet: true}
+func NewNullableLinksDirectData(val *LinksDirectData) *NullableLinksDirectData {
+	return &NullableLinksDirectData{value: val, isSet: true}
 }
 
-func (v NullableTagData) MarshalJSON() ([]byte, error) {
+func (v NullableLinksDirectData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableTagData) UnmarshalJSON(src []byte) error {
+func (v *NullableLinksDirectData) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

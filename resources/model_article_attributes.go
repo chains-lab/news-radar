@@ -30,11 +30,11 @@ type ArticleAttributes struct {
 	Icon string `json:"icon"`
 	// Article description
 	Desc string `json:"desc"`
-	Content Content `json:"content"`
+	Content []Content `json:"content"`
 	// Article likes
-	Likes int32 `json:"likes"`
+	Likes int64 `json:"likes"`
 	// Article reposts
-	Reposts int32 `json:"reposts"`
+	Reposts int64 `json:"reposts"`
 	// Updated at
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	// Created at
@@ -47,7 +47,7 @@ type _ArticleAttributes ArticleAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewArticleAttributes(title string, status string, icon string, desc string, content Content, likes int32, reposts int32, createdAt time.Time) *ArticleAttributes {
+func NewArticleAttributes(title string, status string, icon string, desc string, content []Content, likes int64, reposts int64, createdAt time.Time) *ArticleAttributes {
 	this := ArticleAttributes{}
 	this.Title = title
 	this.Status = status
@@ -165,9 +165,9 @@ func (o *ArticleAttributes) SetDesc(v string) {
 }
 
 // GetContent returns the Content field value
-func (o *ArticleAttributes) GetContent() Content {
+func (o *ArticleAttributes) GetContent() []Content {
 	if o == nil {
-		var ret Content
+		var ret []Content
 		return ret
 	}
 
@@ -176,22 +176,22 @@ func (o *ArticleAttributes) GetContent() Content {
 
 // GetContentOk returns a tuple with the Content field value
 // and a boolean to check if the value has been set.
-func (o *ArticleAttributes) GetContentOk() (*Content, bool) {
+func (o *ArticleAttributes) GetContentOk() ([]Content, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.Content, true
+	return o.Content, true
 }
 
 // SetContent sets field value
-func (o *ArticleAttributes) SetContent(v Content) {
+func (o *ArticleAttributes) SetContent(v []Content) {
 	o.Content = v
 }
 
 // GetLikes returns the Likes field value
-func (o *ArticleAttributes) GetLikes() int32 {
+func (o *ArticleAttributes) GetLikes() int64 {
 	if o == nil {
-		var ret int32
+		var ret int64
 		return ret
 	}
 
@@ -200,7 +200,7 @@ func (o *ArticleAttributes) GetLikes() int32 {
 
 // GetLikesOk returns a tuple with the Likes field value
 // and a boolean to check if the value has been set.
-func (o *ArticleAttributes) GetLikesOk() (*int32, bool) {
+func (o *ArticleAttributes) GetLikesOk() (*int64, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -208,14 +208,14 @@ func (o *ArticleAttributes) GetLikesOk() (*int32, bool) {
 }
 
 // SetLikes sets field value
-func (o *ArticleAttributes) SetLikes(v int32) {
+func (o *ArticleAttributes) SetLikes(v int64) {
 	o.Likes = v
 }
 
 // GetReposts returns the Reposts field value
-func (o *ArticleAttributes) GetReposts() int32 {
+func (o *ArticleAttributes) GetReposts() int64 {
 	if o == nil {
-		var ret int32
+		var ret int64
 		return ret
 	}
 
@@ -224,7 +224,7 @@ func (o *ArticleAttributes) GetReposts() int32 {
 
 // GetRepostsOk returns a tuple with the Reposts field value
 // and a boolean to check if the value has been set.
-func (o *ArticleAttributes) GetRepostsOk() (*int32, bool) {
+func (o *ArticleAttributes) GetRepostsOk() (*int64, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -232,7 +232,7 @@ func (o *ArticleAttributes) GetRepostsOk() (*int32, bool) {
 }
 
 // SetReposts sets field value
-func (o *ArticleAttributes) SetReposts(v int32) {
+func (o *ArticleAttributes) SetReposts(v int64) {
 	o.Reposts = v
 }
 

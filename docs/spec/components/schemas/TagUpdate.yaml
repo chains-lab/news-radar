@@ -1,0 +1,43 @@
+type: object
+required:
+  - data
+properties:
+  data:
+    type: object
+    required:
+      - id
+      - type
+      - attributes
+    properties:
+      id:
+        type: string
+        description: "tag name"
+      type:
+        type: string
+        enum: [ tag_update ]
+      attributes:
+        type: object
+        required:
+          - status
+          - type
+          - description
+          - color
+          - icon
+        properties:
+          status:
+            type: string
+            enum: [ active, inactive ]
+            description: "tag status"
+          type:
+            type: string
+            enum: [ tag ]
+            description: "tag type"
+          description:
+            type: string
+            description: "tag description"
+          color:
+            type: string
+            description: "tag color"
+          icon:
+            type: string
+            description: "tag icon"

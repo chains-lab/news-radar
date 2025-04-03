@@ -20,8 +20,6 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/ArticleData'
-        included:
-          $ref: '#/components/schemas/ArticleInclude'
       required:
       - data
       - included
@@ -38,6 +36,8 @@ components:
           type: string
         attributes:
           $ref: '#/components/schemas/ArticleAttributes'
+        relationships:
+          $ref: '#/components/schemas/ArticleData_relationships'
       required:
       - attributes
       - id
@@ -62,14 +62,18 @@ components:
           example: Article description
           type: string
         content:
-          $ref: '#/components/schemas/Content'
+          items:
+            $ref: '#/components/schemas/Content'
+          type: array
         likes:
           description: Article likes
           example: 100
+          format: int64
           type: integer
         reposts:
           description: Article reposts
           example: 50
+          format: int64
           type: integer
         updated_at:
           description: Updated at
@@ -99,7 +103,7 @@ components:
           type: array
         tags:
           items:
-            $ref: '#/components/schemas/Tag/properties/data'
+            $ref: '#/components/schemas/TagData'
           type: array
       required:
       - authors
@@ -168,8 +172,7 @@ components:
           format: date-time
           type: string
       required:
-      - avatar
-      - desc
+      - created_at
       - name
       type: object
     AuthorCreate:
@@ -200,9 +203,121 @@ components:
     Tag:
       properties:
         data:
-          $ref: '#/components/schemas/Tag_data'
+          $ref: '#/components/schemas/TagData'
       required:
       - data
+      type: object
+    TagData:
+      properties:
+        id:
+          description: tag name
+          type: string
+        type:
+          enum:
+          - tag
+          type: string
+        attributes:
+          $ref: '#/components/schemas/TagAttributes'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+    TagAttributes:
+      properties:
+        status:
+          type: string
+        type:
+          type: string
+        color:
+          description: Tag color
+          example: '#FF5733'
+          type: string
+        icon:
+          description: Tag icon
+          example: https://example.com/icon.png
+          type: string
+        created_at:
+          format: date-time
+          type: string
+      required:
+      - color
+      - created_at
+      - icon
+      - status
+      - type
+      type: object
+    TagCreate:
+      properties:
+        data:
+          $ref: '#/components/schemas/TagCreate_data'
+      required:
+      - data
+      type: object
+    TagUpdate:
+      properties:
+        data:
+          $ref: '#/components/schemas/TagUpdate_data'
+      required:
+      - data
+      type: object
+    Relationships:
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+      required:
+      - id
+      - type
+      type: object
+    LinksDirect:
+      properties:
+        links:
+          $ref: '#/components/schemas/LinksDirect_links'
+        data:
+          $ref: '#/components/schemas/LinksDirect_data'
+      required:
+      - links
+      type: object
+    LinksPagination:
+      properties:
+        previous:
+          description: Link to the previous page
+          type: string
+        self:
+          description: Link to the current page
+          type: string
+        next:
+          description: Link to the next page
+          type: string
+      required:
+      - self
+      type: object
+    LinksSelf:
+      properties:
+        self:
+          description: Link to resources
+          type: string
+        update:
+          description: Link to update resources
+          type: string
+      required:
+      - self
+      type: object
+    ArticleData_relationships:
+      properties:
+        authors:
+          items:
+            $ref: '#/components/schemas/Relationships'
+          type: array
+        tags:
+          items:
+            $ref: '#/components/schemas/Relationships'
+          type: array
+      required:
+      - authors
+      - tags
       type: object
     ArticleCreate_data_attributes:
       properties:
@@ -337,43 +452,119 @@ components:
       - attributes
       - type
       type: object
-    Tag_data_attributes:
+    TagCreate_data_attributes:
       properties:
+        name:
+          description: tag name
+          type: string
         status:
+          description: tag status
+          enum:
+          - active
+          - inactive
           type: string
         type:
+          description: tag type
+          enum:
+          - tag
+          type: string
+        description:
+          description: tag description
           type: string
         color:
-          description: Tag color
-          example: '#FF5733'
+          description: tag color
           type: string
         icon:
-          description: Tag icon
-          example: https://example.com/icon.png
-          type: string
-        created_at:
-          format: date-time
+          description: tag icon
           type: string
       required:
       - color
-      - created_at
+      - description
+      - icon
+      - name
+      - status
+      - type
+      type: object
+    TagCreate_data:
+      properties:
+        type:
+          enum:
+          - tag_create
+          type: string
+        attributes:
+          $ref: '#/components/schemas/TagCreate_data_attributes'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+    TagUpdate_data_attributes:
+      properties:
+        status:
+          description: tag status
+          enum:
+          - active
+          - inactive
+          type: string
+        type:
+          description: tag type
+          enum:
+          - tag
+          type: string
+        description:
+          description: tag description
+          type: string
+        color:
+          description: tag color
+          type: string
+        icon:
+          description: tag icon
+          type: string
+      required:
+      - color
+      - description
       - icon
       - status
       - type
       type: object
-    Tag_data:
+    TagUpdate_data:
       properties:
         id:
           description: tag name
           type: string
         type:
           enum:
-          - tag
+          - tag_update
           type: string
         attributes:
-          $ref: '#/components/schemas/Tag_data_attributes'
+          $ref: '#/components/schemas/TagUpdate_data_attributes'
       required:
       - attributes
+      - id
+      - type
+      type: object
+    LinksDirect_links:
+      properties:
+        self:
+          description: Link to participants
+          type: string
+        related:
+          description: Link to participants
+          type: string
+      required:
+      - data
+      - related
+      - self
+      type: object
+    LinksDirect_data:
+      properties:
+        id:
+          description: resources id
+          type: string
+        type:
+          description: resources type
+          type: string
+      required:
       - id
       - type
       type: object

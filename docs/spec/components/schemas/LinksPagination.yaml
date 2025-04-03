@@ -1,0 +1,13 @@
+type: object
+required:
+  - self
+properties:
+  previous:
+    type: string
+    description: Link to the previous page
+  self:
+    type: string
+    description: Link to the current page
+  next:
+    type: string
+    description: Link to the next page

@@ -24,13 +24,13 @@ var _ MappedNullable = &AuthorAttributes{}
 type AuthorAttributes struct {
 	Name string `json:"name"`
 	Status *string `json:"status,omitempty"`
-	Desc string `json:"desc"`
-	Avatar string `json:"avatar"`
+	Desc *string `json:"desc,omitempty"`
+	Avatar *string `json:"avatar,omitempty"`
 	Email *string `json:"email,omitempty"`
 	Telegram *string `json:"telegram,omitempty"`
 	Twitter *string `json:"twitter,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type _AuthorAttributes AuthorAttributes
@@ -39,11 +39,10 @@ type _AuthorAttributes AuthorAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAuthorAttributes(name string, desc string, avatar string) *AuthorAttributes {
+func NewAuthorAttributes(name string, createdAt time.Time) *AuthorAttributes {
 	this := AuthorAttributes{}
 	this.Name = name
-	this.Desc = desc
-	this.Avatar = avatar
+	this.CreatedAt = createdAt
 	return &this
 }
 
@@ -111,52 +110,68 @@ func (o *AuthorAttributes) SetStatus(v string) {
 	o.Status = &v
 }
 
-// GetDesc returns the Desc field value
+// GetDesc returns the Desc field value if set, zero value otherwise.
 func (o *AuthorAttributes) GetDesc() string {
-	if o == nil {
+	if o == nil || IsNil(o.Desc) {
 		var ret string
 		return ret
 	}
-
-	return o.Desc
+	return *o.Desc
 }
 
-// GetDescOk returns a tuple with the Desc field value
+// GetDescOk returns a tuple with the Desc field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *AuthorAttributes) GetDescOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.Desc) {
 		return nil, false
 	}
-	return &o.Desc, true
+	return o.Desc, true
 }
 
-// SetDesc sets field value
+// HasDesc returns a boolean if a field has been set.
+func (o *AuthorAttributes) HasDesc() bool {
+	if o != nil && !IsNil(o.Desc) {
+		return true
+	}
+
+	return false
+}
+
+// SetDesc gets a reference to the given string and assigns it to the Desc field.
 func (o *AuthorAttributes) SetDesc(v string) {
-	o.Desc = v
+	o.Desc = &v
 }
 
-// GetAvatar returns the Avatar field value
+// GetAvatar returns the Avatar field value if set, zero value otherwise.
 func (o *AuthorAttributes) GetAvatar() string {
-	if o == nil {
+	if o == nil || IsNil(o.Avatar) {
 		var ret string
 		return ret
 	}
-
-	return o.Avatar
+	return *o.Avatar
 }
 
-// GetAvatarOk returns a tuple with the Avatar field value
+// GetAvatarOk returns a tuple with the Avatar field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *AuthorAttributes) GetAvatarOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.Avatar) {
 		return nil, false
 	}
-	return &o.Avatar, true
+	return o.Avatar, true
 }
 
-// SetAvatar sets field value
+// HasAvatar returns a boolean if a field has been set.
+func (o *AuthorAttributes) HasAvatar() bool {
+	if o != nil && !IsNil(o.Avatar) {
+		return true
+	}
+
+	return false
+}
+
+// SetAvatar gets a reference to the given string and assigns it to the Avatar field.
 func (o *AuthorAttributes) SetAvatar(v string) {
-	o.Avatar = v
+	o.Avatar = &v
 }
 
 // GetEmail returns the Email field value if set, zero value otherwise.
@@ -287,36 +302,28 @@ func (o *AuthorAttributes) SetUpdatedAt(v time.Time) {
 	o.UpdatedAt = &v
 }
 
-// GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
+// GetCreatedAt returns the CreatedAt field value
 func (o *AuthorAttributes) GetCreatedAt() time.Time {
-	if o == nil || IsNil(o.CreatedAt) {
+	if o == nil {
 		var ret time.Time
 		return ret
 	}
-	return *o.CreatedAt
+
+	return o.CreatedAt
 }
 
-// GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
+// GetCreatedAtOk returns a tuple with the CreatedAt field value
 // and a boolean to check if the value has been set.
 func (o *AuthorAttributes) GetCreatedAtOk() (*time.Time, bool) {
-	if o == nil || IsNil(o.CreatedAt) {
+	if o == nil {
 		return nil, false
 	}
-	return o.CreatedAt, true
+	return &o.CreatedAt, true
 }
 
-// HasCreatedAt returns a boolean if a field has been set.
-func (o *AuthorAttributes) HasCreatedAt() bool {
-	if o != nil && !IsNil(o.CreatedAt) {
-		return true
-	}
-
-	return false
-}
-
-// SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
+// SetCreatedAt sets field value
 func (o *AuthorAttributes) SetCreatedAt(v time.Time) {
-	o.CreatedAt = &v
+	o.CreatedAt = v
 }
 
 func (o AuthorAttributes) MarshalJSON() ([]byte, error) {
@@ -333,8 +340,12 @@ func (o AuthorAttributes) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Status) {
 		toSerialize["status"] = o.Status
 	}
-	toSerialize["desc"] = o.Desc
-	toSerialize["avatar"] = o.Avatar
+	if !IsNil(o.Desc) {
+		toSerialize["desc"] = o.Desc
+	}
+	if !IsNil(o.Avatar) {
+		toSerialize["avatar"] = o.Avatar
+	}
 	if !IsNil(o.Email) {
 		toSerialize["email"] = o.Email
 	}
@@ -347,9 +358,7 @@ func (o AuthorAttributes) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.UpdatedAt) {
 		toSerialize["updated_at"] = o.UpdatedAt
 	}
-	if !IsNil(o.CreatedAt) {
-		toSerialize["created_at"] = o.CreatedAt
-	}
+	toSerialize["created_at"] = o.CreatedAt
 	return toSerialize, nil
 }
 
@@ -359,8 +368,7 @@ func (o *AuthorAttributes) UnmarshalJSON(data []byte) (err error) {
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
 		"name",
-		"desc",
-		"avatar",
+		"created_at",
 	}
 
 	allProperties := make(map[string]interface{})

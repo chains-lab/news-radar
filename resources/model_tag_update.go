@@ -16,38 +16,38 @@ import (
 	"fmt"
 )
 
-// checks if the Article type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &Article{}
+// checks if the TagUpdate type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &TagUpdate{}
 
-// Article struct for Article
-type Article struct {
-	Data ArticleData `json:"data"`
+// TagUpdate struct for TagUpdate
+type TagUpdate struct {
+	Data TagUpdateData `json:"data"`
 }
 
-type _Article Article
+type _TagUpdate TagUpdate
 
-// NewArticle instantiates a new Article object
+// NewTagUpdate instantiates a new TagUpdate object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewArticle(data ArticleData) *Article {
-	this := Article{}
+func NewTagUpdate(data TagUpdateData) *TagUpdate {
+	this := TagUpdate{}
 	this.Data = data
 	return &this
 }
 
-// NewArticleWithDefaults instantiates a new Article object
+// NewTagUpdateWithDefaults instantiates a new TagUpdate object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewArticleWithDefaults() *Article {
-	this := Article{}
+func NewTagUpdateWithDefaults() *TagUpdate {
+	this := TagUpdate{}
 	return &this
 }
 
 // GetData returns the Data field value
-func (o *Article) GetData() ArticleData {
+func (o *TagUpdate) GetData() TagUpdateData {
 	if o == nil {
-		var ret ArticleData
+		var ret TagUpdateData
 		return ret
 	}
 
@@ -56,7 +56,7 @@ func (o *Article) GetData() ArticleData {
 
 // GetDataOk returns a tuple with the Data field value
 // and a boolean to check if the value has been set.
-func (o *Article) GetDataOk() (*ArticleData, bool) {
+func (o *TagUpdate) GetDataOk() (*TagUpdateData, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -64,11 +64,11 @@ func (o *Article) GetDataOk() (*ArticleData, bool) {
 }
 
 // SetData sets field value
-func (o *Article) SetData(v ArticleData) {
+func (o *TagUpdate) SetData(v TagUpdateData) {
 	o.Data = v
 }
 
-func (o Article) MarshalJSON() ([]byte, error) {
+func (o TagUpdate) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -76,13 +76,13 @@ func (o Article) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o Article) ToMap() (map[string]interface{}, error) {
+func (o TagUpdate) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["data"] = o.Data
 	return toSerialize, nil
 }
 
-func (o *Article) UnmarshalJSON(data []byte) (err error) {
+func (o *TagUpdate) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
@@ -104,53 +104,53 @@ func (o *Article) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varArticle := _Article{}
+	varTagUpdate := _TagUpdate{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varArticle)
+	err = decoder.Decode(&varTagUpdate)
 
 	if err != nil {
 		return err
 	}
 
-	*o = Article(varArticle)
+	*o = TagUpdate(varTagUpdate)
 
 	return err
 }
 
-type NullableArticle struct {
-	value *Article
+type NullableTagUpdate struct {
+	value *TagUpdate
 	isSet bool
 }
 
-func (v NullableArticle) Get() *Article {
+func (v NullableTagUpdate) Get() *TagUpdate {
 	return v.value
 }
 
-func (v *NullableArticle) Set(val *Article) {
+func (v *NullableTagUpdate) Set(val *TagUpdate) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableArticle) IsSet() bool {
+func (v NullableTagUpdate) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableArticle) Unset() {
+func (v *NullableTagUpdate) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableArticle(val *Article) *NullableArticle {
-	return &NullableArticle{value: val, isSet: true}
+func NewNullableTagUpdate(val *TagUpdate) *NullableTagUpdate {
+	return &NullableTagUpdate{value: val, isSet: true}
 }
 
-func (v NullableArticle) MarshalJSON() ([]byte, error) {
+func (v NullableTagUpdate) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableArticle) UnmarshalJSON(src []byte) error {
+func (v *NullableTagUpdate) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

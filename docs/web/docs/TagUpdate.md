@@ -1,46 +1,46 @@
-# Article
+# TagUpdate
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Data** | [**ArticleData**](ArticleData.md) |  | 
+**Data** | [**TagUpdateData**](TagUpdateData.md) |  | 
 
 ## Methods
 
-### NewArticle
+### NewTagUpdate
 
-`func NewArticle(data ArticleData, ) *Article`
+`func NewTagUpdate(data TagUpdateData, ) *TagUpdate`
 
-NewArticle instantiates a new Article object
+NewTagUpdate instantiates a new TagUpdate object
 This constructor will assign default values to properties that have it defined,
 and makes sure properties required by API are set, but the set of arguments
 will change when the set of required properties is changed
 
-### NewArticleWithDefaults
+### NewTagUpdateWithDefaults
 
-`func NewArticleWithDefaults() *Article`
+`func NewTagUpdateWithDefaults() *TagUpdate`
 
-NewArticleWithDefaults instantiates a new Article object
+NewTagUpdateWithDefaults instantiates a new TagUpdate object
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
 
 ### GetData
 
-`func (o *Article) GetData() ArticleData`
+`func (o *TagUpdate) GetData() TagUpdateData`
 
 GetData returns the Data field if non-nil, zero value otherwise.
 
 ### GetDataOk
 
-`func (o *Article) GetDataOk() (*ArticleData, bool)`
+`func (o *TagUpdate) GetDataOk() (*TagUpdateData, bool)`
 
 GetDataOk returns a tuple with the Data field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetData
 
-`func (o *Article) SetData(v ArticleData)`
+`func (o *TagUpdate) SetData(v TagUpdateData)`
 
 SetData sets Data field to given value.
 

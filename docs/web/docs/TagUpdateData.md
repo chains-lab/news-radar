@@ -1,4 +1,4 @@
-# TagData
+# TagUpdateData
 
 ## Properties
 
@@ -6,83 +6,83 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Id** | **string** | tag name | 
 **Type** | **string** |  | 
-**Attributes** | [**TagAttributes**](TagAttributes.md) |  | 
+**Attributes** | [**TagUpdateDataAttributes**](TagUpdateDataAttributes.md) |  | 
 
 ## Methods
 
-### NewTagData
+### NewTagUpdateData
 
-`func NewTagData(id string, type_ string, attributes TagAttributes, ) *TagData`
+`func NewTagUpdateData(id string, type_ string, attributes TagUpdateDataAttributes, ) *TagUpdateData`
 
-NewTagData instantiates a new TagData object
+NewTagUpdateData instantiates a new TagUpdateData object
 This constructor will assign default values to properties that have it defined,
 and makes sure properties required by API are set, but the set of arguments
 will change when the set of required properties is changed
 
-### NewTagDataWithDefaults
+### NewTagUpdateDataWithDefaults
 
-`func NewTagDataWithDefaults() *TagData`
+`func NewTagUpdateDataWithDefaults() *TagUpdateData`
 
-NewTagDataWithDefaults instantiates a new TagData object
+NewTagUpdateDataWithDefaults instantiates a new TagUpdateData object
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
 
 ### GetId
 
-`func (o *TagData) GetId() string`
+`func (o *TagUpdateData) GetId() string`
 
 GetId returns the Id field if non-nil, zero value otherwise.
 
 ### GetIdOk
 
-`func (o *TagData) GetIdOk() (*string, bool)`
+`func (o *TagUpdateData) GetIdOk() (*string, bool)`
 
 GetIdOk returns a tuple with the Id field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetId
 
-`func (o *TagData) SetId(v string)`
+`func (o *TagUpdateData) SetId(v string)`
 
 SetId sets Id field to given value.
 
 
 ### GetType
 
-`func (o *TagData) GetType() string`
+`func (o *TagUpdateData) GetType() string`
 
 GetType returns the Type field if non-nil, zero value otherwise.
 
 ### GetTypeOk
 
-`func (o *TagData) GetTypeOk() (*string, bool)`
+`func (o *TagUpdateData) GetTypeOk() (*string, bool)`
 
 GetTypeOk returns a tuple with the Type field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetType
 
-`func (o *TagData) SetType(v string)`
+`func (o *TagUpdateData) SetType(v string)`
 
 SetType sets Type field to given value.
 
 
 ### GetAttributes
 
-`func (o *TagData) GetAttributes() TagAttributes`
+`func (o *TagUpdateData) GetAttributes() TagUpdateDataAttributes`
 
 GetAttributes returns the Attributes field if non-nil, zero value otherwise.
 
 ### GetAttributesOk
 
-`func (o *TagData) GetAttributesOk() (*TagAttributes, bool)`
+`func (o *TagUpdateData) GetAttributesOk() (*TagUpdateDataAttributes, bool)`
 
 GetAttributesOk returns a tuple with the Attributes field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetAttributes
 
-`func (o *TagData) SetAttributes(v TagAttributes)`
+`func (o *TagUpdateData) SetAttributes(v TagUpdateDataAttributes)`
 
 SetAttributes sets Attributes field to given value.
 

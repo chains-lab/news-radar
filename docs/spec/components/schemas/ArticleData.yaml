@@ -13,3 +13,17 @@ properties:
     enum: [ article ]
   attributes:
     $ref: './ArticleAttributes.yaml'
+  relationships:
+    type: object
+    required:
+      - authors
+      - tags
+    properties:
+      authors:
+        type: array
+        items:
+          $ref: './Relationships.yaml'
+      tags:
+        type: array
+        items:
+          $ref: './Relationships.yaml'

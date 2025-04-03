@@ -26,14 +26,18 @@ properties:
     description: "Article description"
     example: "Article description"
   content:
-    $ref: './Content.yaml'
+    type: array
+    items:
+      $ref: './Content.yaml'
   likes:
     type: integer
     description: "Article likes"
+    format: int64
     example: 100
   reposts:
     type: integer
     description: "Article reposts"
+    format: int64
     example: 50
   updated_at:
     type: string

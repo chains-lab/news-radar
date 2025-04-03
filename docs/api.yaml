@@ -42,3 +42,19 @@ components:
       $ref: './spec/components/schemas/Content.yaml'
     Tag:
       $ref: './spec/components/schemas/Tag.yaml'
+    TagData:
+      $ref: './spec/components/schemas/TagData.yaml'
+    TagAttributes:
+      $ref: './spec/components/schemas/TagAttributes.yaml'
+    TagCreate:
+      $ref: './spec/components/schemas/TagCreate.yaml'
+    TagUpdate:
+      $ref: './spec/components/schemas/TagUpdate.yaml'
+    Relationships:
+      $ref: './spec/components/schemas/Relationships.yaml'
+    LinksDirect:
+      $ref: './spec/components/schemas/LinksDirect.yaml'
+    LinksPagination:
+      $ref: './spec/components/schemas/LinksPagination.yaml'
+    LinksSelf:
+      $ref: './spec/components/schemas/LinksSelf.yaml'

@@ -6,19 +6,19 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Name** | **string** |  | 
 **Status** | Pointer to **string** |  | [optional] 
-**Desc** | **string** |  | 
-**Avatar** | **string** |  | 
+**Desc** | Pointer to **string** |  | [optional] 
+**Avatar** | Pointer to **string** |  | [optional] 
 **Email** | Pointer to **string** |  | [optional] 
 **Telegram** | Pointer to **string** |  | [optional] 
 **Twitter** | Pointer to **string** |  | [optional] 
 **UpdatedAt** | Pointer to **time.Time** |  | [optional] 
-**CreatedAt** | Pointer to **time.Time** |  | [optional] 
+**CreatedAt** | **time.Time** |  | 
 
 ## Methods
 
 ### NewAuthorAttributes
 
-`func NewAuthorAttributes(name string, desc string, avatar string, ) *AuthorAttributes`
+`func NewAuthorAttributes(name string, createdAt time.Time, ) *AuthorAttributes`
 
 NewAuthorAttributes instantiates a new AuthorAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -97,6 +97,11 @@ and a boolean to check if the value has been set.
 
 SetDesc sets Desc field to given value.
 
+### HasDesc
+
+`func (o *AuthorAttributes) HasDesc() bool`
+
+HasDesc returns a boolean if a field has been set.
 
 ### GetAvatar
 
@@ -117,6 +122,11 @@ and a boolean to check if the value has been set.
 
 SetAvatar sets Avatar field to given value.
 
+### HasAvatar
+
+`func (o *AuthorAttributes) HasAvatar() bool`
+
+HasAvatar returns a boolean if a field has been set.
 
 ### GetEmail
 
@@ -237,11 +247,6 @@ and a boolean to check if the value has been set.
 
 SetCreatedAt sets CreatedAt field to given value.
 
-### HasCreatedAt
-
-`func (o *AuthorAttributes) HasCreatedAt() bool`
-
-HasCreatedAt returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

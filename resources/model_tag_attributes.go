@@ -17,11 +17,11 @@ import (
 	"fmt"
 )
 
-// checks if the TagDataAttributes type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &TagDataAttributes{}
+// checks if the TagAttributes type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &TagAttributes{}
 
-// TagDataAttributes struct for TagDataAttributes
-type TagDataAttributes struct {
+// TagAttributes struct for TagAttributes
+type TagAttributes struct {
 	Status string `json:"status"`
 	Type string `json:"type"`
 	// Tag color
@@ -31,14 +31,14 @@ type TagDataAttributes struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type _TagDataAttributes TagDataAttributes
+type _TagAttributes TagAttributes
 
-// NewTagDataAttributes instantiates a new TagDataAttributes object
+// NewTagAttributes instantiates a new TagAttributes object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewTagDataAttributes(status string, type_ string, color string, icon string, createdAt time.Time) *TagDataAttributes {
-	this := TagDataAttributes{}
+func NewTagAttributes(status string, type_ string, color string, icon string, createdAt time.Time) *TagAttributes {
+	this := TagAttributes{}
 	this.Status = status
 	this.Type = type_
 	this.Color = color
@@ -47,16 +47,16 @@ func NewTagDataAttributes(status string, type_ string, color string, icon string
 	return &this
 }
 
-// NewTagDataAttributesWithDefaults instantiates a new TagDataAttributes object
+// NewTagAttributesWithDefaults instantiates a new TagAttributes object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewTagDataAttributesWithDefaults() *TagDataAttributes {
-	this := TagDataAttributes{}
+func NewTagAttributesWithDefaults() *TagAttributes {
+	this := TagAttributes{}
 	return &this
 }
 
 // GetStatus returns the Status field value
-func (o *TagDataAttributes) GetStatus() string {
+func (o *TagAttributes) GetStatus() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -67,7 +67,7 @@ func (o *TagDataAttributes) GetStatus() string {
 
 // GetStatusOk returns a tuple with the Status field value
 // and a boolean to check if the value has been set.
-func (o *TagDataAttributes) GetStatusOk() (*string, bool) {
+func (o *TagAttributes) GetStatusOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -75,12 +75,12 @@ func (o *TagDataAttributes) GetStatusOk() (*string, bool) {
 }
 
 // SetStatus sets field value
-func (o *TagDataAttributes) SetStatus(v string) {
+func (o *TagAttributes) SetStatus(v string) {
 	o.Status = v
 }
 
 // GetType returns the Type field value
-func (o *TagDataAttributes) GetType() string {
+func (o *TagAttributes) GetType() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -91,7 +91,7 @@ func (o *TagDataAttributes) GetType() string {
 
 // GetTypeOk returns a tuple with the Type field value
 // and a boolean to check if the value has been set.
-func (o *TagDataAttributes) GetTypeOk() (*string, bool) {
+func (o *TagAttributes) GetTypeOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -99,12 +99,12 @@ func (o *TagDataAttributes) GetTypeOk() (*string, bool) {
 }
 
 // SetType sets field value
-func (o *TagDataAttributes) SetType(v string) {
+func (o *TagAttributes) SetType(v string) {
 	o.Type = v
 }
 
 // GetColor returns the Color field value
-func (o *TagDataAttributes) GetColor() string {
+func (o *TagAttributes) GetColor() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -115,7 +115,7 @@ func (o *TagDataAttributes) GetColor() string {
 
 // GetColorOk returns a tuple with the Color field value
 // and a boolean to check if the value has been set.
-func (o *TagDataAttributes) GetColorOk() (*string, bool) {
+func (o *TagAttributes) GetColorOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -123,12 +123,12 @@ func (o *TagDataAttributes) GetColorOk() (*string, bool) {
 }
 
 // SetColor sets field value
-func (o *TagDataAttributes) SetColor(v string) {
+func (o *TagAttributes) SetColor(v string) {
 	o.Color = v
 }
 
 // GetIcon returns the Icon field value
-func (o *TagDataAttributes) GetIcon() string {
+func (o *TagAttributes) GetIcon() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -139,7 +139,7 @@ func (o *TagDataAttributes) GetIcon() string {
 
 // GetIconOk returns a tuple with the Icon field value
 // and a boolean to check if the value has been set.
-func (o *TagDataAttributes) GetIconOk() (*string, bool) {
+func (o *TagAttributes) GetIconOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -147,12 +147,12 @@ func (o *TagDataAttributes) GetIconOk() (*string, bool) {
 }
 
 // SetIcon sets field value
-func (o *TagDataAttributes) SetIcon(v string) {
+func (o *TagAttributes) SetIcon(v string) {
 	o.Icon = v
 }
 
 // GetCreatedAt returns the CreatedAt field value
-func (o *TagDataAttributes) GetCreatedAt() time.Time {
+func (o *TagAttributes) GetCreatedAt() time.Time {
 	if o == nil {
 		var ret time.Time
 		return ret
@@ -163,7 +163,7 @@ func (o *TagDataAttributes) GetCreatedAt() time.Time {
 
 // GetCreatedAtOk returns a tuple with the CreatedAt field value
 // and a boolean to check if the value has been set.
-func (o *TagDataAttributes) GetCreatedAtOk() (*time.Time, bool) {
+func (o *TagAttributes) GetCreatedAtOk() (*time.Time, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -171,11 +171,11 @@ func (o *TagDataAttributes) GetCreatedAtOk() (*time.Time, bool) {
 }
 
 // SetCreatedAt sets field value
-func (o *TagDataAttributes) SetCreatedAt(v time.Time) {
+func (o *TagAttributes) SetCreatedAt(v time.Time) {
 	o.CreatedAt = v
 }
 
-func (o TagDataAttributes) MarshalJSON() ([]byte, error) {
+func (o TagAttributes) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -183,7 +183,7 @@ func (o TagDataAttributes) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o TagDataAttributes) ToMap() (map[string]interface{}, error) {
+func (o TagAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["status"] = o.Status
 	toSerialize["type"] = o.Type
@@ -193,7 +193,7 @@ func (o TagDataAttributes) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-func (o *TagDataAttributes) UnmarshalJSON(data []byte) (err error) {
+func (o *TagAttributes) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
@@ -219,53 +219,53 @@ func (o *TagDataAttributes) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varTagDataAttributes := _TagDataAttributes{}
+	varTagAttributes := _TagAttributes{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varTagDataAttributes)
+	err = decoder.Decode(&varTagAttributes)
 
 	if err != nil {
 		return err
 	}
 
-	*o = TagDataAttributes(varTagDataAttributes)
+	*o = TagAttributes(varTagAttributes)
 
 	return err
 }
 
-type NullableTagDataAttributes struct {
-	value *TagDataAttributes
+type NullableTagAttributes struct {
+	value *TagAttributes
 	isSet bool
 }
 
-func (v NullableTagDataAttributes) Get() *TagDataAttributes {
+func (v NullableTagAttributes) Get() *TagAttributes {
 	return v.value
 }
 
-func (v *NullableTagDataAttributes) Set(val *TagDataAttributes) {
+func (v *NullableTagAttributes) Set(val *TagAttributes) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableTagDataAttributes) IsSet() bool {
+func (v NullableTagAttributes) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableTagDataAttributes) Unset() {
+func (v *NullableTagAttributes) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableTagDataAttributes(val *TagDataAttributes) *NullableTagDataAttributes {
-	return &NullableTagDataAttributes{value: val, isSet: true}
+func NewNullableTagAttributes(val *TagAttributes) *NullableTagAttributes {
+	return &NullableTagAttributes{value: val, isSet: true}
 }
 
-func (v NullableTagDataAttributes) MarshalJSON() ([]byte, error) {
+func (v NullableTagAttributes) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableTagDataAttributes) UnmarshalJSON(src []byte) error {
+func (v *NullableTagAttributes) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

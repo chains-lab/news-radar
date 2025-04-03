@@ -22,8 +22,6 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/ArticleData'
-        included:
-          $ref: '#/components/schemas/ArticleInclude'
     ArticleData:
       type: object
       required:
@@ -41,6 +39,20 @@ components:
             - article
         attributes:
           $ref: '#/components/schemas/ArticleAttributes'
+        relationships:
+          type: object
+          required:
+            - authors
+            - tags
+          properties:
+            authors:
+              type: array
+              items:
+                $ref: '#/components/schemas/Relationships'
+            tags:
+              type: array
+              items:
+                $ref: '#/components/schemas/Relationships'
     ArticleAttributes:
       type: object
       required:
@@ -70,14 +82,18 @@ components:
           description: Article description
           example: Article description
         content:
-          $ref: '#/components/schemas/Content'
+          type: array
+          items:
+            $ref: '#/components/schemas/Content'
         likes:
           type: integer
           description: Article likes
+          format: int64
           example: 100
         reposts:
           type: integer
           description: Article reposts
+          format: int64
           example: 50
         updated_at:
           type: string
@@ -102,7 +118,7 @@ components:
         tags:
           type: array
           items:
-            $ref: '#/components/schemas/Tag/properties/data'
+            $ref: '#/components/schemas/TagData'
     ArticleCreate:
       type: object
       required:
@@ -214,8 +230,7 @@ components:
       type: object
       required:
         - name
-        - desc
-        - avatar
+        - created_at
       properties:
         name:
           type: string
@@ -318,6 +333,102 @@ components:
         - data
       properties:
         data:
+          $ref: '#/components/schemas/TagData'
+    TagData:
+      type: object
+      required:
+        - id
+        - type
+        - attributes
+      properties:
+        id:
+          type: string
+          description: tag name
+        type:
+          type: string
+          enum:
+            - tag
+        attributes:
+          $ref: '#/components/schemas/TagAttributes'
+    TagAttributes:
+      type: object
+      required:
+        - status
+        - type
+        - color
+        - icon
+        - created_at
+      properties:
+        status:
+          type: string
+        type:
+          type: string
+        color:
+          type: string
+          description: Tag color
+          example: '#FF5733'
+        icon:
+          type: string
+          description: Tag icon
+          example: 'https://example.com/icon.png'
+        created_at:
+          type: string
+          format: date-time
+    TagCreate:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - id
+            - type
+            - attributes
+          properties:
+            type:
+              type: string
+              enum:
+                - tag_create
+            attributes:
+              type: object
+              required:
+                - name
+                - status
+                - type
+                - description
+                - color
+                - icon
+              properties:
+                name:
+                  type: string
+                  description: tag name
+                status:
+                  type: string
+                  enum:
+                    - active
+                    - inactive
+                  description: tag status
+                type:
+                  type: string
+                  enum:
+                    - tag
+                  description: tag type
+                description:
+                  type: string
+                  description: tag description
+                color:
+                  type: string
+                  description: tag color
+                icon:
+                  type: string
+                  description: tag icon
+    TagUpdate:
+      type: object
+      required:
+        - data
+      properties:
+        data:
           type: object
           required:
             - id
@@ -330,28 +441,98 @@ components:
             type:
               type: string
               enum:
-                - tag
+                - tag_update
             attributes:
               type: object
               required:
                 - status
                 - type
+                - description
                 - color
                 - icon
-                - created_at
               properties:
                 status:
                   type: string
+                  enum:
+                    - active
+                    - inactive
+                  description: tag status
                 type:
                   type: string
+                  enum:
+                    - tag
+                  description: tag type
+                description:
+                  type: string
+                  description: tag description
                 color:
                   type: string
-                  description: Tag color
-                  example: '#FF5733'
+                  description: tag color
                 icon:
                   type: string
-                  description: Tag icon
-                  example: 'https://example.com/icon.png'
-                created_at:
-                  type: string
-                  format: date-time
+                  description: tag icon
+    Relationships:
+      type: object
+      required:
+        - id
+        - type
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+    LinksDirect:
+      type: object
+      required:
+        - links
+      properties:
+        links:
+          type: object
+          required:
+            - self
+            - related
+            - data
+          properties:
+            self:
+              type: string
+              description: Link to participants
+            related:
+              type: string
+              description: Link to participants
+        data:
+          type: object
+          required:
+            - id
+            - type
+          properties:
+            id:
+              type: string
+              description: resources id
+            type:
+              type: string
+              description: resources type
+    LinksPagination:
+      type: object
+      required:
+        - self
+      properties:
+        previous:
+          type: string
+          description: Link to the previous page
+        self:
+          type: string
+          description: Link to the current page
+        next:
+          type: string
+          description: Link to the next page
+    LinksSelf:
+      type: object
+      required:
+        - self
+      properties:
+        self:
+          type: string
+          description: Link to resources
+        update:
+          type: string
+          description: Link to update resources
