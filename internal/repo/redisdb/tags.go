@@ -3,7 +3,6 @@ package redisdb
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -11,10 +10,9 @@ import (
 const tagsNamespace = "tags"
 
 type TagModel struct {
-	Name      string    `json:"name"`
-	Color     string    `json:"color"`
-	Icon      string    `json:"icon"`
-	CreatedAt time.Time `json:"created_at"`
+	Name  string `json:"name"`
+	Color string `json:"color"`
+	Icon  string `json:"icon"`
 }
 
 type TagsImpl struct {

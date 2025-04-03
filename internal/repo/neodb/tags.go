@@ -3,13 +3,16 @@ package neodb
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
 
 type TagModel struct {
-	Name   string `json:"name"`
-	Status string `json:"status"`
+	Name      string    `json:"name"`
+	Status    string    `json:"status"`
+	Type      string    `json:"type"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type TagsImpl struct {
@@ -34,8 +37,10 @@ func NewTags(uri, username, password string) (*TagsImpl, error) {
 }
 
 type TagCreateInput struct {
-	Name   string `json:"name"`
-	Status string `json:"status"`
+	Name      string    `json:"name"`
+	Status    string    `json:"status"`
+	Type      string    `json:"type"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func (t *TagsImpl) Create(ctx context.Context, input TagCreateInput) error {
@@ -53,14 +58,18 @@ func (t *TagsImpl) Create(ctx context.Context, input TagCreateInput) error {
 			cypher := `
 				CREATE (t:Tag {
 					name: $name,
-					status: $status
+					status: $status,
+					type: $type,
+					created_at: $created
 				})
 				RETURN t
 			`
 
 			params := map[string]any{
-				"name":   input.Name,
-				"status": input.Status,
+				"name":    input.Name,
+				"type":    input.Type,
+				"created": input.CreatedAt,
+				"status":  input.Status,
 			}
 
 			_, err := tx.Run(cypher, params)
@@ -193,6 +202,43 @@ func (t *TagsImpl) UpdateName(ctx context.Context, name string, newName string) 
 	}
 }
 
+func (t *TagsImpl) UpdateType(ctx context.Context, name string, newType string) error {
+	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	if err != nil {
+		return err
+	}
+	defer session.Close()
+
+	errChan := make(chan error, 1)
+	go func() {
+		_, err := session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+			cypher := `
+				MATCH (t:Tag { name: $name })
+				SET t.type = $newType
+				RETURN t
+			`
+
+			params := map[string]any{
+				"name":    name,
+				"newType": newType,
+			}
+			_, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, fmt.Errorf("failed to update tag type: %w", err)
+			}
+			return nil, nil
+		})
+		errChan <- err
+	}()
+
+	select {
+	case err := <-errChan:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
 func (t *TagsImpl) Get(ctx context.Context, name string) (TagModel, error) {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
@@ -229,8 +275,10 @@ func (t *TagsImpl) Get(ctx context.Context, name string) (TagModel, error) {
 				n := node.(neo4j.Node)
 				props := n.Props()
 				tag := TagModel{
-					Name:   props["name"].(string),
-					Status: props["status"].(string),
+					Name:      props["name"].(string),
+					Status:    props["status"].(string),
+					Type:      props["type"].(string),
+					CreatedAt: props["created_at"].(time.Time),
 				}
 				return tag, nil
 			}
@@ -295,8 +343,10 @@ func (t *TagsImpl) Select(ctx context.Context) ([]TagModel, error) {
 				}
 				props := n.Props()
 				tag := TagModel{
-					Name:   props["name"].(string),
-					Status: props["status"].(string),
+					Name:      props["name"].(string),
+					Status:    props["status"].(string),
+					Type:      props["type"].(string),
+					CreatedAt: props["created_at"].(time.Time),
 				}
 				tagsList = append(tagsList, tag)
 			}

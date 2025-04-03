@@ -13,6 +13,7 @@ import (
 type TagModel struct {
 	Name      string    `json:"name"`
 	Status    string    `json:"status"`
+	Type      string    `json:"type"`
 	Color     string    `json:"color"`
 	Icon      string    `json:"icon"`
 	CreatedAt time.Time `json:"created_at"`
@@ -35,7 +36,8 @@ type tagsNeo interface {
 	Delete(ctx context.Context, name string) error
 
 	UpdateStatus(ctx context.Context, name string, status string) error
-	//UpdateName(ctx context.Context, name string, newName string) error
+	UpdateName(ctx context.Context, name string, newName string) error
+	UpdateType(ctx context.Context, name string, newType string) error
 
 	Get(ctx context.Context, name string) (neodb.TagModel, error)
 	Select(ctx context.Context) ([]neodb.TagModel, error)
@@ -107,29 +109,60 @@ func (t *Tags) Delete(name string) error {
 	return nil
 }
 
-func (t *Tags) Update(name string, fields map[string]any) error {
+type TagUpdateInput struct {
+	Color  *string `json:"color"`
+	Icon   *string `json:"icon"`
+	Status *string `json:"status"`
+	Type   *string `json:"type"`
+	Name   *string `json:"name"`
+}
+
+func (t *Tags) Update(name string, input TagUpdateInput) error {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	if color, ok := fields["color"].(string); ok {
-		err := t.redis.UpdateColor(ctxSync, name, color)
+	if input.Color != nil {
+		err := t.redis.UpdateColor(ctxSync, name, *input.Color)
 		if err != nil {
 			return err
 		}
 	}
 
-	if icon, ok := fields["icon"].(string); ok {
-		err := t.redis.UpdateIcon(ctxSync, name, icon)
+	if input.Icon != nil {
+		err := t.redis.UpdateIcon(ctxSync, name, *input.Icon)
 		if err != nil {
 			return err
 		}
 	}
 
-	if status, ok := fields["status"].(string); ok {
-		err := t.neo.UpdateStatus(ctxSync, name, status)
+	if input.Status != nil {
+		err := t.neo.UpdateStatus(ctxSync, name, *input.Status)
 		if err != nil {
 			return err
 		}
+	}
+
+	if input.Type != nil {
+		err := t.neo.UpdateType(ctxSync, name, *input.Type)
+		if err != nil {
+			return err
+		}
+	}
+
+	if input.Name != nil {
+		err := t.neo.UpdateName(ctxSync, name, *input.Name)
+		if err != nil {
+			return err
+		}
+		err = t.redis.Delete(ctxSync, name)
+		if err != nil {
+			return err
+		}
+		err = t.redis.Create(ctxSync, redisdb.TagCreateInput{
+			Name:  *input.Name,
+			Color: *input.Color,
+			Icon:  *input.Icon,
+		})
 	}
 
 	return nil
@@ -163,9 +196,11 @@ func TagsCreateModel(redis redisdb.TagModel, neo neodb.TagModel) (TagModel, erro
 	}
 
 	return TagModel{
-		Status: neo.Status,
-		Name:   redis.Name,
-		Color:  redis.Color,
-		Icon:   redis.Icon,
+		Name:      neo.Name,
+		Status:    neo.Status,
+		Type:      neo.Type,
+		Color:     redis.Color,
+		Icon:      redis.Icon,
+		CreatedAt: neo.CreatedAt,
 	}, nil
 }

@@ -42,8 +42,10 @@ func TestTagsImpl_CreateAndGet(t *testing.T) {
 	ctx := context.Background()
 
 	input := TagCreateInput{
-		Name:   "TestTag",
-		Status: "active",
+		Name:      "TestTag",
+		Status:    "active",
+		Type:      "testType",
+		CreatedAt: time.Now().UTC(),
 	}
 
 	if err := tags.Create(ctx, input); err != nil {
@@ -64,8 +66,10 @@ func TestTagsImpl_UpdateStatus(t *testing.T) {
 	ctx := context.Background()
 
 	input := TagCreateInput{
-		Name:   "StatusTag",
-		Status: "active",
+		Name:      "StatusTag",
+		Status:    "active",
+		Type:      "testType",
+		CreatedAt: time.Now().UTC(),
 	}
 	if err := tags.Create(ctx, input); err != nil {
 		t.Fatalf("failed to create tag: %v", err)
@@ -90,8 +94,10 @@ func TestTagsImpl_UpdateName(t *testing.T) {
 	ctx := context.Background()
 
 	input := TagCreateInput{
-		Name:   "OldName",
-		Status: "active",
+		Name:      "OldName",
+		Type:      "oldType",
+		Status:    "active",
+		CreatedAt: time.Now().UTC(),
 	}
 	if err := tags.Create(ctx, input); err != nil {
 		t.Fatalf("failed to create tag: %v", err)
@@ -102,12 +108,20 @@ func TestTagsImpl_UpdateName(t *testing.T) {
 		t.Fatalf("failed to update tag name: %v", err)
 	}
 
+	newType := "newType"
+	if err := tags.UpdateType(ctx, newName, newType); err != nil {
+		t.Fatalf("failed to update tag type: %v", err)
+	}
+
 	retrieved, err := tags.Get(ctx, newName)
 	if err != nil {
 		t.Fatalf("failed to get tag after name update: %v", err)
 	}
 	if retrieved.Name != newName {
 		t.Errorf("expected name %s, got %s", newName, retrieved.Name)
+	}
+	if retrieved.Type != newType {
+		t.Errorf("expected type %s, got %s", newType, retrieved.Type)
 	}
 }
 
@@ -116,8 +130,10 @@ func TestTagsImpl_Delete(t *testing.T) {
 	ctx := context.Background()
 
 	input := TagCreateInput{
-		Name:   "DeleteTag",
-		Status: "active",
+		Name:      "DeleteTag",
+		Status:    "active",
+		Type:      "testType",
+		CreatedAt: time.Now().UTC(),
 	}
 	if err := tags.Create(ctx, input); err != nil {
 		t.Fatalf("failed to create tag: %v", err)
@@ -141,9 +157,9 @@ func TestTagsImpl_Select(t *testing.T) {
 	ctx := context.Background()
 
 	inputs := []TagCreateInput{
-		{Name: "TagA", Status: "active"},
-		{Name: "TagB", Status: "inactive"},
-		{Name: "TagC", Status: "active"},
+		{Name: "TagA", Status: "active", Type: "typeA", CreatedAt: time.Now().UTC()},
+		{Name: "TagB", Status: "inactive", Type: "typeB", CreatedAt: time.Now().UTC()},
+		{Name: "TagC", Status: "active", Type: "typeC", CreatedAt: time.Now().UTC()},
 	}
 
 	for _, inp := range inputs {

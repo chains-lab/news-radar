@@ -67,19 +67,19 @@ type ArticlesRepo struct {
 }
 
 func NewArticles(cfg config.Config) (*ArticlesRepo, error) {
-	mongo, err := mongodb.NewArticles(cfg)
+	mongo, err := mongodb.NewArticles(cfg.Database.Mongo.Name, cfg.Database.Mongo.URI)
 	if err != nil {
 		return nil, err
 	}
-	neo, err := neodb.NewArticles(cfg)
+	neo, err := neodb.NewArticles(cfg.Database.Neo4j.URI, cfg.Database.Neo4j.Username, cfg.Database.Neo4j.Password)
 	if err != nil {
 		return nil, err
 	}
-	hashtagNeo, err := neodb.NewHashtag(cfg)
+	hashtagNeo, err := neodb.NewHashtag(cfg.Database.Neo4j.URI, cfg.Database.Neo4j.Username, cfg.Database.Neo4j.Password)
 	if err != nil {
 		return nil, err
 	}
-	authorshipNeo, err := neodb.NewAuthorship(cfg)
+	authorshipNeo, err := neodb.NewAuthorship(cfg.Database.Neo4j.URI, cfg.Database.Neo4j.Username, cfg.Database.Neo4j.Password)
 	if err != nil {
 		return nil, err
 	}

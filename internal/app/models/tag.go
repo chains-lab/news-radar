@@ -8,9 +8,9 @@ import (
 type Tag struct {
 	Name      string    `json:"name"`
 	Status    TagStatus `json:"status"`
-	CreatedAt time.Time `json:"created_at"`
 	Color     string    `json:"color"`
 	Icon      string    `json:"icon"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type TagStatus string

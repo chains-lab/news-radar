@@ -1,4 +1,4 @@
-package entities
+package domain
 
 import (
 	"context"
@@ -33,7 +33,7 @@ func NewReaction(cfg config.Config) (*Reaction, error) {
 	}, nil
 }
 
-func (r *Reaction) MakeLike(ctx context.Context, userID, articleID uuid.UUID) error {
+func (r *Reaction) AddLike(ctx context.Context, userID, articleID uuid.UUID) error {
 	return r.data.CreateLike(userID, articleID)
 }
 
@@ -41,7 +41,7 @@ func (r *Reaction) RemoveLike(ctx context.Context, userID, articleID uuid.UUID) 
 	return r.data.RemoveLike(userID, articleID)
 }
 
-func (r *Reaction) MakeDislike(ctx context.Context, userID, articleID uuid.UUID) error {
+func (r *Reaction) AddDislike(ctx context.Context, userID, articleID uuid.UUID) error {
 	return r.data.CreateDislike(userID, articleID)
 }
 
@@ -49,6 +49,6 @@ func (r *Reaction) RemoveDislike(ctx context.Context, userID, articleID uuid.UUI
 	return r.data.RemoveDislike(userID, articleID)
 }
 
-func (r *Reaction) MakeRepost(ctx context.Context, userID, articleID uuid.UUID) error {
+func (r *Reaction) AddRepost(ctx context.Context, userID, articleID uuid.UUID) error {
 	return r.data.CreateRepost(userID, articleID)
 }

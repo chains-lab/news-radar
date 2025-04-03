@@ -33,8 +33,8 @@ type authorsMongo interface {
 	Select(ctx context.Context) ([]mongodb.AuthorModel, error)
 	Get(ctx context.Context) (mongodb.AuthorModel, error)
 
-	FiltersID(id uuid.UUID) *mongodb.AuthorsQ
-	FiltersName(name string) *mongodb.AuthorsQ
+	FilterID(id uuid.UUID) *mongodb.AuthorsQ
+	FilterName(name string) *mongodb.AuthorsQ
 
 	Update(ctx context.Context, input mongodb.AuthorUpdateInput) (mongodb.AuthorModel, error)
 
@@ -60,7 +60,7 @@ type Authors struct {
 }
 
 func NewAuthors(cfg config.Config) (*Authors, error) {
-	mongo, err := mongodb.NewAuthors(cfg.Database.Mongo.URI, cfg.Database.Mongo.Name)
+	mongo, err := mongodb.NewAuthors(cfg.Database.Mongo.Name, cfg.Database.Mongo.URI)
 	if err != nil {
 		return nil, err
 	}
@@ -76,16 +76,15 @@ func NewAuthors(cfg config.Config) (*Authors, error) {
 }
 
 type AuthorCreateInput struct {
-	ID        uuid.UUID  `json:"id" bson:"id"`
-	Name      string     `json:"name" bson:"name"`
-	Status    string     `json:"status" bson:"status"`
-	Desc      *string    `json:"desc" bson:"desc"`
-	Avatar    *string    `json:"avatar,omitempty" bson:"avatar,omitempty"`
-	Email     *string    `json:"email,omitempty" bson:"email,omitempty"`
-	Telegram  *string    `json:"telegram,omitempty" bson:"telegram,omitempty"`
-	Twitter   *string    `json:"twitter,omitempty" bson:"twitter,omitempty"`
-	UpdatedAt *time.Time `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
-	CreatedAt time.Time  `json:"created_at" bson:"created_at"`
+	ID        uuid.UUID `json:"id" bson:"id"`
+	Name      string    `json:"name" bson:"name"`
+	Status    string    `json:"status" bson:"status"`
+	Desc      *string   `json:"desc" bson:"desc"`
+	Avatar    *string   `json:"avatar,omitempty" bson:"avatar,omitempty"`
+	Email     *string   `json:"email,omitempty" bson:"email,omitempty"`
+	Telegram  *string   `json:"telegram,omitempty" bson:"telegram,omitempty"`
+	Twitter   *string   `json:"twitter,omitempty" bson:"twitter,omitempty"`
+	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 }
 
 func (a *Authors) Create(input AuthorCreateInput) error {
@@ -96,6 +95,11 @@ func (a *Authors) Create(input AuthorCreateInput) error {
 		ID:        input.ID,
 		Name:      input.Name,
 		CreatedAt: input.CreatedAt,
+		Desc:      input.Desc,
+		Avatar:    input.Avatar,
+		Email:     input.Email,
+		Telegram:  input.Telegram,
+		Twitter:   input.Twitter,
 	})
 
 	if err = a.neo.Create(ctxSync, neodb.AuthorCreateInput{
@@ -103,10 +107,6 @@ func (a *Authors) Create(input AuthorCreateInput) error {
 		Name:   input.Name,
 		Status: input.Status,
 	}); err != nil {
-		return err
-	}
-
-	if err != nil {
 		return err
 	}
 
@@ -140,7 +140,7 @@ func (a *Authors) Update(ID uuid.UUID, input AuthorUpdateInput) error {
 		}
 	}
 
-	_, err := a.mongo.New().FiltersID(ID).Update(ctxSync, mongodb.AuthorUpdateInput{
+	_, err := a.mongo.New().FilterID(ID).Update(ctxSync, mongodb.AuthorUpdateInput{
 		Name:      input.Name,
 		Desc:      input.Desc,
 		Avatar:    input.Avatar,
@@ -164,7 +164,7 @@ func (a *Authors) Delete(ID uuid.UUID) error {
 		return err
 	}
 
-	if err := a.mongo.New().FiltersID(ID).Delete(ctxSync); err != nil {
+	if err := a.mongo.New().FilterID(ID).Delete(ctxSync); err != nil {
 		return err
 	}
 
@@ -175,7 +175,7 @@ func (a *Authors) GetByID(ID uuid.UUID) (AuthorModel, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	mongo, err := a.mongo.New().FiltersID(ID).Get(ctxSync)
+	mongo, err := a.mongo.New().FilterID(ID).Get(ctxSync)
 	if err != nil {
 		return AuthorModel{}, err
 	}
