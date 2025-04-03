@@ -137,7 +137,6 @@ type ArticleUpdateInput struct {
 	Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
 	Likes     *int              `json:"likes,omitempty" bson:"likes,omitempty"`
 	Reposts   *int              `json:"reposts,omitempty" bson:"reposts,omitempty"`
-	Dislike   *int              `json:"dislike,omitempty" bson:"dislike,omitempty"`
 	UpdatedAt time.Time         `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }
 
@@ -159,7 +158,6 @@ func (a *ArticlesRepo) Update(ID uuid.UUID, input ArticleUpdateInput) error {
 		Content:   input.Content,
 		Likes:     input.Likes,
 		Reposts:   input.Reposts,
-		Dislike:   input.Dislike,
 		UpdatedAt: input.UpdatedAt,
 	})
 	if err != nil {

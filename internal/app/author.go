@@ -1,4 +1,4 @@
-package domain
+package app
 
 import (
 	"context"
@@ -6,32 +6,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hs-zavet/news-radar/internal/app/models"
-	"github.com/hs-zavet/news-radar/internal/config"
 	"github.com/hs-zavet/news-radar/internal/repo"
 )
-
-type authorsRepo interface {
-	Create(author repo.AuthorCreateInput) error
-	Update(ID uuid.UUID, input repo.AuthorUpdateInput) error
-	Delete(ID uuid.UUID) error
-
-	GetByID(ID uuid.UUID) (repo.AuthorModel, error)
-}
-
-type Authors struct {
-	data authorsRepo
-}
-
-func NewAuthors(cfg config.Config) (*Authors, error) {
-	data, err := repo.NewAuthors(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Authors{
-		data: data,
-	}, nil
-}
 
 type CreateAuthorRequest struct {
 	Name     *string `json:"name" bson:"name"`
@@ -42,11 +18,11 @@ type CreateAuthorRequest struct {
 	Twitter  *string `json:"twitter,omitempty" bson:"twitter,omitempty"`
 }
 
-func (a *Authors) CreateAuthor(ctx context.Context, request CreateAuthorRequest) error {
+func (a App) CreateAuthor(ctx context.Context, request CreateAuthorRequest) error {
 	AuthorID := uuid.New()
 	CreatedAt := time.Now().UTC()
 
-	err := a.data.Create(repo.AuthorCreateInput{
+	err := a.authors.Create(repo.AuthorCreateInput{
 		ID:        AuthorID,
 		Name:      *request.Name,
 		Status:    string(models.AuthorStatusInactive),
@@ -74,14 +50,14 @@ type UpdateAuthorRequest struct {
 	Twitter  *string `json:"twitter,omitempty" bson:"twitter,omitempty"`
 }
 
-func (a *Authors) UpdateAuthor(ctx context.Context, authorID uuid.UUID, request UpdateAuthorRequest) error {
+func (a App) UpdateAuthor(ctx context.Context, authorID uuid.UUID, request UpdateAuthorRequest) error {
 	UpdatedAt := time.Now().UTC()
 
 	_, err := models.ParseAuthorStatus(*request.Status)
 	if err != nil {
 		return err
 	}
-	return a.data.Update(authorID, repo.AuthorUpdateInput{
+	return a.authors.Update(authorID, repo.AuthorUpdateInput{
 		Name:      request.Name,
 		Status:    request.Status,
 		Desc:      request.Desc,
@@ -93,10 +69,10 @@ func (a *Authors) UpdateAuthor(ctx context.Context, authorID uuid.UUID, request 
 	})
 }
 
-func (a *Authors) DeleteAuthor(ctx context.Context, authorID uuid.UUID) error {
-	return a.data.Delete(authorID)
+func (a App) DeleteAuthor(ctx context.Context, authorID uuid.UUID) error {
+	return a.authors.Delete(authorID)
 }
 
-func (a *Authors) GetByID(ctx context.Context, authorID uuid.UUID) (repo.AuthorModel, error) {
-	return a.data.GetByID(authorID)
+func (a App) GetAuthorByID(ctx context.Context, authorID uuid.UUID) (repo.AuthorModel, error) {
+	return a.authors.GetByID(authorID)
 }

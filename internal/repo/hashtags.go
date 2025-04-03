@@ -50,3 +50,15 @@ func (a *ArticlesRepo) DeleteTag(articleID uuid.UUID, tag string) error {
 
 	return nil
 }
+
+func (a *ArticlesRepo) GetTags(articleID uuid.UUID) ([]string, error) {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	tags, err := a.hashtag.GetForArticle(ctxSync, articleID)
+	if err != nil {
+		return nil, err
+	}
+
+	return tags, nil
+}

@@ -11,12 +11,10 @@ const (
 	ReactionsTopic = "reactions"
 	AccountsTopic  = "accounts"
 
-	LikeEventType          = "LIKE"
-	LikeRemoveEventType    = "LIKE_REMOVE"
-	DislikeEventType       = "DISLIKE"
-	DislikeRemoveEventType = "DISLIKE_REMOVE"
-	RepostEventType        = "REPOST"
-	AccountCreateType      = "ACCOUNT_CREATE"
+	LikeEventType       = "LIKE"
+	LikeRemoveEventType = "LIKE_REMOVE"
+	RepostEventType     = "REPOST"
+	AccountCreateType   = "ACCOUNT_CREATE"
 )
 
 type InternalEvent struct {

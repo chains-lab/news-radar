@@ -247,3 +247,49 @@ func (r *RepostsImpl) GetForArticle(ctx context.Context, articleID uuid.UUID) ([
 		return nil, ctx.Err()
 	}
 }
+
+func (r *RepostsImpl) GetForUserAndArticle(ctx context.Context, articleID, userID uuid.UUID) (bool, error) {
+	session, err := r.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	if err != nil {
+		return false, err
+	}
+	defer session.Close()
+
+	resultChan := make(chan struct {
+		reposted bool
+		err      error
+	}, 1)
+
+	go func() {
+		result, err := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+			cypher := `
+				MATCH (u:User { id: $userID })-[r:REPOSTED]->(a:Article { id: $articleID })
+				RETURN count(r) > 0 AS reposted
+			`
+			params := map[string]interface{}{
+				"userID":    userID.String(),
+				"articleID": articleID.String(),
+			}
+			records, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, err
+			}
+			if records.Next() {
+				reposted, _ := records.Record().Get("reposted")
+				return reposted.(bool), nil
+			}
+			return false, records.Err()
+		})
+		resultChan <- struct {
+			reposted bool
+			err      error
+		}{reposted: result.(bool), err: err}
+	}()
+
+	select {
+	case res := <-resultChan:
+		return res.reposted, res.err
+	case <-ctx.Done():
+		return false, ctx.Err()
+	}
+}

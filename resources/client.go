@@ -405,7 +405,7 @@ func (c *APIClient) prepareRequest(
 		localVarRequest.Header = headers
 	}
 
-	// Add the user agent to the request.
+	// Create the user agent to the request.
 	localVarRequest.Header.Add("User-Agent", c.cfg.UserAgent)
 
 	if ctx != nil {
@@ -477,7 +477,7 @@ func (c *APIClient) decode(v interface{}, b []byte, contentType string) (err err
 	return errors.New("undefined response type")
 }
 
-// Add a file to the multipart request
+// Create a file to the multipart request
 func addFile(w *multipart.Writer, fieldName, path string) error {
 	file, err := os.Open(filepath.Clean(path))
 	if err != nil {

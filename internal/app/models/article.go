@@ -9,16 +9,22 @@ import (
 )
 
 type Article struct {
-	ID        uuid.UUID         `json:"id" bson:"_id"`
-	Title     string            `json:"title" bson:"title"`
-	Icon      string            `json:"icon" bson:"icon"`
-	Desc      string            `json:"desc" bson:"desc"`
-	Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
-	Likes     int               `json:"likes" bson:"likes"`
-	Reposts   int               `json:"reposts" bson:"reposts"`
-	Status    ArticleStatus     `json:"status" bson:"status"`
-	UpdatedAt *time.Time        `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
-	CreatedAt time.Time         `json:"created_at" bson:"created_at"`
+	ID     uuid.UUID     `json:"id" bson:"_id"`
+	Status ArticleStatus `json:"status" bson:"status"`
+
+	Title   string            `json:"title" bson:"title"`
+	Icon    string            `json:"icon" bson:"icon"`
+	Desc    string            `json:"desc" bson:"desc"`
+	Content []content.Section `json:"content,omitempty" bson:"content,omitempty"`
+
+	Likes   int `json:"likes" bson:"likes"`
+	Reposts int `json:"reposts" bson:"reposts"`
+
+	UpdatedAt *time.Time `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	CreatedAt time.Time  `json:"created_at" bson:"created_at"`
+
+	Authors []uuid.UUID `json:"authors,omitempty" bson:"authors,omitempty"`
+	Tags    []string    `json:"tags,omitempty" bson:"tags,omitempty"`
 }
 
 type ArticleStatus string

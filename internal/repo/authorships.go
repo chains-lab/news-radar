@@ -51,3 +51,15 @@ func (a *ArticlesRepo) DeleteAuthor(articleID uuid.UUID, authorID uuid.UUID) err
 
 	return nil
 }
+
+func (a *ArticlesRepo) GetAuthors(articleID uuid.UUID) ([]uuid.UUID, error) {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	authors, err := a.authorship.GetForArticle(ctxSync, articleID)
+	if err != nil {
+		return nil, err
+	}
+
+	return authors, nil
+}

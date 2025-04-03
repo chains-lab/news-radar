@@ -63,6 +63,7 @@ func NewTags(cfg config.Config) (*Tags, error) {
 type TagCreateInput struct {
 	Name      string    `json:"name"`
 	Status    string    `json:"status"`
+	Type      string    `json:"type"`
 	Color     string    `json:"color"`
 	Icon      string    `json:"icon"`
 	CreatedAt time.Time `json:"created_at"`
@@ -73,8 +74,10 @@ func (t *Tags) Create(input TagCreateInput) error {
 	defer cancel()
 
 	err := t.neo.Create(ctxSync, neodb.TagCreateInput{
-		Name:   input.Name,
-		Status: input.Status,
+		Name:      input.Name,
+		Status:    input.Status,
+		Type:      input.Type,
+		CreatedAt: input.CreatedAt,
 	})
 	if err != nil {
 		return err

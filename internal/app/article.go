@@ -1,4 +1,4 @@
-package domain
+package app
 
 import (
 	"context"
@@ -7,41 +7,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hs-zavet/news-radar/internal/app/models"
-	"github.com/hs-zavet/news-radar/internal/config"
 	"github.com/hs-zavet/news-radar/internal/content"
 	"github.com/hs-zavet/news-radar/internal/repo"
 )
-
-type Articles struct {
-	data articlesRepo
-}
-
-type articlesRepo interface {
-	Create(input repo.ArticleCreateInput) error
-	Update(ID uuid.UUID, input repo.ArticleUpdateInput) error
-	Delete(ID uuid.UUID) error
-
-	SetTags(ID uuid.UUID, tags []string) error
-	AddTag(ID uuid.UUID, tag string) error
-	DeleteTag(ID uuid.UUID, tag string) error
-
-	AddAuthor(ID uuid.UUID, author uuid.UUID) error
-	DeleteAuthor(ID uuid.UUID, author uuid.UUID) error
-	SetAuthors(ID uuid.UUID, authors []uuid.UUID) error
-
-	GetByID(ID uuid.UUID) (repo.ArticleModel, error)
-}
-
-func NewArticles(cfg config.Config) (*Articles, error) {
-	data, err := repo.NewArticles(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Articles{
-		data: data,
-	}, nil
-}
 
 type CreateArticleRequest struct {
 	ID      uuid.UUID         `json:"id"`
@@ -51,11 +19,11 @@ type CreateArticleRequest struct {
 	Content []content.Section `json:"content,omitempty"`
 }
 
-func (a *Articles) CreateArticle(ctx context.Context, request CreateArticleRequest) error {
+func (a App) CreateArticle(ctx context.Context, request CreateArticleRequest) (models.Article, error) {
 	ArticleID := uuid.New()
 	CreatedAt := time.Now().UTC()
 
-	err := a.data.Create(repo.ArticleCreateInput{
+	err := a.articles.Create(repo.ArticleCreateInput{
 		ID:        ArticleID,
 		Title:     request.Title,
 		Icon:      request.Icon,
@@ -65,86 +33,150 @@ func (a *Articles) CreateArticle(ctx context.Context, request CreateArticleReque
 		CreatedAt: CreatedAt,
 	})
 	if err != nil {
-		return err
+		return models.Article{}, err
 	}
 
-	return nil
+	res, err := a.articles.GetByID(ArticleID)
+	if err != nil {
+		return models.Article{}, err
+	}
+	return models.Article{
+		ID:        res.ID,
+		Title:     res.Title,
+		Icon:      res.Icon,
+		Desc:      res.Desc,
+		Content:   res.Content,
+		Likes:     res.Likes,
+		Reposts:   res.Reposts,
+		Status:    models.ArticleStatus(res.Status),
+		UpdatedAt: res.UpdatedAt,
+		CreatedAt: res.CreatedAt,
+
+		Authors: nil,
+		Tags:    nil,
+	}, nil
 }
 
 type UpdateArticleRequest struct {
-	Title    *string           `json:"title,omitempty"`
-	Icon     *string           `json:"icon,omitempty"`
-	Desc     *string           `json:"desc,omitempty"`
-	Content  []content.Section `json:"content,omitempty"`
-	Status   *string           `json:"status,omitempty"`
-	Likes    *int              `json:"likes,omitempty"`
-	Reposts  *int              `json:"reposts,omitempty"`
-	Dislikes *int              `json:"dislikes,omitempty"`
+	Title   *string           `json:"title,omitempty"`
+	Status  *string           `json:"status,omitempty"`
+	Icon    *string           `json:"icon,omitempty"`
+	Desc    *string           `json:"desc,omitempty"`
+	Content []content.Section `json:"content,omitempty"`
+	Likes   *int              `json:"likes,omitempty"`
+	Reposts *int              `json:"reposts,omitempty"`
 }
 
-func (a *Articles) UpdateArticle(ctx context.Context, articleID uuid.UUID, request UpdateArticleRequest) error {
+func (a App) UpdateArticle(ctx context.Context, articleID uuid.UUID, request UpdateArticleRequest) (models.Article, error) {
 	UpdatedAt := time.Now().UTC()
 
 	_, err := models.ParseArticleStatus(*request.Status)
 	if err != nil {
-		return err
+		return models.Article{}, err
 	}
-	return a.data.Update(articleID, repo.ArticleUpdateInput{
+	err = a.articles.Update(articleID, repo.ArticleUpdateInput{
 		Title:     request.Title,
+		Status:    request.Status,
 		Icon:      request.Icon,
 		Desc:      request.Desc,
 		Content:   request.Content,
-		Status:    request.Status,
-		Dislike:   request.Dislikes,
 		Likes:     request.Likes,
 		Reposts:   request.Reposts,
 		UpdatedAt: UpdatedAt,
 	})
-}
-
-func (a *Articles) DeleteArticle(ctx context.Context, articleID uuid.UUID) error {
-	return a.data.Delete(articleID)
-}
-
-func (a *Articles) GetByID(ctx context.Context, articleID uuid.UUID) (models.Article, error) {
-	article, err := a.data.GetByID(articleID)
 	if err != nil {
 		return models.Article{}, err
 	}
 
+	article, err := a.articles.GetByID(articleID)
+	if err != nil {
+		return models.Article{}, err
+	}
+
+	status, err := models.ParseArticleStatus(article.Status)
+	if err != nil {
+		return models.Article{}, err
+	}
+
+	authors, err := a.articles.GetAuthors(articleID)
+	if err != nil {
+		return models.Article{}, err
+	}
+	tags, err := a.articles.GetTags(articleID)
+	if err != nil {
+		return models.Article{}, err
+	}
 	return models.Article{
 		ID:        article.ID,
+		Status:    status,
 		Title:     article.Title,
 		Icon:      article.Icon,
 		Desc:      article.Desc,
 		Content:   article.Content,
 		Likes:     article.Likes,
 		Reposts:   article.Reposts,
-		Status:    models.ArticleStatus(article.Status),
 		UpdatedAt: article.UpdatedAt,
 		CreatedAt: article.CreatedAt,
+		Authors:   authors,
+		Tags:      tags,
 	}, nil
 }
 
-func (a *Articles) SetTags(ctx context.Context, articleID uuid.UUID, tags []string) error {
+func (a App) DeleteArticle(ctx context.Context, articleID uuid.UUID) error {
+	return a.articles.Delete(articleID)
+}
+
+func (a App) GetArticleByID(ctx context.Context, userID, articleID uuid.UUID) (models.Article, bool, error) {
+	article, err := a.articles.GetByID(articleID)
+	if err != nil {
+		return models.Article{}, false, err
+	}
+
+	res := models.Article{
+		ID:     article.ID,
+		Status: models.ArticleStatus(article.Status),
+
+		Title:     article.Title,
+		Icon:      article.Icon,
+		Desc:      article.Desc,
+		Content:   article.Content,
+		Likes:     article.Likes,
+		Reposts:   article.Reposts,
+		UpdatedAt: article.UpdatedAt,
+		CreatedAt: article.CreatedAt,
+	}
+
+	authors, err := a.articles.GetAuthors(articleID)
+	if err != nil {
+		return models.Article{}, false, err
+	}
+
+	tags, err := a.articles.GetTags(articleID)
+	if err != nil {
+		return models.Article{}, false, err
+	}
+
+	res.Authors = authors
+	res.Tags = tags
+
+	likeIt, err := a.reactions.GetLikesForUserAndArticle(userID, articleID)
+	if err != nil {
+		return models.Article{}, false, err
+	}
+
+	return res, likeIt, nil
+}
+
+func (a App) SetTags(ctx context.Context, articleID uuid.UUID, tags []string) error {
 	if len(tags) > 10 {
 		return fmt.Errorf("too many tags")
 	}
-	return a.data.SetTags(articleID, tags)
+	return a.articles.SetTags(articleID, tags)
 }
 
-func (a *Articles) AddTag(ctx context.Context, articleID uuid.UUID, tag string) error {
-	return a.data.AddTag(articleID, tag)
-}
-
-func (a *Articles) DeleteTag(ctx context.Context, articleID uuid.UUID, tag string) error {
-	return a.data.DeleteTag(articleID, tag)
-}
-
-func (a *Articles) AddAuthor(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error {
-	return a.data.AddAuthor(articleID, authorID)
-}
-
-func (a *Articles) DeleteAuthor(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error {
-	return a.data.DeleteAuthor(articleID, authorID)
+func (a App) SetAuthors(ctx context.Context, articleID uuid.UUID, authors []uuid.UUID) error {
+	if len(authors) > 10 {
+		return fmt.Errorf("too many authors")
+	}
+	return a.articles.SetAuthors(articleID, authors)
 }

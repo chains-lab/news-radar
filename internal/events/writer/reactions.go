@@ -84,33 +84,6 @@ func (p *Writer) SendMessage(topic string, event string, key string, body []byte
 //	return p.SendMessage("reactions", events.LikeRemoveEventType, key, body)
 //}
 //
-//func (p *Writer) Dislike(userID uuid.UUID, articleID uuid.UUID) error {
-//	key := articleID.String()
-//	payload := map[string]string{
-//		"user_id":    userID.String(),
-//		"article_id": articleID.String(),
-//		"action":     strings.ToLower(events.DislikeEventType),
-//	}
-//	body, err := json.Marshal(payload)
-//	if err != nil {
-//		return fmt.Errorf("failed to marshal dislike payload: %w", err)
-//	}
-//	return p.SendMessage("reactions", events.DislikeEventType, key, body)
-//}
-//
-//func (p *Writer) DislikeRemove(userID uuid.UUID, articleID uuid.UUID) error {
-//	key := articleID.String()
-//	payload := map[string]string{
-//		"user_id":    userID.String(),
-//		"article_id": articleID.String(),
-//		"action":     strings.ToLower(events.DislikeRemoveEventType),
-//	}
-//	body, err := json.Marshal(payload)
-//	if err != nil {
-//		return fmt.Errorf("failed to marshal dislike_remove payload: %w", err)
-//	}
-//	return p.SendMessage("reactions", events.DislikeRemoveEventType, key, body)
-//}
 //
 //func (p *Writer) Repost(userID uuid.UUID, articleID uuid.UUID) error {
 //	key := articleID.String()

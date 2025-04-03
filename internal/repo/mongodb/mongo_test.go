@@ -149,7 +149,7 @@ func TestArticles_FilterTitle_Sort_Limit_Skip(t *testing.T) {
 		t.Errorf("Expected at least 3 articles, got %d", len(results))
 	} else {
 		if results[0].CreatedAt.After(results[1].CreatedAt) {
-			t.Errorf("Articles not sorted ascending by CreatedAt")
+			t.Errorf("articles not sorted ascending by CreatedAt")
 		}
 	}
 

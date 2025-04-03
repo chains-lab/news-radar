@@ -10,7 +10,7 @@ import (
 	"github.com/hs-zavet/news-radar/internal/workers/eventlistener"
 )
 
-func runServices(ctx context.Context, wg *sync.WaitGroup, app *app.App, cfg *config.Config) {
+func runServices(ctx context.Context, wg *sync.WaitGroup, app app.App, cfg *config.Config) {
 	run := func(f func()) {
 		wg.Add(1)
 		go func() {
@@ -20,7 +20,7 @@ func runServices(ctx context.Context, wg *sync.WaitGroup, app *app.App, cfg *con
 	}
 
 	API := api.NewAPI(cfg)
-	run(func() { API.Run(ctx, app) })
+	run(func() { API.Run(ctx, &app) })
 
-	run(func() { eventlistener.NewListener(cfg, app) })
+	run(func() { eventlistener.NewListener(cfg, &app) })
 }

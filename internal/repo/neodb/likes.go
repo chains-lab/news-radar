@@ -245,3 +245,49 @@ func (l *LikesImpl) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]u
 		return nil, ctx.Err()
 	}
 }
+
+func (l *LikesImpl) GetForUserAndArticle(ctx context.Context, articleID, userID uuid.UUID) (bool, error) {
+	session, err := l.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	if err != nil {
+		return false, err
+	}
+	defer session.Close()
+
+	resultChan := make(chan struct {
+		liked bool
+		err   error
+	}, 1)
+
+	go func() {
+		result, err := session.ReadTransaction(func(tx neo4j.Transaction) (interface{}, error) {
+			cypher := `
+				MATCH (u:User { id: $userID })-[r:LIKED]->(a:Article { id: $articleID })
+				RETURN count(r) > 0 AS liked
+			`
+			params := map[string]interface{}{
+				"userID":    userID.String(),
+				"articleID": articleID.String(),
+			}
+			records, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, err
+			}
+			if records.Next() {
+				liked, _ := records.Record().Get("liked")
+				return liked.(bool), nil
+			}
+			return false, records.Err()
+		})
+		resultChan <- struct {
+			liked bool
+			err   error
+		}{liked: result.(bool), err: err}
+	}()
+
+	select {
+	case res := <-resultChan:
+		return res.liked, res.err
+	case <-ctx.Done():
+		return false, ctx.Err()
+	}
+}

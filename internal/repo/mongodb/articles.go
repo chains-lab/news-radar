@@ -217,7 +217,6 @@ type ArticleUpdateInput struct {
 	Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
 	Likes     *int              `json:"likes,omitempty" bson:"likes,omitempty"`
 	Reposts   *int              `json:"reposts,omitempty" bson:"reposts,omitempty"`
-	Dislike   *int              `json:"dislike,omitempty" bson:"dislike,omitempty"`
 	UpdatedAt time.Time         `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }
 
@@ -241,9 +240,6 @@ func (a *ArticlesQ) Update(ctx context.Context, input ArticleUpdateInput) (Artic
 	}
 	if input.Reposts != nil {
 		updateFields["reposts"] = *input.Reposts
-	}
-	if input.Dislike != nil {
-		updateFields["dislike"] = *input.Dislike
 	}
 	if len(updateFields) == 0 {
 		return ArticleModel{}, fmt.Errorf("nothing to update")
