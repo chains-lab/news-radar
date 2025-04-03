@@ -5,11 +5,14 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Name** | **string** |  | 
+**Status** | Pointer to **string** |  | [optional] 
 **Desc** | **string** |  | 
 **Avatar** | **string** |  | 
 **Email** | Pointer to **string** |  | [optional] 
 **Telegram** | Pointer to **string** |  | [optional] 
 **Twitter** | Pointer to **string** |  | [optional] 
+**UpdatedAt** | Pointer to **time.Time** |  | [optional] 
+**CreatedAt** | Pointer to **time.Time** |  | [optional] 
 
 ## Methods
 
@@ -49,6 +52,31 @@ and a boolean to check if the value has been set.
 
 SetName sets Name field to given value.
 
+
+### GetStatus
+
+`func (o *AuthorAttributes) GetStatus() string`
+
+GetStatus returns the Status field if non-nil, zero value otherwise.
+
+### GetStatusOk
+
+`func (o *AuthorAttributes) GetStatusOk() (*string, bool)`
+
+GetStatusOk returns a tuple with the Status field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetStatus
+
+`func (o *AuthorAttributes) SetStatus(v string)`
+
+SetStatus sets Status field to given value.
+
+### HasStatus
+
+`func (o *AuthorAttributes) HasStatus() bool`
+
+HasStatus returns a boolean if a field has been set.
 
 ### GetDesc
 
@@ -164,6 +192,56 @@ SetTwitter sets Twitter field to given value.
 `func (o *AuthorAttributes) HasTwitter() bool`
 
 HasTwitter returns a boolean if a field has been set.
+
+### GetUpdatedAt
+
+`func (o *AuthorAttributes) GetUpdatedAt() time.Time`
+
+GetUpdatedAt returns the UpdatedAt field if non-nil, zero value otherwise.
+
+### GetUpdatedAtOk
+
+`func (o *AuthorAttributes) GetUpdatedAtOk() (*time.Time, bool)`
+
+GetUpdatedAtOk returns a tuple with the UpdatedAt field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetUpdatedAt
+
+`func (o *AuthorAttributes) SetUpdatedAt(v time.Time)`
+
+SetUpdatedAt sets UpdatedAt field to given value.
+
+### HasUpdatedAt
+
+`func (o *AuthorAttributes) HasUpdatedAt() bool`
+
+HasUpdatedAt returns a boolean if a field has been set.
+
+### GetCreatedAt
+
+`func (o *AuthorAttributes) GetCreatedAt() time.Time`
+
+GetCreatedAt returns the CreatedAt field if non-nil, zero value otherwise.
+
+### GetCreatedAtOk
+
+`func (o *AuthorAttributes) GetCreatedAtOk() (*time.Time, bool)`
+
+GetCreatedAtOk returns a tuple with the CreatedAt field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetCreatedAt
+
+`func (o *AuthorAttributes) SetCreatedAt(v time.Time)`
+
+SetCreatedAt sets CreatedAt field to given value.
+
+### HasCreatedAt
+
+`func (o *AuthorAttributes) HasCreatedAt() bool`
+
+HasCreatedAt returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

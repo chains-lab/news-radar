@@ -4,13 +4,13 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**Status** | Pointer to **string** | Article status | [optional] 
 **Title** | Pointer to **string** | Article title | [optional] 
 **Icon** | Pointer to **string** | Article link | [optional] 
 **Desc** | Pointer to **string** | Article description | [optional] 
+**Content** | Pointer to **map[string]interface{}** | Article content | [optional] 
 **Authors** | Pointer to **[]string** | Authors ID uuid | [optional] 
-**Content** | Pointer to **string** | Article content | [optional] 
-**Tags** | Pointer to [**[]TagDataYaml**](TagDataYaml.md) |  | [optional] 
-**Status** | Pointer to **string** | Article status | [optional] 
+**Tags** | Pointer to **[]string** |  | [optional] 
 
 ## Methods
 
@@ -30,6 +30,31 @@ will change when the set of required properties is changed
 NewArticleUpdateDataAttributesWithDefaults instantiates a new ArticleUpdateDataAttributes object
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
+
+### GetStatus
+
+`func (o *ArticleUpdateDataAttributes) GetStatus() string`
+
+GetStatus returns the Status field if non-nil, zero value otherwise.
+
+### GetStatusOk
+
+`func (o *ArticleUpdateDataAttributes) GetStatusOk() (*string, bool)`
+
+GetStatusOk returns a tuple with the Status field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetStatus
+
+`func (o *ArticleUpdateDataAttributes) SetStatus(v string)`
+
+SetStatus sets Status field to given value.
+
+### HasStatus
+
+`func (o *ArticleUpdateDataAttributes) HasStatus() bool`
+
+HasStatus returns a boolean if a field has been set.
 
 ### GetTitle
 
@@ -106,6 +131,31 @@ SetDesc sets Desc field to given value.
 
 HasDesc returns a boolean if a field has been set.
 
+### GetContent
+
+`func (o *ArticleUpdateDataAttributes) GetContent() map[string]interface{}`
+
+GetContent returns the Content field if non-nil, zero value otherwise.
+
+### GetContentOk
+
+`func (o *ArticleUpdateDataAttributes) GetContentOk() (*map[string]interface{}, bool)`
+
+GetContentOk returns a tuple with the Content field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetContent
+
+`func (o *ArticleUpdateDataAttributes) SetContent(v map[string]interface{})`
+
+SetContent sets Content field to given value.
+
+### HasContent
+
+`func (o *ArticleUpdateDataAttributes) HasContent() bool`
+
+HasContent returns a boolean if a field has been set.
+
 ### GetAuthors
 
 `func (o *ArticleUpdateDataAttributes) GetAuthors() []string`
@@ -131,47 +181,22 @@ SetAuthors sets Authors field to given value.
 
 HasAuthors returns a boolean if a field has been set.
 
-### GetContent
-
-`func (o *ArticleUpdateDataAttributes) GetContent() string`
-
-GetContent returns the Content field if non-nil, zero value otherwise.
-
-### GetContentOk
-
-`func (o *ArticleUpdateDataAttributes) GetContentOk() (*string, bool)`
-
-GetContentOk returns a tuple with the Content field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetContent
-
-`func (o *ArticleUpdateDataAttributes) SetContent(v string)`
-
-SetContent sets Content field to given value.
-
-### HasContent
-
-`func (o *ArticleUpdateDataAttributes) HasContent() bool`
-
-HasContent returns a boolean if a field has been set.
-
 ### GetTags
 
-`func (o *ArticleUpdateDataAttributes) GetTags() []TagDataYaml`
+`func (o *ArticleUpdateDataAttributes) GetTags() []string`
 
 GetTags returns the Tags field if non-nil, zero value otherwise.
 
 ### GetTagsOk
 
-`func (o *ArticleUpdateDataAttributes) GetTagsOk() (*[]TagDataYaml, bool)`
+`func (o *ArticleUpdateDataAttributes) GetTagsOk() (*[]string, bool)`
 
 GetTagsOk returns a tuple with the Tags field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetTags
 
-`func (o *ArticleUpdateDataAttributes) SetTags(v []TagDataYaml)`
+`func (o *ArticleUpdateDataAttributes) SetTags(v []string)`
 
 SetTags sets Tags field to given value.
 
@@ -180,31 +205,6 @@ SetTags sets Tags field to given value.
 `func (o *ArticleUpdateDataAttributes) HasTags() bool`
 
 HasTags returns a boolean if a field has been set.
-
-### GetStatus
-
-`func (o *ArticleUpdateDataAttributes) GetStatus() string`
-
-GetStatus returns the Status field if non-nil, zero value otherwise.
-
-### GetStatusOk
-
-`func (o *ArticleUpdateDataAttributes) GetStatusOk() (*string, bool)`
-
-GetStatusOk returns a tuple with the Status field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetStatus
-
-`func (o *ArticleUpdateDataAttributes) SetStatus(v string)`
-
-SetStatus sets Status field to given value.
-
-### HasStatus
-
-`func (o *ArticleUpdateDataAttributes) HasStatus() bool`
-
-HasStatus returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

@@ -49,6 +49,10 @@ components:
           description: Article title
           example: Article title
           type: string
+        status:
+          description: Article status
+          example: Article status
+          type: string
         icon:
           description: Article link
           example: Article link
@@ -58,13 +62,15 @@ components:
           example: Article description
           type: string
         content:
-          description: Article content
-          example: Article content
-          type: string
-        status:
-          description: Article status
-          example: Article status
-          type: string
+          $ref: '#/components/schemas/Content'
+        likes:
+          description: Article likes
+          example: 100
+          type: integer
+        reposts:
+          description: Article reposts
+          example: 50
+          type: integer
         updated_at:
           description: Updated at
           example: 2020-01-01T00:00:00Z
@@ -80,6 +86,8 @@ components:
       - created_at
       - desc
       - icon
+      - likes
+      - reposts
       - status
       - title
       type: object
@@ -141,6 +149,8 @@ components:
       properties:
         name:
           type: string
+        status:
+          type: string
         desc:
           type: string
         avatar:
@@ -150,6 +160,12 @@ components:
         telegram:
           type: string
         twitter:
+          type: string
+        updated_at:
+          format: date-time
+          type: string
+        created_at:
+          format: date-time
           type: string
       required:
       - avatar
@@ -202,30 +218,9 @@ components:
           description: Article description
           example: Article description
           type: string
-        authors:
-          description: Authors ID uuid
-          items:
-            type: string
-          type: array
-        content:
-          description: Article content
-          example: Article content
-          type: string
-        tags:
-          items:
-            type: ./TagData.yaml
-          type: array
-        status:
-          description: Article status
-          example: Article status
-          type: string
       required:
-      - authors
-      - content
       - desc
       - icon
-      - status
-      - tags
       - title
       type: object
     ArticleCreate_data:
@@ -242,6 +237,10 @@ components:
       type: object
     ArticleUpdate_data_attributes:
       properties:
+        status:
+          description: Article status
+          example: Article status
+          type: string
         title:
           description: Article title
           example: Article title
@@ -254,23 +253,19 @@ components:
           description: Article description
           example: Article description
           type: string
+        content:
+          additionalProperties: true
+          description: Article content
+          type: object
         authors:
           description: Authors ID uuid
           items:
             type: string
           type: array
-        content:
-          description: Article content
-          example: Article content
-          type: string
         tags:
           items:
-            type: ./TagData.yaml
+            type: string
           type: array
-        status:
-          description: Article status
-          example: Article status
-          type: string
       type: object
     ArticleUpdate_data:
       properties:
@@ -348,11 +343,21 @@ components:
           type: string
         type:
           type: string
+        color:
+          description: Tag color
+          example: '#FF5733'
+          type: string
+        icon:
+          description: Tag icon
+          example: https://example.com/icon.png
+          type: string
         created_at:
           format: date-time
           type: string
       required:
+      - color
       - created_at
+      - icon
       - status
       - type
       type: object

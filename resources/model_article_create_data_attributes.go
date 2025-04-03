@@ -27,13 +27,6 @@ type ArticleCreateDataAttributes struct {
 	Icon string `json:"icon"`
 	// Article description
 	Desc string `json:"desc"`
-	// Authors ID uuid
-	Authors []string `json:"authors"`
-	// Article content
-	Content string `json:"content"`
-	Tags []TagDataYaml `json:"tags"`
-	// Article status
-	Status string `json:"status"`
 }
 
 type _ArticleCreateDataAttributes ArticleCreateDataAttributes
@@ -42,15 +35,11 @@ type _ArticleCreateDataAttributes ArticleCreateDataAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewArticleCreateDataAttributes(title string, icon string, desc string, authors []string, content string, tags []TagDataYaml, status string) *ArticleCreateDataAttributes {
+func NewArticleCreateDataAttributes(title string, icon string, desc string) *ArticleCreateDataAttributes {
 	this := ArticleCreateDataAttributes{}
 	this.Title = title
 	this.Icon = icon
 	this.Desc = desc
-	this.Authors = authors
-	this.Content = content
-	this.Tags = tags
-	this.Status = status
 	return &this
 }
 
@@ -134,102 +123,6 @@ func (o *ArticleCreateDataAttributes) SetDesc(v string) {
 	o.Desc = v
 }
 
-// GetAuthors returns the Authors field value
-func (o *ArticleCreateDataAttributes) GetAuthors() []string {
-	if o == nil {
-		var ret []string
-		return ret
-	}
-
-	return o.Authors
-}
-
-// GetAuthorsOk returns a tuple with the Authors field value
-// and a boolean to check if the value has been set.
-func (o *ArticleCreateDataAttributes) GetAuthorsOk() ([]string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Authors, true
-}
-
-// SetAuthors sets field value
-func (o *ArticleCreateDataAttributes) SetAuthors(v []string) {
-	o.Authors = v
-}
-
-// GetContent returns the Content field value
-func (o *ArticleCreateDataAttributes) GetContent() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Content
-}
-
-// GetContentOk returns a tuple with the Content field value
-// and a boolean to check if the value has been set.
-func (o *ArticleCreateDataAttributes) GetContentOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Content, true
-}
-
-// SetContent sets field value
-func (o *ArticleCreateDataAttributes) SetContent(v string) {
-	o.Content = v
-}
-
-// GetTags returns the Tags field value
-func (o *ArticleCreateDataAttributes) GetTags() []TagDataYaml {
-	if o == nil {
-		var ret []TagDataYaml
-		return ret
-	}
-
-	return o.Tags
-}
-
-// GetTagsOk returns a tuple with the Tags field value
-// and a boolean to check if the value has been set.
-func (o *ArticleCreateDataAttributes) GetTagsOk() ([]TagDataYaml, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return o.Tags, true
-}
-
-// SetTags sets field value
-func (o *ArticleCreateDataAttributes) SetTags(v []TagDataYaml) {
-	o.Tags = v
-}
-
-// GetStatus returns the Status field value
-func (o *ArticleCreateDataAttributes) GetStatus() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Status
-}
-
-// GetStatusOk returns a tuple with the Status field value
-// and a boolean to check if the value has been set.
-func (o *ArticleCreateDataAttributes) GetStatusOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Status, true
-}
-
-// SetStatus sets field value
-func (o *ArticleCreateDataAttributes) SetStatus(v string) {
-	o.Status = v
-}
-
 func (o ArticleCreateDataAttributes) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -243,10 +136,6 @@ func (o ArticleCreateDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize["title"] = o.Title
 	toSerialize["icon"] = o.Icon
 	toSerialize["desc"] = o.Desc
-	toSerialize["authors"] = o.Authors
-	toSerialize["content"] = o.Content
-	toSerialize["tags"] = o.Tags
-	toSerialize["status"] = o.Status
 	return toSerialize, nil
 }
 
@@ -258,10 +147,6 @@ func (o *ArticleCreateDataAttributes) UnmarshalJSON(data []byte) (err error) {
 		"title",
 		"icon",
 		"desc",
-		"authors",
-		"content",
-		"tags",
-		"status",
 	}
 
 	allProperties := make(map[string]interface{})

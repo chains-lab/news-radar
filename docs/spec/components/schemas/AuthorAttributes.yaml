@@ -6,6 +6,8 @@ required:
 properties:
   name:
     type: string
+  status:
+    type: string
   desc:
     type: string
   avatar:
@@ -16,3 +18,9 @@ properties:
     type: string
   twitter:
     type: string
+  updated_at:
+    type: string
+    format: date-time
+  created_at:
+    type: string
+    format: date-time

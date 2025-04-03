@@ -2,12 +2,22 @@ type: object
 required:
   - status
   - type
+  - color
+  - icon
   - created_at
 properties:
   status:
     type: string
   type:
     type: string
+  color:
+    type: string
+    description: "Tag color"
+    example: "#FF5733"
+  icon:
+    type: string
+    description: "Tag icon"
+    example: "https://example.com/icon.png"
   created_at:
     type: string
     format: date-time

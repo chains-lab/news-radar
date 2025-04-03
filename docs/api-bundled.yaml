@@ -45,16 +45,22 @@ components:
       type: object
       required:
         - title
+        - status
         - icon
         - desc
         - content
-        - status
+        - likes
+        - reposts
         - created_at
       properties:
         title:
           type: string
           description: Article title
           example: Article title
+        status:
+          type: string
+          description: Article status
+          example: Article status
         icon:
           type: string
           description: Article link
@@ -64,13 +70,15 @@ components:
           description: Article description
           example: Article description
         content:
-          type: string
-          description: Article content
-          example: Article content
-        status:
-          type: string
-          description: Article status
-          example: Article status
+          $ref: '#/components/schemas/Content'
+        likes:
+          type: integer
+          description: Article likes
+          example: 100
+        reposts:
+          type: integer
+          description: Article reposts
+          example: 50
         updated_at:
           type: string
           format: date-time
@@ -117,10 +125,6 @@ components:
                 - title
                 - icon
                 - desc
-                - authors
-                - content
-                - tags
-                - status
               properties:
                 title:
                   type: string
@@ -134,23 +138,6 @@ components:
                   type: string
                   description: Article description
                   example: Article description
-                authors:
-                  type: array
-                  items:
-                    type: string
-                  description: Authors ID uuid
-                content:
-                  type: string
-                  description: Article content
-                  example: Article content
-                tags:
-                  type: array
-                  items:
-                    type: ./TagData.yaml
-                status:
-                  type: string
-                  description: Article status
-                  example: Article status
     ArticleUpdate:
       type: object
       required:
@@ -170,6 +157,10 @@ components:
             attributes:
               type: object
               properties:
+                status:
+                  type: string
+                  description: Article status
+                  example: Article status
                 title:
                   type: string
                   description: Article title
@@ -182,23 +173,19 @@ components:
                   type: string
                   description: Article description
                   example: Article description
+                content:
+                  type: object
+                  additionalProperties: true
+                  description: Article content
                 authors:
                   type: array
                   items:
                     type: string
                   description: Authors ID uuid
-                content:
-                  type: string
-                  description: Article content
-                  example: Article content
                 tags:
                   type: array
                   items:
-                    type: ./TagData.yaml
-                status:
-                  type: string
-                  description: Article status
-                  example: Article status
+                    type: string
     Author:
       type: object
       required:
@@ -232,6 +219,8 @@ components:
       properties:
         name:
           type: string
+        status:
+          type: string
         desc:
           type: string
         avatar:
@@ -242,6 +231,12 @@ components:
           type: string
         twitter:
           type: string
+        updated_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
     AuthorCreate:
       type: object
       required:
@@ -341,12 +336,22 @@ components:
               required:
                 - status
                 - type
+                - color
+                - icon
                 - created_at
               properties:
                 status:
                   type: string
                 type:
                   type: string
+                color:
+                  type: string
+                  description: Tag color
+                  example: '#FF5733'
+                icon:
+                  type: string
+                  description: Tag icon
+                  example: 'https://example.com/icon.png'
                 created_at:
                   type: string
                   format: date-time

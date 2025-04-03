@@ -6,13 +6,15 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Status** | **string** |  | 
 **Type** | **string** |  | 
+**Color** | **string** | Tag color | 
+**Icon** | **string** | Tag icon | 
 **CreatedAt** | **time.Time** |  | 
 
 ## Methods
 
 ### NewTagDataAttributes
 
-`func NewTagDataAttributes(status string, type_ string, createdAt time.Time, ) *TagDataAttributes`
+`func NewTagDataAttributes(status string, type_ string, color string, icon string, createdAt time.Time, ) *TagDataAttributes`
 
 NewTagDataAttributes instantiates a new TagDataAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -65,6 +67,46 @@ and a boolean to check if the value has been set.
 `func (o *TagDataAttributes) SetType(v string)`
 
 SetType sets Type field to given value.
+
+
+### GetColor
+
+`func (o *TagDataAttributes) GetColor() string`
+
+GetColor returns the Color field if non-nil, zero value otherwise.
+
+### GetColorOk
+
+`func (o *TagDataAttributes) GetColorOk() (*string, bool)`
+
+GetColorOk returns a tuple with the Color field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetColor
+
+`func (o *TagDataAttributes) SetColor(v string)`
+
+SetColor sets Color field to given value.
+
+
+### GetIcon
+
+`func (o *TagDataAttributes) GetIcon() string`
+
+GetIcon returns the Icon field if non-nil, zero value otherwise.
+
+### GetIconOk
+
+`func (o *TagDataAttributes) GetIconOk() (*string, bool)`
+
+GetIconOk returns a tuple with the Icon field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetIcon
+
+`func (o *TagDataAttributes) SetIcon(v string)`
+
+SetIcon sets Icon field to given value.
 
 
 ### GetCreatedAt

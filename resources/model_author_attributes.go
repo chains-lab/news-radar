@@ -12,6 +12,7 @@ package resources
 
 import (
 	"encoding/json"
+	"time"
 	"bytes"
 	"fmt"
 )
@@ -22,11 +23,14 @@ var _ MappedNullable = &AuthorAttributes{}
 // AuthorAttributes struct for AuthorAttributes
 type AuthorAttributes struct {
 	Name string `json:"name"`
+	Status *string `json:"status,omitempty"`
 	Desc string `json:"desc"`
 	Avatar string `json:"avatar"`
 	Email *string `json:"email,omitempty"`
 	Telegram *string `json:"telegram,omitempty"`
 	Twitter *string `json:"twitter,omitempty"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
 }
 
 type _AuthorAttributes AuthorAttributes
@@ -73,6 +77,38 @@ func (o *AuthorAttributes) GetNameOk() (*string, bool) {
 // SetName sets field value
 func (o *AuthorAttributes) SetName(v string) {
 	o.Name = v
+}
+
+// GetStatus returns the Status field value if set, zero value otherwise.
+func (o *AuthorAttributes) GetStatus() string {
+	if o == nil || IsNil(o.Status) {
+		var ret string
+		return ret
+	}
+	return *o.Status
+}
+
+// GetStatusOk returns a tuple with the Status field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *AuthorAttributes) GetStatusOk() (*string, bool) {
+	if o == nil || IsNil(o.Status) {
+		return nil, false
+	}
+	return o.Status, true
+}
+
+// HasStatus returns a boolean if a field has been set.
+func (o *AuthorAttributes) HasStatus() bool {
+	if o != nil && !IsNil(o.Status) {
+		return true
+	}
+
+	return false
+}
+
+// SetStatus gets a reference to the given string and assigns it to the Status field.
+func (o *AuthorAttributes) SetStatus(v string) {
+	o.Status = &v
 }
 
 // GetDesc returns the Desc field value
@@ -219,6 +255,70 @@ func (o *AuthorAttributes) SetTwitter(v string) {
 	o.Twitter = &v
 }
 
+// GetUpdatedAt returns the UpdatedAt field value if set, zero value otherwise.
+func (o *AuthorAttributes) GetUpdatedAt() time.Time {
+	if o == nil || IsNil(o.UpdatedAt) {
+		var ret time.Time
+		return ret
+	}
+	return *o.UpdatedAt
+}
+
+// GetUpdatedAtOk returns a tuple with the UpdatedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *AuthorAttributes) GetUpdatedAtOk() (*time.Time, bool) {
+	if o == nil || IsNil(o.UpdatedAt) {
+		return nil, false
+	}
+	return o.UpdatedAt, true
+}
+
+// HasUpdatedAt returns a boolean if a field has been set.
+func (o *AuthorAttributes) HasUpdatedAt() bool {
+	if o != nil && !IsNil(o.UpdatedAt) {
+		return true
+	}
+
+	return false
+}
+
+// SetUpdatedAt gets a reference to the given time.Time and assigns it to the UpdatedAt field.
+func (o *AuthorAttributes) SetUpdatedAt(v time.Time) {
+	o.UpdatedAt = &v
+}
+
+// GetCreatedAt returns the CreatedAt field value if set, zero value otherwise.
+func (o *AuthorAttributes) GetCreatedAt() time.Time {
+	if o == nil || IsNil(o.CreatedAt) {
+		var ret time.Time
+		return ret
+	}
+	return *o.CreatedAt
+}
+
+// GetCreatedAtOk returns a tuple with the CreatedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *AuthorAttributes) GetCreatedAtOk() (*time.Time, bool) {
+	if o == nil || IsNil(o.CreatedAt) {
+		return nil, false
+	}
+	return o.CreatedAt, true
+}
+
+// HasCreatedAt returns a boolean if a field has been set.
+func (o *AuthorAttributes) HasCreatedAt() bool {
+	if o != nil && !IsNil(o.CreatedAt) {
+		return true
+	}
+
+	return false
+}
+
+// SetCreatedAt gets a reference to the given time.Time and assigns it to the CreatedAt field.
+func (o *AuthorAttributes) SetCreatedAt(v time.Time) {
+	o.CreatedAt = &v
+}
+
 func (o AuthorAttributes) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -230,6 +330,9 @@ func (o AuthorAttributes) MarshalJSON() ([]byte, error) {
 func (o AuthorAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["name"] = o.Name
+	if !IsNil(o.Status) {
+		toSerialize["status"] = o.Status
+	}
 	toSerialize["desc"] = o.Desc
 	toSerialize["avatar"] = o.Avatar
 	if !IsNil(o.Email) {
@@ -240,6 +343,12 @@ func (o AuthorAttributes) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Twitter) {
 		toSerialize["twitter"] = o.Twitter
+	}
+	if !IsNil(o.UpdatedAt) {
+		toSerialize["updated_at"] = o.UpdatedAt
+	}
+	if !IsNil(o.CreatedAt) {
+		toSerialize["created_at"] = o.CreatedAt
 	}
 	return toSerialize, nil
 }

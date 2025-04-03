@@ -19,19 +19,19 @@ var _ MappedNullable = &ArticleUpdateDataAttributes{}
 
 // ArticleUpdateDataAttributes struct for ArticleUpdateDataAttributes
 type ArticleUpdateDataAttributes struct {
+	// Article status
+	Status *string `json:"status,omitempty"`
 	// Article title
 	Title *string `json:"title,omitempty"`
 	// Article link
 	Icon *string `json:"icon,omitempty"`
 	// Article description
 	Desc *string `json:"desc,omitempty"`
+	// Article content
+	Content map[string]interface{} `json:"content,omitempty"`
 	// Authors ID uuid
 	Authors []string `json:"authors,omitempty"`
-	// Article content
-	Content *string `json:"content,omitempty"`
-	Tags []TagDataYaml `json:"tags,omitempty"`
-	// Article status
-	Status *string `json:"status,omitempty"`
+	Tags []string `json:"tags,omitempty"`
 }
 
 // NewArticleUpdateDataAttributes instantiates a new ArticleUpdateDataAttributes object
@@ -49,6 +49,38 @@ func NewArticleUpdateDataAttributes() *ArticleUpdateDataAttributes {
 func NewArticleUpdateDataAttributesWithDefaults() *ArticleUpdateDataAttributes {
 	this := ArticleUpdateDataAttributes{}
 	return &this
+}
+
+// GetStatus returns the Status field value if set, zero value otherwise.
+func (o *ArticleUpdateDataAttributes) GetStatus() string {
+	if o == nil || IsNil(o.Status) {
+		var ret string
+		return ret
+	}
+	return *o.Status
+}
+
+// GetStatusOk returns a tuple with the Status field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ArticleUpdateDataAttributes) GetStatusOk() (*string, bool) {
+	if o == nil || IsNil(o.Status) {
+		return nil, false
+	}
+	return o.Status, true
+}
+
+// HasStatus returns a boolean if a field has been set.
+func (o *ArticleUpdateDataAttributes) HasStatus() bool {
+	if o != nil && !IsNil(o.Status) {
+		return true
+	}
+
+	return false
+}
+
+// SetStatus gets a reference to the given string and assigns it to the Status field.
+func (o *ArticleUpdateDataAttributes) SetStatus(v string) {
+	o.Status = &v
 }
 
 // GetTitle returns the Title field value if set, zero value otherwise.
@@ -147,6 +179,38 @@ func (o *ArticleUpdateDataAttributes) SetDesc(v string) {
 	o.Desc = &v
 }
 
+// GetContent returns the Content field value if set, zero value otherwise.
+func (o *ArticleUpdateDataAttributes) GetContent() map[string]interface{} {
+	if o == nil || IsNil(o.Content) {
+		var ret map[string]interface{}
+		return ret
+	}
+	return o.Content
+}
+
+// GetContentOk returns a tuple with the Content field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ArticleUpdateDataAttributes) GetContentOk() (map[string]interface{}, bool) {
+	if o == nil || IsNil(o.Content) {
+		return map[string]interface{}{}, false
+	}
+	return o.Content, true
+}
+
+// HasContent returns a boolean if a field has been set.
+func (o *ArticleUpdateDataAttributes) HasContent() bool {
+	if o != nil && !IsNil(o.Content) {
+		return true
+	}
+
+	return false
+}
+
+// SetContent gets a reference to the given map[string]interface{} and assigns it to the Content field.
+func (o *ArticleUpdateDataAttributes) SetContent(v map[string]interface{}) {
+	o.Content = v
+}
+
 // GetAuthors returns the Authors field value if set, zero value otherwise.
 func (o *ArticleUpdateDataAttributes) GetAuthors() []string {
 	if o == nil || IsNil(o.Authors) {
@@ -179,42 +243,10 @@ func (o *ArticleUpdateDataAttributes) SetAuthors(v []string) {
 	o.Authors = v
 }
 
-// GetContent returns the Content field value if set, zero value otherwise.
-func (o *ArticleUpdateDataAttributes) GetContent() string {
-	if o == nil || IsNil(o.Content) {
-		var ret string
-		return ret
-	}
-	return *o.Content
-}
-
-// GetContentOk returns a tuple with the Content field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ArticleUpdateDataAttributes) GetContentOk() (*string, bool) {
-	if o == nil || IsNil(o.Content) {
-		return nil, false
-	}
-	return o.Content, true
-}
-
-// HasContent returns a boolean if a field has been set.
-func (o *ArticleUpdateDataAttributes) HasContent() bool {
-	if o != nil && !IsNil(o.Content) {
-		return true
-	}
-
-	return false
-}
-
-// SetContent gets a reference to the given string and assigns it to the Content field.
-func (o *ArticleUpdateDataAttributes) SetContent(v string) {
-	o.Content = &v
-}
-
 // GetTags returns the Tags field value if set, zero value otherwise.
-func (o *ArticleUpdateDataAttributes) GetTags() []TagDataYaml {
+func (o *ArticleUpdateDataAttributes) GetTags() []string {
 	if o == nil || IsNil(o.Tags) {
-		var ret []TagDataYaml
+		var ret []string
 		return ret
 	}
 	return o.Tags
@@ -222,7 +254,7 @@ func (o *ArticleUpdateDataAttributes) GetTags() []TagDataYaml {
 
 // GetTagsOk returns a tuple with the Tags field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ArticleUpdateDataAttributes) GetTagsOk() ([]TagDataYaml, bool) {
+func (o *ArticleUpdateDataAttributes) GetTagsOk() ([]string, bool) {
 	if o == nil || IsNil(o.Tags) {
 		return nil, false
 	}
@@ -238,41 +270,9 @@ func (o *ArticleUpdateDataAttributes) HasTags() bool {
 	return false
 }
 
-// SetTags gets a reference to the given []TagDataYaml and assigns it to the Tags field.
-func (o *ArticleUpdateDataAttributes) SetTags(v []TagDataYaml) {
+// SetTags gets a reference to the given []string and assigns it to the Tags field.
+func (o *ArticleUpdateDataAttributes) SetTags(v []string) {
 	o.Tags = v
-}
-
-// GetStatus returns the Status field value if set, zero value otherwise.
-func (o *ArticleUpdateDataAttributes) GetStatus() string {
-	if o == nil || IsNil(o.Status) {
-		var ret string
-		return ret
-	}
-	return *o.Status
-}
-
-// GetStatusOk returns a tuple with the Status field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ArticleUpdateDataAttributes) GetStatusOk() (*string, bool) {
-	if o == nil || IsNil(o.Status) {
-		return nil, false
-	}
-	return o.Status, true
-}
-
-// HasStatus returns a boolean if a field has been set.
-func (o *ArticleUpdateDataAttributes) HasStatus() bool {
-	if o != nil && !IsNil(o.Status) {
-		return true
-	}
-
-	return false
-}
-
-// SetStatus gets a reference to the given string and assigns it to the Status field.
-func (o *ArticleUpdateDataAttributes) SetStatus(v string) {
-	o.Status = &v
 }
 
 func (o ArticleUpdateDataAttributes) MarshalJSON() ([]byte, error) {
@@ -285,6 +285,9 @@ func (o ArticleUpdateDataAttributes) MarshalJSON() ([]byte, error) {
 
 func (o ArticleUpdateDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if !IsNil(o.Status) {
+		toSerialize["status"] = o.Status
+	}
 	if !IsNil(o.Title) {
 		toSerialize["title"] = o.Title
 	}
@@ -294,17 +297,14 @@ func (o ArticleUpdateDataAttributes) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Desc) {
 		toSerialize["desc"] = o.Desc
 	}
-	if !IsNil(o.Authors) {
-		toSerialize["authors"] = o.Authors
-	}
 	if !IsNil(o.Content) {
 		toSerialize["content"] = o.Content
 	}
+	if !IsNil(o.Authors) {
+		toSerialize["authors"] = o.Authors
+	}
 	if !IsNil(o.Tags) {
 		toSerialize["tags"] = o.Tags
-	}
-	if !IsNil(o.Status) {
-		toSerialize["status"] = o.Status
 	}
 	return toSerialize, nil
 }

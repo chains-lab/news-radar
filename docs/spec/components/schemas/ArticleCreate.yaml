@@ -18,10 +18,6 @@ properties:
           - title
           - icon
           - desc
-          - authors
-          - content
-          - tags
-          - status
         properties:
           title:
             type: string
@@ -35,20 +31,3 @@ properties:
             type: string
             description: "Article description"
             example: "Article description"
-          authors:
-            type: array
-            items:
-              type: string
-            description: "Authors ID uuid"
-          content:
-            type: string
-            description: "Article content"
-            example: "Article content"
-          tags:
-            type: array
-            items:
-              type: './TagData.yaml'
-          status:
-            type: string
-            description: "Article status"
-            example: "Article status"

@@ -7,16 +7,12 @@ Name | Type | Description | Notes
 **Title** | **string** | Article title | 
 **Icon** | **string** | Article link | 
 **Desc** | **string** | Article description | 
-**Authors** | **[]string** | Authors ID uuid | 
-**Content** | **string** | Article content | 
-**Tags** | [**[]TagDataYaml**](TagDataYaml.md) |  | 
-**Status** | **string** | Article status | 
 
 ## Methods
 
 ### NewArticleCreateDataAttributes
 
-`func NewArticleCreateDataAttributes(title string, icon string, desc string, authors []string, content string, tags []TagDataYaml, status string, ) *ArticleCreateDataAttributes`
+`func NewArticleCreateDataAttributes(title string, icon string, desc string, ) *ArticleCreateDataAttributes`
 
 NewArticleCreateDataAttributes instantiates a new ArticleCreateDataAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -89,86 +85,6 @@ and a boolean to check if the value has been set.
 `func (o *ArticleCreateDataAttributes) SetDesc(v string)`
 
 SetDesc sets Desc field to given value.
-
-
-### GetAuthors
-
-`func (o *ArticleCreateDataAttributes) GetAuthors() []string`
-
-GetAuthors returns the Authors field if non-nil, zero value otherwise.
-
-### GetAuthorsOk
-
-`func (o *ArticleCreateDataAttributes) GetAuthorsOk() (*[]string, bool)`
-
-GetAuthorsOk returns a tuple with the Authors field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetAuthors
-
-`func (o *ArticleCreateDataAttributes) SetAuthors(v []string)`
-
-SetAuthors sets Authors field to given value.
-
-
-### GetContent
-
-`func (o *ArticleCreateDataAttributes) GetContent() string`
-
-GetContent returns the Content field if non-nil, zero value otherwise.
-
-### GetContentOk
-
-`func (o *ArticleCreateDataAttributes) GetContentOk() (*string, bool)`
-
-GetContentOk returns a tuple with the Content field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetContent
-
-`func (o *ArticleCreateDataAttributes) SetContent(v string)`
-
-SetContent sets Content field to given value.
-
-
-### GetTags
-
-`func (o *ArticleCreateDataAttributes) GetTags() []TagDataYaml`
-
-GetTags returns the Tags field if non-nil, zero value otherwise.
-
-### GetTagsOk
-
-`func (o *ArticleCreateDataAttributes) GetTagsOk() (*[]TagDataYaml, bool)`
-
-GetTagsOk returns a tuple with the Tags field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetTags
-
-`func (o *ArticleCreateDataAttributes) SetTags(v []TagDataYaml)`
-
-SetTags sets Tags field to given value.
-
-
-### GetStatus
-
-`func (o *ArticleCreateDataAttributes) GetStatus() string`
-
-GetStatus returns the Status field if non-nil, zero value otherwise.
-
-### GetStatusOk
-
-`func (o *ArticleCreateDataAttributes) GetStatusOk() (*string, bool)`
-
-GetStatusOk returns a tuple with the Status field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetStatus
-
-`func (o *ArticleCreateDataAttributes) SetStatus(v string)`
-
-SetStatus sets Status field to given value.
 
 
 

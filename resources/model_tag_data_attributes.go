@@ -24,6 +24,10 @@ var _ MappedNullable = &TagDataAttributes{}
 type TagDataAttributes struct {
 	Status string `json:"status"`
 	Type string `json:"type"`
+	// Tag color
+	Color string `json:"color"`
+	// Tag icon
+	Icon string `json:"icon"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -33,10 +37,12 @@ type _TagDataAttributes TagDataAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewTagDataAttributes(status string, type_ string, createdAt time.Time) *TagDataAttributes {
+func NewTagDataAttributes(status string, type_ string, color string, icon string, createdAt time.Time) *TagDataAttributes {
 	this := TagDataAttributes{}
 	this.Status = status
 	this.Type = type_
+	this.Color = color
+	this.Icon = icon
 	this.CreatedAt = createdAt
 	return &this
 }
@@ -97,6 +103,54 @@ func (o *TagDataAttributes) SetType(v string) {
 	o.Type = v
 }
 
+// GetColor returns the Color field value
+func (o *TagDataAttributes) GetColor() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Color
+}
+
+// GetColorOk returns a tuple with the Color field value
+// and a boolean to check if the value has been set.
+func (o *TagDataAttributes) GetColorOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Color, true
+}
+
+// SetColor sets field value
+func (o *TagDataAttributes) SetColor(v string) {
+	o.Color = v
+}
+
+// GetIcon returns the Icon field value
+func (o *TagDataAttributes) GetIcon() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Icon
+}
+
+// GetIconOk returns a tuple with the Icon field value
+// and a boolean to check if the value has been set.
+func (o *TagDataAttributes) GetIconOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Icon, true
+}
+
+// SetIcon sets field value
+func (o *TagDataAttributes) SetIcon(v string) {
+	o.Icon = v
+}
+
 // GetCreatedAt returns the CreatedAt field value
 func (o *TagDataAttributes) GetCreatedAt() time.Time {
 	if o == nil {
@@ -133,6 +187,8 @@ func (o TagDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["status"] = o.Status
 	toSerialize["type"] = o.Type
+	toSerialize["color"] = o.Color
+	toSerialize["icon"] = o.Icon
 	toSerialize["created_at"] = o.CreatedAt
 	return toSerialize, nil
 }
@@ -144,6 +200,8 @@ func (o *TagDataAttributes) UnmarshalJSON(data []byte) (err error) {
 	requiredProperties := []string{
 		"status",
 		"type",
+		"color",
+		"icon",
 		"created_at",
 	}
 
