@@ -19,8 +19,8 @@ const (
 type ArticleModel struct {
 	ID        uuid.UUID         `json:"_id" bson:"_id"`
 	Title     string            `json:"title" bson:"title"`
-	Icon      string            `json:"icon" bson:"icon"`
-	Desc      string            `json:"desc" bson:"desc"`
+	Icon      *string           `json:"icon,omitempty" bson:"icon,omitempty"`
+	Desc      *string           `json:"desc,omitempty" bson:"desc,omitempty"`
 	Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
 	Likes     int               `json:"likes" bson:"likes"`
 	Reposts   int               `json:"reposts" bson:"reposts"`
@@ -74,21 +74,21 @@ func (a *ArticlesQ) New() *ArticlesQ {
 }
 
 type ArticleInsertInput struct {
-	ID        uuid.UUID         `json:"__id" bson:"_id"`
-	Title     string            `json:"title" bson:"title"`
-	Icon      string            `json:"icon" bson:"icon"`
-	Desc      string            `json:"desc" bson:"desc"`
-	Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
-	CreatedAt time.Time         `json:"created_at" bson:"created_at"`
+	ID    uuid.UUID `json:"__id" bson:"_id"`
+	Title string    `json:"title" bson:"title"`
+	//Icon      string            `json:"icon" bson:"icon"`
+	//Desc      string            `json:"desc" bson:"desc"`
+	//Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
+	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 }
 
 func (a *ArticlesQ) Insert(ctx context.Context, input ArticleInsertInput) error {
 	_, err := a.collection.InsertOne(ctx, ArticleModel{
 		ID:        input.ID,
 		Title:     input.Title,
-		Icon:      input.Icon,
-		Desc:      input.Desc,
-		Content:   input.Content,
+		Icon:      nil,
+		Desc:      nil,
+		Content:   nil,
 		Likes:     0,
 		Reposts:   0,
 		UpdatedAt: nil,

@@ -16,6 +16,8 @@ import (
 
 func Run(args []string) bool {
 	cfg, err := config.LoadConfig()
+	cfg.LogSetup()
+
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}

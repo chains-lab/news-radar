@@ -139,21 +139,11 @@ components:
               type: object
               required:
                 - title
-                - icon
-                - desc
               properties:
                 title:
                   type: string
                   description: Article title
                   example: Article title
-                icon:
-                  type: string
-                  description: Article link
-                  example: Article link
-                desc:
-                  type: string
-                  description: Article description
-                  example: Article description
     ArticleUpdate:
       type: object
       required:

@@ -23,10 +23,6 @@ var _ MappedNullable = &ArticleCreateDataAttributes{}
 type ArticleCreateDataAttributes struct {
 	// Article title
 	Title string `json:"title"`
-	// Article link
-	Icon string `json:"icon"`
-	// Article description
-	Desc string `json:"desc"`
 }
 
 type _ArticleCreateDataAttributes ArticleCreateDataAttributes
@@ -35,11 +31,9 @@ type _ArticleCreateDataAttributes ArticleCreateDataAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewArticleCreateDataAttributes(title string, icon string, desc string) *ArticleCreateDataAttributes {
+func NewArticleCreateDataAttributes(title string) *ArticleCreateDataAttributes {
 	this := ArticleCreateDataAttributes{}
 	this.Title = title
-	this.Icon = icon
-	this.Desc = desc
 	return &this
 }
 
@@ -75,54 +69,6 @@ func (o *ArticleCreateDataAttributes) SetTitle(v string) {
 	o.Title = v
 }
 
-// GetIcon returns the Icon field value
-func (o *ArticleCreateDataAttributes) GetIcon() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Icon
-}
-
-// GetIconOk returns a tuple with the Icon field value
-// and a boolean to check if the value has been set.
-func (o *ArticleCreateDataAttributes) GetIconOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Icon, true
-}
-
-// SetIcon sets field value
-func (o *ArticleCreateDataAttributes) SetIcon(v string) {
-	o.Icon = v
-}
-
-// GetDesc returns the Desc field value
-func (o *ArticleCreateDataAttributes) GetDesc() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Desc
-}
-
-// GetDescOk returns a tuple with the Desc field value
-// and a boolean to check if the value has been set.
-func (o *ArticleCreateDataAttributes) GetDescOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Desc, true
-}
-
-// SetDesc sets field value
-func (o *ArticleCreateDataAttributes) SetDesc(v string) {
-	o.Desc = v
-}
-
 func (o ArticleCreateDataAttributes) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -134,8 +80,6 @@ func (o ArticleCreateDataAttributes) MarshalJSON() ([]byte, error) {
 func (o ArticleCreateDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["title"] = o.Title
-	toSerialize["icon"] = o.Icon
-	toSerialize["desc"] = o.Desc
 	return toSerialize, nil
 }
 
@@ -145,8 +89,6 @@ func (o *ArticleCreateDataAttributes) UnmarshalJSON(data []byte) (err error) {
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
 		"title",
-		"icon",
-		"desc",
 	}
 
 	allProperties := make(map[string]interface{})

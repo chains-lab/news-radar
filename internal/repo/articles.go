@@ -19,8 +19,8 @@ const (
 type ArticleModel struct {
 	ID        uuid.UUID         `json:"id" bson:"_id"`
 	Title     string            `json:"title" bson:"title"`
-	Icon      string            `json:"icon" bson:"icon"`
-	Desc      string            `json:"desc" bson:"desc"`
+	Icon      *string           `json:"icon,omitempty" bson:"icon,omitempty"`
+	Desc      *string           `json:"desc,omitempty" bson:"desc,omitempty"`
 	Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
 	Likes     int               `json:"likes" bson:"likes"`
 	Reposts   int               `json:"reposts" bson:"reposts"`
@@ -93,13 +93,13 @@ func NewArticles(cfg config.Config) (*ArticlesRepo, error) {
 }
 
 type ArticleCreateInput struct {
-	ID        uuid.UUID         `json:"id" bson:"_id"`
-	Title     string            `json:"title" bson:"title"`
-	Icon      string            `json:"icon" bson:"icon"`
-	Desc      string            `json:"desc" bson:"desc"`
-	Status    string            `json:"status" bson:"status"`
-	Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
-	CreatedAt time.Time         `json:"created_at" bson:"created_at"`
+	ID    uuid.UUID `json:"id" bson:"_id"`
+	Title string    `json:"title" bson:"title"`
+	//Icon      string            `json:"icon" bson:"icon"`
+	//Desc      string            `json:"desc" bson:"desc"`
+	Status string `json:"status" bson:"status"`
+	//Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
+	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 }
 
 func (a *ArticlesRepo) Create(input ArticleCreateInput) error {
@@ -107,11 +107,11 @@ func (a *ArticlesRepo) Create(input ArticleCreateInput) error {
 	defer cancel()
 
 	err := a.mongo.New().Insert(ctxSync, mongodb.ArticleInsertInput{
-		ID:        input.ID,
-		Title:     input.Title,
-		Icon:      input.Icon,
-		Desc:      input.Desc,
-		Content:   input.Content,
+		ID:    input.ID,
+		Title: input.Title,
+		//Icon:      input.Icon,
+		//Desc:      input.Desc,
+		//Content:   input.Content,
 		CreatedAt: input.CreatedAt,
 	})
 	if err != nil {

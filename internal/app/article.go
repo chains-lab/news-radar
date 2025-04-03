@@ -12,11 +12,9 @@ import (
 )
 
 type CreateArticleRequest struct {
-	ID      uuid.UUID         `json:"id"`
-	Title   string            `json:"title"`
-	Icon    string            `json:"icon"`
-	Desc    string            `json:"desc"`
-	Content []content.Section `json:"content,omitempty"`
+	Title string `json:"title"`
+	//Icon    string            `json:"icon"`
+	//Desc    string            `json:"desc"`
 }
 
 func (a App) CreateArticle(ctx context.Context, request CreateArticleRequest) (models.Article, error) {
@@ -24,11 +22,11 @@ func (a App) CreateArticle(ctx context.Context, request CreateArticleRequest) (m
 	CreatedAt := time.Now().UTC()
 
 	err := a.articles.Create(repo.ArticleCreateInput{
-		ID:        ArticleID,
-		Title:     request.Title,
-		Icon:      request.Icon,
-		Desc:      request.Desc,
-		Content:   request.Content,
+		ID:    ArticleID,
+		Title: request.Title,
+		//Icon:      request.Icon,
+		//Desc:      request.Desc,
+		//Content:   request.Content,
 		Status:    string(models.AuthorStatusInactive),
 		CreatedAt: CreatedAt,
 	})
@@ -43,13 +41,13 @@ func (a App) CreateArticle(ctx context.Context, request CreateArticleRequest) (m
 	return models.Article{
 		ID:        res.ID,
 		Title:     res.Title,
-		Icon:      res.Icon,
-		Desc:      res.Desc,
-		Content:   res.Content,
-		Likes:     res.Likes,
-		Reposts:   res.Reposts,
+		Icon:      nil,
+		Desc:      nil,
+		Content:   nil,
+		Likes:     0,
+		Reposts:   0,
 		Status:    models.ArticleStatus(res.Status),
-		UpdatedAt: res.UpdatedAt,
+		UpdatedAt: nil,
 		CreatedAt: res.CreatedAt,
 
 		Authors: nil,

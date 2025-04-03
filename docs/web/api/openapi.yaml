@@ -325,17 +325,7 @@ components:
           description: Article title
           example: Article title
           type: string
-        icon:
-          description: Article link
-          example: Article link
-          type: string
-        desc:
-          description: Article description
-          example: Article description
-          type: string
       required:
-      - desc
-      - icon
       - title
       type: object
     ArticleCreate_data:

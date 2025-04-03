@@ -4,7 +4,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/hs-zavet/comtools/logkit"
 	_ "github.com/lib/pq" // postgres driver don`t delete
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -71,6 +70,7 @@ type Config struct {
 	Kafka    KafkaConfig    `mapstructure:"kafka"`
 	Database DatabaseConfig `mapstructure:"database"`
 	Swagger  SwaggerConfig  `mapstructure:"swagger"`
+	Log      *logrus.Logger
 }
 
 func LoadConfig() (*Config, error) {
@@ -88,11 +88,6 @@ func LoadConfig() (*Config, error) {
 	if err := viper.Unmarshal(&config); err != nil {
 		return nil, errors.Errorf("error unmarshalling config: %s", err)
 	}
-
+	
 	return &config, nil
-}
-
-func (c *Config) Log() *logrus.Logger {
-	logger := logkit.SetupLogger(c.Server.Log.Level, c.Server.Log.Format)
-	return logger
 }

@@ -13,8 +13,8 @@ type Article struct {
 	Status ArticleStatus `json:"status" bson:"status"`
 
 	Title   string            `json:"title" bson:"title"`
-	Icon    string            `json:"icon" bson:"icon"`
-	Desc    string            `json:"desc" bson:"desc"`
+	Icon    *string           `json:"icon,omitempty" bson:"icon,omitempty"`
+	Desc    *string           `json:"desc,omitempty" bson:"desc,omitempty"`
 	Content []content.Section `json:"content,omitempty" bson:"content,omitempty"`
 
 	Likes   int `json:"likes" bson:"likes"`

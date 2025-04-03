@@ -23,12 +23,12 @@ func NewListener(cfg *config.Config, app *app.App) *Listener {
 	return &Listener{
 		cfg: cfg,
 		app: app,
-		log: cfg.Log().WithField("listener", "kafka"),
+		log: cfg.Log.WithField("listener", "kafka"),
 	}
 }
 
 func (l *Listener) Listen(ctx context.Context, cfg *config.Config) {
-	logger := cfg.Log().WithField("listener", "kafka")
+	logger := cfg.Log.WithField("listener", "kafka")
 
 	reactionReader := reader.NewReader(l.log, kafka.NewReader(kafka.ReaderConfig{
 		Brokers:        cfg.Kafka.Brokers,

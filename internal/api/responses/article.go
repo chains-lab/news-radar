@@ -21,7 +21,7 @@ func Article(article models.Article) resources.Article {
 		Attributes: resources.ArticleAttributes{
 			Title:     article.Title,
 			Status:    string(article.Status),
-			Desc:      article.Desc,
+			Desc:      *article.Desc,
 			Likes:     int64(article.Likes),
 			Reposts:   int64(article.Reposts),
 			CreatedAt: article.CreatedAt,
