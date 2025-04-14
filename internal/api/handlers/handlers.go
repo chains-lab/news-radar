@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/hs-zavet/news-radar/internal/app"
 	"github.com/hs-zavet/news-radar/internal/app/models"
+	"github.com/hs-zavet/news-radar/internal/config"
 	"github.com/sirupsen/logrus"
 )
 
@@ -20,16 +20,15 @@ type App interface {
 }
 
 type Handler struct {
-	log *logrus.Logger
 	app App
+	cfg config.Config
+	log *logrus.Entry
 }
 
-func NewHandlers(log *logrus.Logger, app *app.App) *Handler {
-	return &Handler{
-		log: log,
+func NewHandlers(cfg config.Config, log *logrus.Entry, app *app.App) Handler {
+	return Handler{
 		app: app,
+		cfg: cfg,
+		log: log,
 	}
-}
-
-func (h *Handler) Test(w http.ResponseWriter, r *http.Request) {
 }

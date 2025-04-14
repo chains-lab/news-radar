@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/hs-zavet/comtools/httpkit"
@@ -12,7 +13,7 @@ import (
 )
 
 func (h *Handler) CreateArticle(w http.ResponseWriter, r *http.Request) {
-	accountID, _, _, _, _, err := tokens.GetAccountData(r.Context())
+	data, err := tokens.GetAccountTokenData(r.Context())
 	if err != nil {
 		h.log.WithError(err).Error("Failed to retrieve account data")
 		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
@@ -30,9 +31,9 @@ func (h *Handler) CreateArticle(w http.ResponseWriter, r *http.Request) {
 		Title: req.Data.Attributes.Title,
 	})
 	if err != nil {
-		switch err {
-		case nil:
-			httpkit.RenderErr(w, problems.NotFound("article not found"))
+		switch {
+		case errors.Is(err, nil):
+			h.log.WithError(err).Error("Error creating article")
 		default:
 			httpkit.RenderErr(w, problems.InternalError())
 		}
@@ -45,7 +46,7 @@ func (h *Handler) CreateArticle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.log.Infof("Created article: %s by user: %s", res.ID.String(), accountID.String())
+	h.log.Infof("Created article: %s by user: %s", res.ID.String(), data.AccountID.String())
 
 	httpkit.Render(w, resp)
 }

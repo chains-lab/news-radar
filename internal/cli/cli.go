@@ -16,8 +16,6 @@ import (
 
 func Run(args []string) bool {
 	cfg, err := config.LoadConfig()
-	cfg.LogSetup()
-
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
@@ -26,9 +24,9 @@ func Run(args []string) bool {
 	logger.Info("Starting server...")
 
 	var (
-		application = kingpin.New("news-radar", "")
-		runCmd      = application.Command("run", "run command")
-		serviceCmd  = runCmd.Command("service", "run service")
+		service    = kingpin.New("news-radar", "")
+		runCmd     = service.Command("run", "run command")
+		serviceCmd = runCmd.Command("service", "run service")
 	)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -36,13 +34,13 @@ func Run(args []string) bool {
 
 	var wg sync.WaitGroup
 
-	svc, err := app.NewApp(*cfg)
+	application, err := app.NewApp(cfg)
 	if err != nil {
 		logger.WithError(err).Error("failed to create app")
 		return false
 	}
 
-	cmd, err := application.Parse(args[1:])
+	cmd, err := service.Parse(args[1:])
 	if err != nil {
 		logger.WithError(err).Error("failed to parse arguments")
 		return false
@@ -50,7 +48,7 @@ func Run(args []string) bool {
 
 	switch cmd {
 	case serviceCmd.FullCommand():
-		runServices(ctx, &wg, svc, cfg)
+		runServices(ctx, cfg, logger, &wg, &application)
 	default:
 		logger.Errorf("unknown command %s", cmd)
 		return false

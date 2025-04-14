@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hs-zavet/comtools/httpkit"
@@ -9,35 +10,46 @@ import (
 	"github.com/hs-zavet/news-radar/internal/app"
 	"github.com/hs-zavet/news-radar/internal/config"
 	"github.com/hs-zavet/tokens"
-	"github.com/hs-zavet/tokens/identity"
+	"github.com/hs-zavet/tokens/roles"
 	"github.com/sirupsen/logrus"
 )
 
 type Api struct {
-	cfg    *config.Config
-	log    *logrus.Logger
-	router *chi.Mux
+	server   *http.Server
+	router   *chi.Mux
+	handlers handlers.Handler
+
+	log *logrus.Entry
+	cfg config.Config
 }
 
-func NewAPI(cfg *config.Config) Api {
+func NewAPI(cfg config.Config, log *logrus.Logger, app *app.App) Api {
+	logger := log.WithField("module", "api")
+	router := chi.NewRouter()
+	server := &http.Server{
+		Addr:    cfg.Server.Port,
+		Handler: router,
+	}
+	hands := handlers.NewHandlers(cfg, logger, app)
+
 	return Api{
-		log:    cfg.Log,
-		cfg:    cfg,
-		router: chi.NewRouter(),
+		handlers: hands,
+		router:   router,
+		server:   server,
+		log:      logger,
+		cfg:      cfg,
 	}
 }
 
-func (a *Api) Run(ctx context.Context, app *app.App) {
+func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 	auth := tokens.AuthMdl(a.cfg.JWT.AccessToken.SecretKey)
-	admin := tokens.IdentityMdl(a.cfg.JWT.AccessToken.SecretKey, identity.Admin, identity.SuperUser)
-
-	h := handlers.NewHandlers(a.cfg.Log, app)
+	admin := tokens.AccessGrant(a.cfg.JWT.AccessToken.SecretKey, roles.Admin, roles.SuperUser)
 
 	a.router.Route("/hs/news-radar", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/articles", func(r chi.Router) {
 				r.Get("/", nil)
-				r.Post("/", h.CreateArticle)
+				r.Post("/", a.handlers.CreateArticle)
 
 				r.Route("/{article_id}", func(r chi.Router) {
 					r.Get("/", nil)

@@ -7,10 +7,10 @@ import (
 	"github.com/hs-zavet/news-radar/internal/api"
 	"github.com/hs-zavet/news-radar/internal/app"
 	"github.com/hs-zavet/news-radar/internal/config"
-	"github.com/hs-zavet/news-radar/internal/workers/eventlistener"
+	"github.com/sirupsen/logrus"
 )
 
-func runServices(ctx context.Context, wg *sync.WaitGroup, app app.App, cfg *config.Config) {
+func runServices(ctx context.Context, cfg config.Config, log *logrus.Logger, wg *sync.WaitGroup, app *app.App) {
 	run := func(f func()) {
 		wg.Add(1)
 		go func() {
@@ -19,8 +19,6 @@ func runServices(ctx context.Context, wg *sync.WaitGroup, app app.App, cfg *conf
 		}()
 	}
 
-	API := api.NewAPI(cfg)
-	run(func() { API.Run(ctx, &app) })
-
-	run(func() { eventlistener.NewListener(cfg, &app) })
+	API := api.NewAPI(cfg, log, app)
+	run(func() { API.Run(ctx, log) })
 }

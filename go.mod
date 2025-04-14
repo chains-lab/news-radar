@@ -8,7 +8,7 @@ require (
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/google/uuid v1.6.0
 	github.com/hs-zavet/comtools v0.1.21
-	github.com/hs-zavet/tokens v0.5.11
+	github.com/hs-zavet/tokens v0.7.14
 	github.com/lib/pq v1.10.9
 	github.com/neo4j/neo4j-go-driver v1.8.3
 	github.com/pkg/errors v0.9.1

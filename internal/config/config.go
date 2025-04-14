@@ -73,21 +73,21 @@ type Config struct {
 	Log      *logrus.Logger
 }
 
-func LoadConfig() (*Config, error) {
+func LoadConfig() (Config, error) {
 	configPath := os.Getenv("KV_VIPER_FILE")
 	if configPath == "" {
-		return nil, errors.New("KV_VIPER_FILE env var is not set")
+		return Config{}, errors.New("KV_VIPER_FILE env var is not set")
 	}
 	viper.SetConfigFile(configPath)
 
 	if err := viper.ReadInConfig(); err != nil {
-		return nil, errors.Errorf("error reading config file: %s", err)
+		return Config{}, errors.Errorf("error reading config file: %s", err)
 	}
 
 	var config Config
 	if err := viper.Unmarshal(&config); err != nil {
-		return nil, errors.Errorf("error unmarshalling config: %s", err)
+		return Config{}, errors.Errorf("error unmarshalling config: %s", err)
 	}
-	
-	return &config, nil
+
+	return config, nil
 }
