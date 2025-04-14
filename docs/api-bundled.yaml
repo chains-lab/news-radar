@@ -304,6 +304,37 @@ components:
                   type: string
                 twitter:
                   type: string
+    AuthorshipCreate:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - type
+            - attributes
+          properties:
+            type:
+              type: string
+              enum:
+                - authorship_set
+            attributes:
+              type: object
+              required:
+                - authors
+                - articleID
+              properties:
+                authorID:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                    description: The ID of the author.
+                articleID:
+                  type: string
+                  format: uuid
+                  description: The ID of the article.
     Content:
       type: object
       required:
@@ -495,6 +526,37 @@ components:
                 icon:
                   type: string
                   description: tag icon
+    HashtagCreate:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - type
+            - attributes
+          properties:
+            type:
+              type: string
+              enum:
+                - hashtag_set
+            attributes:
+              type: object
+              required:
+                - tags
+                - articleID
+              properties:
+                tags:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                    description: The ID of the author.
+                articleID:
+                  type: string
+                  format: uuid.UUID
+                  description: The ID of the article.
     Relationships:
       type: object
       required:

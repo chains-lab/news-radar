@@ -38,6 +38,8 @@ components:
       $ref: './spec/components/schemas/AuthorCreate.yaml'
     AuthorUpdate:
       $ref: './spec/components/schemas/AuthorUpdate.yaml'
+    AuthorshipCreate:
+      $ref: './spec/components/schemas/AuthorshipSet.yaml'
     Content:
       $ref: './spec/components/schemas/Content.yaml'
     Tag:
@@ -50,6 +52,8 @@ components:
       $ref: './spec/components/schemas/TagCreate.yaml'
     TagUpdate:
       $ref: './spec/components/schemas/TagUpdate.yaml'
+    HashtagCreate:
+      $ref: './spec/components/schemas/HashtagSet.yaml'
     Relationships:
       $ref: './spec/components/schemas/Relationships.yaml'
     LinksDirect:

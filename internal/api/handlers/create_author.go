@@ -19,7 +19,7 @@ func (h *Handler) CreateAuthor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req, err := requests.AuthorCreate(r)
+	req, err := requests.CreateAuthor(r)
 	if err != nil {
 		h.log.WithError(err).Warn("Error parsing request")
 		httpkit.RenderErr(w, problems.BadRequest(err)...)

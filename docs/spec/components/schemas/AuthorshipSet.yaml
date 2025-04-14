@@ -1,0 +1,29 @@
+type: object
+required:
+  - data
+properties:
+  data:
+    type: object
+    required:
+      - type
+      - attributes
+    properties:
+      type:
+        type: string
+        enum: [ authorship_set ]
+      attributes:
+        type: object
+        required:
+          - authors
+          - articleID
+        properties:
+          authorID:
+            type: array
+            items:
+              type: string
+              format: uuid
+              description: The ID of the author.
+          articleID:
+            type: string
+            format: uuid
+            description: The ID of the article.

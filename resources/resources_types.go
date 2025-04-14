@@ -15,4 +15,8 @@ const (
 	AuthorUpdateType = "author_update"
 	AuthorDeleteType = "author_delete"
 	AuthorType       = "author"
+
+	AuthorshipSetType = "authorship_set"
+
+	HashtagSetType = "hashtag_set"
 )

@@ -9,14 +9,14 @@ import (
 	"github.com/hs-zavet/news-radar/resources"
 )
 
-func AuthorCreate(r *http.Request) (req resources.AuthorCreate, err error) {
+func SetHashtag(r *http.Request) (req resources.HashtagCreate, err error) {
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		err = jsonkit.NewDecodeError("body", err)
 		return
 	}
 
 	errs := validation.Errors{
-		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In(resources.AuthorCreateType)),
+		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In(resources.HashtagSetType)),
 		"data/attributes": validation.Validate(req.Data.Attributes, validation.Required),
 	}
 	return req, errs.Filter()

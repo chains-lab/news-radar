@@ -189,6 +189,13 @@ components:
       required:
       - data
       type: object
+    AuthorshipCreate:
+      properties:
+        data:
+          $ref: '#/components/schemas/AuthorshipCreate_data'
+      required:
+      - data
+      type: object
     Content:
       properties:
         id:
@@ -263,6 +270,13 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/TagUpdate_data'
+      required:
+      - data
+      type: object
+    HashtagCreate:
+      properties:
+        data:
+          $ref: '#/components/schemas/HashtagCreate_data'
       required:
       - data
       type: object
@@ -445,6 +459,34 @@ components:
       - attributes
       - type
       type: object
+    AuthorshipCreate_data_attributes:
+      properties:
+        authorID:
+          items:
+            description: The ID of the author.
+            format: uuid
+            type: string
+          type: array
+        articleID:
+          description: The ID of the article.
+          format: uuid
+          type: string
+      required:
+      - articleID
+      - authors
+      type: object
+    AuthorshipCreate_data:
+      properties:
+        type:
+          enum:
+          - authorship_set
+          type: string
+        attributes:
+          $ref: '#/components/schemas/AuthorshipCreate_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
     Content_text_inner:
       properties:
         text:
@@ -569,6 +611,34 @@ components:
       required:
       - attributes
       - id
+      - type
+      type: object
+    HashtagCreate_data_attributes:
+      properties:
+        tags:
+          items:
+            description: The ID of the author.
+            format: uuid
+            type: string
+          type: array
+        articleID:
+          description: The ID of the article.
+          format: uuid.UUID
+          type: string
+      required:
+      - articleID
+      - tags
+      type: object
+    HashtagCreate_data:
+      properties:
+        type:
+          enum:
+          - hashtag_set
+          type: string
+        attributes:
+          $ref: '#/components/schemas/HashtagCreate_data_attributes'
+      required:
+      - attributes
       - type
       type: object
     LinksDirect_links:

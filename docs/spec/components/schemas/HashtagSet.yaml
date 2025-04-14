@@ -1,0 +1,29 @@
+type: object
+required:
+  - data
+properties:
+  data:
+    type: object
+    required:
+      - type
+      - attributes
+    properties:
+      type:
+        type: string
+        enum: [ hashtag_set ]
+      attributes:
+        type: object
+        required:
+          - tags
+          - articleID
+        properties:
+          tags:
+            type: array
+            items:
+              type: string
+              format: uuid
+              description: The ID of the author.
+          articleID:
+            type: string
+            format: uuid
+            description: The ID of the article.

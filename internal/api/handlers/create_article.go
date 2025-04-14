@@ -20,7 +20,7 @@ func (h *Handler) CreateArticle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req, err := requests.ArticleCreate(r)
+	req, err := requests.CreateArticle(r)
 	if err != nil {
 		h.log.WithError(err).Warn("Error parsing request")
 		httpkit.RenderErr(w, problems.BadRequest(err)...)

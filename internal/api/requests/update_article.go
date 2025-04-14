@@ -9,14 +9,14 @@ import (
 	"github.com/hs-zavet/news-radar/resources"
 )
 
-func ArticleCreate(r *http.Request) (req resources.ArticleCreate, err error) {
+func UpdateArticle(r *http.Request) (req resources.ArticleUpdate, err error) {
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		err = jsonkit.NewDecodeError("body", err)
-		return req, err
+		return
 	}
 
 	errs := validation.Errors{
-		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In(resources.ArticleCreateType)),
+		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In(resources.ArticleUpdateType)),
 		"data/attributes": validation.Validate(req.Data.Attributes, validation.Required),
 	}
 	return req, errs.Filter()

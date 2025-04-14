@@ -12,7 +12,7 @@ import (
 	"github.com/hs-zavet/tokens"
 )
 
-func (h *Handler) CreateHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) CreateTag(w http.ResponseWriter, r *http.Request) {
 	user, err := tokens.GetAccountTokenData(r.Context())
 	if err != nil {
 		h.log.WithError(err).Error("Failed to retrieve account data")
@@ -20,7 +20,7 @@ func (h *Handler) CreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req, err := requests.TagCreate(r)
+	req, err := requests.CreateTag(r)
 	if err != nil {
 		h.log.WithError(err).Warn("Error parsing request")
 		httpkit.RenderErr(w, problems.BadRequest(err)...)

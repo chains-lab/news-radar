@@ -9,14 +9,14 @@ import (
 	"github.com/hs-zavet/news-radar/resources"
 )
 
-func TagCreate(r *http.Request) (req resources.TagCreate, err error) {
+func UpdateTag(r *http.Request) (req resources.TagUpdate, err error) {
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		err = jsonkit.NewDecodeError("body", err)
 		return
 	}
 
 	errs := validation.Errors{
-		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In(resources.TagCreateType)),
+		"data/type":       validation.Validate(req.Data.Type, validation.Required, validation.In(resources.TagUpdateType)),
 		"data/attributes": validation.Validate(req.Data.Attributes, validation.Required),
 	}
 	return req, errs.Filter()

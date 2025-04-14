@@ -55,44 +55,19 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 				r.Route("/{article_id}", func(r chi.Router) {
 					r.Get("/", nil)
 					r.With(admin).Put("/", nil)
-					r.With(admin).Delete("/", nil)
-
-					r.With(auth).Route("/reactions", func(r chi.Router) {
-						r.Route("/like", func(r chi.Router) {
-							r.Post("/", nil)
-							r.Delete("/", nil)
-						})
-						r.Route("/save", func(r chi.Router) {
-							r.Post("/", nil)
-							r.Delete("/", nil)
-						})
-					})
+					r.With(admin).Delete("/", a.handlers.DeleteArticle)
 
 					r.Route("/tags", func(r chi.Router) {
 						r.Get("/", nil)
-						r.With(auth).Post("/", nil)
-						r.With(auth).Delete("/", nil)
+						r.With(auth).Put("/", a.handlers.SetHashTags)
 					})
 
 					r.Route("/authors", func(r chi.Router) {
 						r.Get("/", nil)
-						r.With(auth).Put("/", nil)
+						r.With(auth).Put("/", a.handlers.SetAuthorship)
 						r.With(auth).Patch("/", nil)
 						r.With(auth).Delete("/", nil)
 					})
-
-					r.Route("/rec", func(r chi.Router) {
-						r.Get("/", nil)
-					})
-				})
-			})
-
-			// Endpoint to interact with topics
-			r.Route("/topic", func(r chi.Router) {
-				r.Route("/{topic_id}", func(r chi.Router) {
-					r.Get("/", nil)
-					r.With(admin).Put("/", nil)
-					r.With(admin).Delete("/", nil)
 				})
 			})
 
@@ -109,7 +84,7 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 
 			//Full Admin endpoints group to manage tags and topics
 			r.With(auth).Route("/tags", func(r chi.Router) {
-				r.Post("/create", nil)
+				r.Post("/create", a.handlers.CreateTag)
 
 				r.Route("/{tag_id}", func(r chi.Router) {
 					r.Get("/", nil)
