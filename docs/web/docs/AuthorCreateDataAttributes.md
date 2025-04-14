@@ -5,8 +5,8 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Name** | **string** |  | 
-**Desc** | **string** |  | 
-**Avatar** | **string** |  | 
+**Desc** | Pointer to **string** |  | [optional] 
+**Avatar** | Pointer to **string** |  | [optional] 
 **Email** | Pointer to **string** |  | [optional] 
 **Telegram** | Pointer to **string** |  | [optional] 
 **Twitter** | Pointer to **string** |  | [optional] 
@@ -15,7 +15,7 @@ Name | Type | Description | Notes
 
 ### NewAuthorCreateDataAttributes
 
-`func NewAuthorCreateDataAttributes(name string, desc string, avatar string, ) *AuthorCreateDataAttributes`
+`func NewAuthorCreateDataAttributes(name string, ) *AuthorCreateDataAttributes`
 
 NewAuthorCreateDataAttributes instantiates a new AuthorCreateDataAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -69,6 +69,11 @@ and a boolean to check if the value has been set.
 
 SetDesc sets Desc field to given value.
 
+### HasDesc
+
+`func (o *AuthorCreateDataAttributes) HasDesc() bool`
+
+HasDesc returns a boolean if a field has been set.
 
 ### GetAvatar
 
@@ -89,6 +94,11 @@ and a boolean to check if the value has been set.
 
 SetAvatar sets Avatar field to given value.
 
+### HasAvatar
+
+`func (o *AuthorCreateDataAttributes) HasAvatar() bool`
+
+HasAvatar returns a boolean if a field has been set.
 
 ### GetEmail
 

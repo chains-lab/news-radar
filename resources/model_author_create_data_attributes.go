@@ -22,8 +22,8 @@ var _ MappedNullable = &AuthorCreateDataAttributes{}
 // AuthorCreateDataAttributes struct for AuthorCreateDataAttributes
 type AuthorCreateDataAttributes struct {
 	Name string `json:"name"`
-	Desc string `json:"desc"`
-	Avatar string `json:"avatar"`
+	Desc *string `json:"desc,omitempty"`
+	Avatar *string `json:"avatar,omitempty"`
 	Email *string `json:"email,omitempty"`
 	Telegram *string `json:"telegram,omitempty"`
 	Twitter *string `json:"twitter,omitempty"`
@@ -35,11 +35,9 @@ type _AuthorCreateDataAttributes AuthorCreateDataAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewAuthorCreateDataAttributes(name string, desc string, avatar string) *AuthorCreateDataAttributes {
+func NewAuthorCreateDataAttributes(name string) *AuthorCreateDataAttributes {
 	this := AuthorCreateDataAttributes{}
 	this.Name = name
-	this.Desc = desc
-	this.Avatar = avatar
 	return &this
 }
 
@@ -75,52 +73,68 @@ func (o *AuthorCreateDataAttributes) SetName(v string) {
 	o.Name = v
 }
 
-// GetDesc returns the Desc field value
+// GetDesc returns the Desc field value if set, zero value otherwise.
 func (o *AuthorCreateDataAttributes) GetDesc() string {
-	if o == nil {
+	if o == nil || IsNil(o.Desc) {
 		var ret string
 		return ret
 	}
-
-	return o.Desc
+	return *o.Desc
 }
 
-// GetDescOk returns a tuple with the Desc field value
+// GetDescOk returns a tuple with the Desc field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *AuthorCreateDataAttributes) GetDescOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.Desc) {
 		return nil, false
 	}
-	return &o.Desc, true
+	return o.Desc, true
 }
 
-// SetDesc sets field value
+// HasDesc returns a boolean if a field has been set.
+func (o *AuthorCreateDataAttributes) HasDesc() bool {
+	if o != nil && !IsNil(o.Desc) {
+		return true
+	}
+
+	return false
+}
+
+// SetDesc gets a reference to the given string and assigns it to the Desc field.
 func (o *AuthorCreateDataAttributes) SetDesc(v string) {
-	o.Desc = v
+	o.Desc = &v
 }
 
-// GetAvatar returns the Avatar field value
+// GetAvatar returns the Avatar field value if set, zero value otherwise.
 func (o *AuthorCreateDataAttributes) GetAvatar() string {
-	if o == nil {
+	if o == nil || IsNil(o.Avatar) {
 		var ret string
 		return ret
 	}
-
-	return o.Avatar
+	return *o.Avatar
 }
 
-// GetAvatarOk returns a tuple with the Avatar field value
+// GetAvatarOk returns a tuple with the Avatar field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *AuthorCreateDataAttributes) GetAvatarOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.Avatar) {
 		return nil, false
 	}
-	return &o.Avatar, true
+	return o.Avatar, true
 }
 
-// SetAvatar sets field value
+// HasAvatar returns a boolean if a field has been set.
+func (o *AuthorCreateDataAttributes) HasAvatar() bool {
+	if o != nil && !IsNil(o.Avatar) {
+		return true
+	}
+
+	return false
+}
+
+// SetAvatar gets a reference to the given string and assigns it to the Avatar field.
 func (o *AuthorCreateDataAttributes) SetAvatar(v string) {
-	o.Avatar = v
+	o.Avatar = &v
 }
 
 // GetEmail returns the Email field value if set, zero value otherwise.
@@ -230,8 +244,12 @@ func (o AuthorCreateDataAttributes) MarshalJSON() ([]byte, error) {
 func (o AuthorCreateDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["name"] = o.Name
-	toSerialize["desc"] = o.Desc
-	toSerialize["avatar"] = o.Avatar
+	if !IsNil(o.Desc) {
+		toSerialize["desc"] = o.Desc
+	}
+	if !IsNil(o.Avatar) {
+		toSerialize["avatar"] = o.Avatar
+	}
 	if !IsNil(o.Email) {
 		toSerialize["email"] = o.Email
 	}
@@ -250,8 +268,6 @@ func (o *AuthorCreateDataAttributes) UnmarshalJSON(data []byte) (err error) {
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
 		"name",
-		"desc",
-		"avatar",
 	}
 
 	allProperties := make(map[string]interface{})

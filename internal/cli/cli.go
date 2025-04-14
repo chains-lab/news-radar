@@ -32,13 +32,13 @@ func Run(args []string) bool {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	var wg sync.WaitGroup
-
-	application, err := app.NewApp(cfg)
+	application, err := app.NewApp(cfg, logger)
 	if err != nil {
 		logger.WithError(err).Error("failed to create app")
 		return false
 	}
+
+	var wg sync.WaitGroup
 
 	cmd, err := service.Parse(args[1:])
 	if err != nil {

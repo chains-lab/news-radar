@@ -17,6 +17,16 @@ type App interface {
 	GetArticleByID(ctx context.Context, articleID uuid.UUID) (models.Article, error)
 	SetTags(ctx context.Context, articleID uuid.UUID, tags []string) error
 	SetAuthors(ctx context.Context, articleID uuid.UUID, authors []uuid.UUID) error
+
+	CreateTag(ctx context.Context, request app.CreateTagRequest) error
+	DeleteTag(ctx context.Context, name string) error
+	UpdateTag(ctx context.Context, name string, request app.UpdateTagRequest) error
+	Get(ctx context.Context, name string) (models.Tag, error)
+
+	CreateAuthor(ctx context.Context, request app.CreateAuthorRequest) error
+	UpdateAuthor(ctx context.Context, authorID uuid.UUID, request app.UpdateAuthorRequest) error
+	DeleteAuthor(ctx context.Context, authorID uuid.UUID) error
+	GetAuthorByID(ctx context.Context, authorID uuid.UUID) (models.Author, error)
 }
 
 type Handler struct {

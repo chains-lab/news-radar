@@ -404,8 +404,6 @@ components:
         twitter:
           type: string
       required:
-      - avatar
-      - desc
       - name
       type: object
     AuthorCreate_data:

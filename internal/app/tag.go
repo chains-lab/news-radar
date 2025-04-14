@@ -5,15 +5,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hs-zavet/news-radar/internal/app/models"
 	"github.com/hs-zavet/news-radar/internal/enums"
 	"github.com/hs-zavet/news-radar/internal/repo"
 )
 
 type CreateTagRequest struct {
-	Name  string        `json:"name"`
-	Type  enums.TagType `json:"type"`
-	Color string        `json:"color"`
-	Icon  string        `json:"icon"`
+	Name   string          `json:"name"`
+	Type   enums.TagType   `json:"type"`
+	Status enums.TagStatus `json:"status"`
+	Color  string          `json:"color"`
+	Icon   string          `json:"icon"`
 }
 
 func (a App) CreateTag(ctx context.Context, request CreateTagRequest) error {
@@ -21,7 +23,7 @@ func (a App) CreateTag(ctx context.Context, request CreateTagRequest) error {
 
 	return a.tags.Create(repo.TagCreateInput{
 		Name:      request.Name,
-		Status:    enums.TagStatusInactive,
+		Status:    request.Status,
 		Type:      request.Type,
 		Color:     request.Color,
 		Icon:      request.Icon,
@@ -68,6 +70,18 @@ func (a App) UpdateTag(ctx context.Context, name string, request UpdateTagReques
 	return a.tags.Update(name, input)
 }
 
-func (a App) Get(ctx context.Context, name string) (repo.TagModel, error) {
-	return a.tags.Get(name)
+func (a App) Get(ctx context.Context, name string) (models.Tag, error) {
+	res, err := a.tags.Get(name)
+	if err != nil {
+		return models.Tag{}, fmt.Errorf("tag with name %s not found", name)
+	}
+
+	return models.Tag{
+		Name:      res.Name,
+		Status:    res.Status,
+		Type:      res.Type,
+		Color:     res.Color,
+		Icon:      res.Icon,
+		CreatedAt: res.CreatedAt,
+	}, nil
 }

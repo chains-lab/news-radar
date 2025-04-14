@@ -4,15 +4,17 @@ import (
 	"github.com/google/uuid"
 	"github.com/hs-zavet/news-radar/internal/config"
 	"github.com/hs-zavet/news-radar/internal/repo"
+	"github.com/sirupsen/logrus"
 )
 
 type App struct {
 	articles articlesRepo
 	authors  authorsRepo
 	tags     tagsRepo
+	log      *logrus.Entry
 }
 
-func NewApp(cfg config.Config) (App, error) {
+func NewApp(cfg config.Config, log *logrus.Logger) (App, error) {
 	articles, err := newArticles(cfg)
 	if err != nil {
 		return App{}, err
@@ -30,6 +32,7 @@ func NewApp(cfg config.Config) (App, error) {
 		articles: articles,
 		authors:  authors,
 		tags:     tags,
+		log:      log.WithField("component", "app"),
 	}, nil
 }
 

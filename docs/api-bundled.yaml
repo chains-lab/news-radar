@@ -261,8 +261,6 @@ components:
               type: object
               required:
                 - name
-                - desc
-                - avatar
               properties:
                 name:
                   type: string
