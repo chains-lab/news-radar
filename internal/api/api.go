@@ -35,7 +35,6 @@ func (a *Api) Run(ctx context.Context, app *app.App) {
 
 	a.router.Route("/hs/news-radar", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
-			// Public endpoints group to watch articles and interact with them, and manage article for admin
 			r.Route("/articles", func(r chi.Router) {
 				r.Get("/", nil)
 				r.Post("/", h.CreateArticle)

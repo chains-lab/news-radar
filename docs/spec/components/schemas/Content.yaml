@@ -1,10 +1,46 @@
 type: object
 required:
+  - id
   - type
-  - content
 properties:
+  id:
+    type: string
   type:
     type: string
-  content:
+  text:
+    type: array
+    items:
+      type: object
+      properties:
+        text:
+          type: string
+        marks:
+          type: array
+          items:
+            type: string
+        color:
+          type: string
+        link:
+          type: string
+  media:
     type: object
-    additionalProperties: true
+    required:
+        - url
+        - caption
+        - alt
+        - width
+        - height
+        - source
+    properties:
+      url:
+        type: string
+      caption:
+        type: string
+      alt:
+        type: string
+      width:
+        type: integer
+      height:
+        type: integer
+      source:
+        type: string

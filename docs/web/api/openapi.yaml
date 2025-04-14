@@ -191,13 +191,18 @@ components:
       type: object
     Content:
       properties:
+        id:
+          type: string
         type:
           type: string
-        content:
-          additionalProperties: true
-          type: object
+        text:
+          items:
+            $ref: '#/components/schemas/Content_text_inner'
+          type: array
+        media:
+          $ref: '#/components/schemas/Content_media'
       required:
-      - content
+      - id
       - type
       type: object
     Tag:
@@ -441,6 +446,41 @@ components:
       required:
       - attributes
       - type
+      type: object
+    Content_text_inner:
+      properties:
+        text:
+          type: string
+        marks:
+          items:
+            type: string
+          type: array
+        color:
+          type: string
+        link:
+          type: string
+      type: object
+    Content_media:
+      properties:
+        url:
+          type: string
+        caption:
+          type: string
+        alt:
+          type: string
+        width:
+          type: integer
+        height:
+          type: integer
+        source:
+          type: string
+      required:
+      - alt
+      - caption
+      - height
+      - source
+      - url
+      - width
       type: object
     TagCreate_data_attributes:
       properties:

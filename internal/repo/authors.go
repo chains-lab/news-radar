@@ -7,21 +7,22 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hs-zavet/news-radar/internal/config"
+	"github.com/hs-zavet/news-radar/internal/enums"
 	"github.com/hs-zavet/news-radar/internal/repo/mongodb"
 	"github.com/hs-zavet/news-radar/internal/repo/neodb"
 )
 
 type AuthorModel struct {
-	ID        uuid.UUID  `json:"id" bson:"id"`
-	Name      string     `json:"name" bson:"name"`
-	Status    string     `json:"status" bson:"status"`
-	Desc      *string    `json:"desc" bson:"desc"`
-	Avatar    *string    `json:"avatar,omitempty" bson:"avatar,omitempty"`
-	Email     *string    `json:"email,omitempty" bson:"email,omitempty"`
-	Telegram  *string    `json:"telegram,omitempty" bson:"telegram,omitempty"`
-	Twitter   *string    `json:"twitter,omitempty" bson:"twitter,omitempty"`
-	UpdatedAt *time.Time `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
-	CreatedAt time.Time  `json:"created_at" bson:"created_at"`
+	ID        uuid.UUID          `json:"id" bson:"id"`
+	Name      string             `json:"name" bson:"name"`
+	Status    enums.AuthorStatus `json:"status" bson:"status"`
+	Desc      *string            `json:"desc" bson:"desc"`
+	Avatar    *string            `json:"avatar,omitempty" bson:"avatar,omitempty"`
+	Email     *string            `json:"email,omitempty" bson:"email,omitempty"`
+	Telegram  *string            `json:"telegram,omitempty" bson:"telegram,omitempty"`
+	Twitter   *string            `json:"twitter,omitempty" bson:"twitter,omitempty"`
+	UpdatedAt *time.Time         `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
 }
 
 type authorsMongo interface {
@@ -49,8 +50,7 @@ type authorsNeo interface {
 
 	GetByID(ctx context.Context, ID uuid.UUID) (neodb.AuthorModel, error)
 
-	UpdateName(ctx context.Context, ID uuid.UUID, name string) error
-	UpdateStatus(ctx context.Context, ID uuid.UUID, status string) error
+	UpdateStatus(ctx context.Context, ID uuid.UUID, status enums.AuthorStatus) error
 }
 
 type Authors struct {
@@ -76,15 +76,15 @@ func NewAuthors(cfg config.Config) (*Authors, error) {
 }
 
 type AuthorCreateInput struct {
-	ID        uuid.UUID `json:"id" bson:"id"`
-	Name      string    `json:"name" bson:"name"`
-	Status    string    `json:"status" bson:"status"`
-	Desc      *string   `json:"desc" bson:"desc"`
-	Avatar    *string   `json:"avatar,omitempty" bson:"avatar,omitempty"`
-	Email     *string   `json:"email,omitempty" bson:"email,omitempty"`
-	Telegram  *string   `json:"telegram,omitempty" bson:"telegram,omitempty"`
-	Twitter   *string   `json:"twitter,omitempty" bson:"twitter,omitempty"`
-	CreatedAt time.Time `json:"created_at" bson:"created_at"`
+	ID        uuid.UUID          `json:"id" bson:"id"`
+	Name      string             `json:"name" bson:"name"`
+	Status    enums.AuthorStatus `json:"status" bson:"status"`
+	Desc      *string            `json:"desc" bson:"desc"`
+	Avatar    *string            `json:"avatar,omitempty" bson:"avatar,omitempty"`
+	Email     *string            `json:"email,omitempty" bson:"email,omitempty"`
+	Telegram  *string            `json:"telegram,omitempty" bson:"telegram,omitempty"`
+	Twitter   *string            `json:"twitter,omitempty" bson:"twitter,omitempty"`
+	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
 }
 
 func (a *Authors) Create(input AuthorCreateInput) error {
@@ -104,7 +104,6 @@ func (a *Authors) Create(input AuthorCreateInput) error {
 
 	if err = a.neo.Create(ctxSync, neodb.AuthorCreateInput{
 		ID:     input.ID,
-		Name:   input.Name,
 		Status: input.Status,
 	}); err != nil {
 		return err
@@ -114,14 +113,14 @@ func (a *Authors) Create(input AuthorCreateInput) error {
 }
 
 type AuthorUpdateInput struct {
-	Name      *string   `json:"name" bson:"name"`
-	Status    *string   `json:"status" bson:"status"`
-	Desc      *string   `json:"desc" bson:"desc"`
-	Avatar    *string   `json:"avatar,omitempty" bson:"avatar,omitempty"`
-	Email     *string   `json:"email,omitempty" bson:"email,omitempty"`
-	Telegram  *string   `json:"telegram,omitempty" bson:"telegram,omitempty"`
-	Twitter   *string   `json:"twitter,omitempty" bson:"twitter,omitempty"`
-	UpdatedAt time.Time `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	Name      *string             `json:"name" bson:"name"`
+	Status    *enums.AuthorStatus `json:"status" bson:"status"`
+	Desc      *string             `json:"desc" bson:"desc"`
+	Avatar    *string             `json:"avatar,omitempty" bson:"avatar,omitempty"`
+	Email     *string             `json:"email,omitempty" bson:"email,omitempty"`
+	Telegram  *string             `json:"telegram,omitempty" bson:"telegram,omitempty"`
+	Twitter   *string             `json:"twitter,omitempty" bson:"twitter,omitempty"`
+	UpdatedAt time.Time           `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }
 
 func (a *Authors) Update(ID uuid.UUID, input AuthorUpdateInput) error {
@@ -130,12 +129,6 @@ func (a *Authors) Update(ID uuid.UUID, input AuthorUpdateInput) error {
 
 	if input.Status == nil {
 		if err := a.neo.UpdateStatus(ctxSync, ID, *input.Status); err != nil {
-			return err
-		}
-	}
-
-	if input.Name == nil {
-		if err := a.neo.UpdateName(ctxSync, ID, *input.Name); err != nil {
 			return err
 		}
 	}

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/hs-zavet/news-radar/internal/app/models"
+	"github.com/hs-zavet/news-radar/internal/enums"
 	"github.com/hs-zavet/news-radar/internal/repo"
 )
 
@@ -25,7 +25,7 @@ func (a App) CreateAuthor(ctx context.Context, request CreateAuthorRequest) erro
 	err := a.authors.Create(repo.AuthorCreateInput{
 		ID:        AuthorID,
 		Name:      *request.Name,
-		Status:    string(models.AuthorStatusInactive),
+		Status:    enums.AuthorStatusInactive,
 		Desc:      request.Desc,
 		Avatar:    request.Avatar,
 		Email:     request.Email,
@@ -41,22 +41,18 @@ func (a App) CreateAuthor(ctx context.Context, request CreateAuthorRequest) erro
 }
 
 type UpdateAuthorRequest struct {
-	Name     *string `json:"name" bson:"name"`
-	Status   *string `json:"status" bson:"status"`
-	Desc     *string `json:"desc" bson:"desc"`
-	Avatar   *string `json:"avatar,omitempty" bson:"avatar,omitempty"`
-	Email    *string `json:"email,omitempty" bson:"email,omitempty"`
-	Telegram *string `json:"telegram,omitempty" bson:"telegram,omitempty"`
-	Twitter  *string `json:"twitter,omitempty" bson:"twitter,omitempty"`
+	Name     *string             `json:"name" bson:"name"`
+	Status   *enums.AuthorStatus `json:"status" bson:"status"`
+	Desc     *string             `json:"desc" bson:"desc"`
+	Avatar   *string             `json:"avatar,omitempty" bson:"avatar,omitempty"`
+	Email    *string             `json:"email,omitempty" bson:"email,omitempty"`
+	Telegram *string             `json:"telegram,omitempty" bson:"telegram,omitempty"`
+	Twitter  *string             `json:"twitter,omitempty" bson:"twitter,omitempty"`
 }
 
 func (a App) UpdateAuthor(ctx context.Context, authorID uuid.UUID, request UpdateAuthorRequest) error {
 	UpdatedAt := time.Now().UTC()
 
-	_, err := models.ParseAuthorStatus(*request.Status)
-	if err != nil {
-		return err
-	}
 	return a.authors.Update(authorID, repo.AuthorUpdateInput{
 		Name:      request.Name,
 		Status:    request.Status,

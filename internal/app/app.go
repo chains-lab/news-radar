@@ -7,11 +7,9 @@ import (
 )
 
 type App struct {
-	articles  articlesRepo
-	authors   authorsRepo
-	reactions reactionsRepo
-	tags      tagsRepo
-	users     usersRepo
+	articles articlesRepo
+	authors  authorsRepo
+	tags     tagsRepo
 }
 
 func NewApp(cfg config.Config) (App, error) {
@@ -23,25 +21,15 @@ func NewApp(cfg config.Config) (App, error) {
 	if err != nil {
 		return App{}, err
 	}
-	reactions, err := newReactions(cfg)
-	if err != nil {
-		return App{}, err
-	}
 	tags, err := newTags(cfg)
-	if err != nil {
-		return App{}, err
-	}
-	users, err := newUsers(cfg)
 	if err != nil {
 		return App{}, err
 	}
 
 	return App{
-		articles:  articles,
-		authors:   authors,
-		reactions: reactions,
-		tags:      tags,
-		users:     users,
+		articles: articles,
+		authors:  authors,
+		tags:     tags,
 	}, nil
 }
 
@@ -87,23 +75,6 @@ func newAuthors(cfg config.Config) (authorsRepo, error) {
 	return data, nil
 }
 
-type reactionsRepo interface {
-	CreateLike(userID, articleID uuid.UUID) error
-	RemoveLike(userID, articleID uuid.UUID) error
-	GetRepostsForUserAndArticle(userID, articleID uuid.UUID) (bool, error)
-	GetLikesForUserAndArticle(userID, articleID uuid.UUID) (bool, error)
-
-	CreateRepost(userID, articleID uuid.UUID) error
-}
-
-func newReactions(cfg config.Config) (reactionsRepo, error) {
-	data, err := repo.NewReactions(cfg)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
-}
-
 type tagsRepo interface {
 	Create(input repo.TagCreateInput) error
 	Delete(name string) error
@@ -113,19 +84,6 @@ type tagsRepo interface {
 
 func newTags(cfg config.Config) (tagsRepo, error) {
 	data, err := repo.NewTags(cfg)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
-}
-
-type usersRepo interface {
-	Create(userID repo.UserCreateInput) error
-	Get(userID uuid.UUID) (repo.UserModel, error)
-}
-
-func newUsers(cfg config.Config) (usersRepo, error) {
-	data, err := repo.NewUsers(cfg)
 	if err != nil {
 		return nil, err
 	}

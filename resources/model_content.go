@@ -21,8 +21,10 @@ var _ MappedNullable = &Content{}
 
 // Content struct for Content
 type Content struct {
+	Id string `json:"id"`
 	Type string `json:"type"`
-	Content map[string]interface{} `json:"content"`
+	Text []ContentTextInner `json:"text,omitempty"`
+	Media *ContentMedia `json:"media,omitempty"`
 }
 
 type _Content Content
@@ -31,10 +33,10 @@ type _Content Content
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewContent(type_ string, content map[string]interface{}) *Content {
+func NewContent(id string, type_ string) *Content {
 	this := Content{}
+	this.Id = id
 	this.Type = type_
-	this.Content = content
 	return &this
 }
 
@@ -44,6 +46,30 @@ func NewContent(type_ string, content map[string]interface{}) *Content {
 func NewContentWithDefaults() *Content {
 	this := Content{}
 	return &this
+}
+
+// GetId returns the Id field value
+func (o *Content) GetId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Id
+}
+
+// GetIdOk returns a tuple with the Id field value
+// and a boolean to check if the value has been set.
+func (o *Content) GetIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Id, true
+}
+
+// SetId sets field value
+func (o *Content) SetId(v string) {
+	o.Id = v
 }
 
 // GetType returns the Type field value
@@ -70,28 +96,68 @@ func (o *Content) SetType(v string) {
 	o.Type = v
 }
 
-// GetContent returns the Content field value
-func (o *Content) GetContent() map[string]interface{} {
-	if o == nil {
-		var ret map[string]interface{}
+// GetText returns the Text field value if set, zero value otherwise.
+func (o *Content) GetText() []ContentTextInner {
+	if o == nil || IsNil(o.Text) {
+		var ret []ContentTextInner
 		return ret
 	}
-
-	return o.Content
+	return o.Text
 }
 
-// GetContentOk returns a tuple with the Content field value
+// GetTextOk returns a tuple with the Text field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Content) GetContentOk() (map[string]interface{}, bool) {
-	if o == nil {
-		return map[string]interface{}{}, false
+func (o *Content) GetTextOk() ([]ContentTextInner, bool) {
+	if o == nil || IsNil(o.Text) {
+		return nil, false
 	}
-	return o.Content, true
+	return o.Text, true
 }
 
-// SetContent sets field value
-func (o *Content) SetContent(v map[string]interface{}) {
-	o.Content = v
+// HasText returns a boolean if a field has been set.
+func (o *Content) HasText() bool {
+	if o != nil && !IsNil(o.Text) {
+		return true
+	}
+
+	return false
+}
+
+// SetText gets a reference to the given []ContentTextInner and assigns it to the Text field.
+func (o *Content) SetText(v []ContentTextInner) {
+	o.Text = v
+}
+
+// GetMedia returns the Media field value if set, zero value otherwise.
+func (o *Content) GetMedia() ContentMedia {
+	if o == nil || IsNil(o.Media) {
+		var ret ContentMedia
+		return ret
+	}
+	return *o.Media
+}
+
+// GetMediaOk returns a tuple with the Media field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *Content) GetMediaOk() (*ContentMedia, bool) {
+	if o == nil || IsNil(o.Media) {
+		return nil, false
+	}
+	return o.Media, true
+}
+
+// HasMedia returns a boolean if a field has been set.
+func (o *Content) HasMedia() bool {
+	if o != nil && !IsNil(o.Media) {
+		return true
+	}
+
+	return false
+}
+
+// SetMedia gets a reference to the given ContentMedia and assigns it to the Media field.
+func (o *Content) SetMedia(v ContentMedia) {
+	o.Media = &v
 }
 
 func (o Content) MarshalJSON() ([]byte, error) {
@@ -104,8 +170,14 @@ func (o Content) MarshalJSON() ([]byte, error) {
 
 func (o Content) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["id"] = o.Id
 	toSerialize["type"] = o.Type
-	toSerialize["content"] = o.Content
+	if !IsNil(o.Text) {
+		toSerialize["text"] = o.Text
+	}
+	if !IsNil(o.Media) {
+		toSerialize["media"] = o.Media
+	}
 	return toSerialize, nil
 }
 
@@ -114,8 +186,8 @@ func (o *Content) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
+		"id",
 		"type",
-		"content",
 	}
 
 	allProperties := make(map[string]interface{})

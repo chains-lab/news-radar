@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hs-zavet/news-radar/internal/content"
+	"github.com/hs-zavet/news-radar/internal/enums"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -17,15 +18,14 @@ const (
 )
 
 type ArticleModel struct {
-	ID        uuid.UUID         `json:"_id" bson:"_id"`
-	Title     string            `json:"title" bson:"title"`
-	Icon      *string           `json:"icon,omitempty" bson:"icon,omitempty"`
-	Desc      *string           `json:"desc,omitempty" bson:"desc,omitempty"`
-	Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
-	Likes     int               `json:"likes" bson:"likes"`
-	Reposts   int               `json:"reposts" bson:"reposts"`
-	UpdatedAt *time.Time        `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
-	CreatedAt time.Time         `json:"created_at" bson:"created_at"`
+	ID        uuid.UUID           `json:"_id" bson:"_id"`
+	Status    enums.ArticleStatus `json:"status" bson:"status"`
+	Title     string              `json:"title" bson:"title"`
+	Icon      *string             `json:"icon,omitempty" bson:"icon,omitempty"`
+	Desc      *string             `json:"desc,omitempty" bson:"desc,omitempty"`
+	Content   []content.Section   `json:"content,omitempty" bson:"content,omitempty"`
+	UpdatedAt *time.Time          `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	CreatedAt time.Time           `json:"created_at" bson:"created_at"`
 }
 
 type ArticlesQ struct {
@@ -74,23 +74,19 @@ func (a *ArticlesQ) New() *ArticlesQ {
 }
 
 type ArticleInsertInput struct {
-	ID    uuid.UUID `json:"__id" bson:"_id"`
-	Title string    `json:"title" bson:"title"`
-	//Icon      string            `json:"icon" bson:"icon"`
-	//Desc      string            `json:"desc" bson:"desc"`
-	//Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
+	ID        uuid.UUID `json:"__id" bson:"_id"`
+	Title     string    `json:"title" bson:"title"`
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 }
 
 func (a *ArticlesQ) Insert(ctx context.Context, input ArticleInsertInput) error {
 	_, err := a.collection.InsertOne(ctx, ArticleModel{
 		ID:        input.ID,
+		Status:    enums.ArticleStatusActive,
 		Title:     input.Title,
 		Icon:      nil,
 		Desc:      nil,
 		Content:   nil,
-		Likes:     0,
-		Reposts:   0,
 		UpdatedAt: nil,
 		CreatedAt: input.CreatedAt,
 	})
@@ -210,14 +206,19 @@ func (a *ArticlesQ) FilterDate(filters map[string]any, after bool) *ArticlesQ {
 	return a
 }
 
+func (a *ArticlesQ) FilterStatus(status enums.ArticleStatus) *ArticlesQ {
+	a.filters["status"] = string(status)
+
+	return a
+}
+
 type ArticleUpdateInput struct {
-	Title     *string           `json:"title,omitempty" bson:"title,omitempty"`
-	Icon      *string           `json:"icon,omitempty" bson:"icon,omitempty"`
-	Desc      *string           `json:"desc,omitempty" bson:"desc,omitempty"`
-	Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
-	Likes     *int              `json:"likes,omitempty" bson:"likes,omitempty"`
-	Reposts   *int              `json:"reposts,omitempty" bson:"reposts,omitempty"`
-	UpdatedAt time.Time         `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	Status    *enums.ArticleStatus `json:"status" bson:"status"`
+	Title     *string              `json:"title,omitempty" bson:"title,omitempty"`
+	Icon      *string              `json:"icon,omitempty" bson:"icon,omitempty"`
+	Desc      *string              `json:"desc,omitempty" bson:"desc,omitempty"`
+	Content   []content.Section    `json:"content,omitempty" bson:"content,omitempty"`
+	UpdatedAt time.Time            `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }
 
 func (a *ArticlesQ) Update(ctx context.Context, input ArticleUpdateInput) (ArticleModel, error) {
@@ -234,12 +235,6 @@ func (a *ArticlesQ) Update(ctx context.Context, input ArticleUpdateInput) (Artic
 	}
 	if input.Content != nil {
 		updateFields["content"] = input.Content
-	}
-	if input.Likes != nil {
-		updateFields["likes"] = *input.Likes
-	}
-	if input.Reposts != nil {
-		updateFields["reposts"] = *input.Reposts
 	}
 	if len(updateFields) == 0 {
 		return ArticleModel{}, fmt.Errorf("nothing to update")

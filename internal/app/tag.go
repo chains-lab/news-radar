@@ -5,29 +5,24 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hs-zavet/news-radar/internal/app/models"
+	"github.com/hs-zavet/news-radar/internal/enums"
 	"github.com/hs-zavet/news-radar/internal/repo"
 )
 
 type CreateTagRequest struct {
-	Name  string `json:"name"`
-	Type  string `json:"type"`
-	Color string `json:"color"`
-	Icon  string `json:"icon"`
+	Name  string        `json:"name"`
+	Type  enums.TagType `json:"type"`
+	Color string        `json:"color"`
+	Icon  string        `json:"icon"`
 }
 
 func (a App) CreateTag(ctx context.Context, request CreateTagRequest) error {
 	CreatedAt := time.Now().UTC()
 
-	tType, err := models.ParseTagType(request.Type)
-	if err != nil {
-		return err
-	}
-
 	return a.tags.Create(repo.TagCreateInput{
 		Name:      request.Name,
-		Status:    string(models.TagStatusInactive),
-		Type:      string(tType),
+		Status:    enums.TagStatusInactive,
+		Type:      request.Type,
 		Color:     request.Color,
 		Icon:      request.Icon,
 		CreatedAt: CreatedAt,
@@ -39,29 +34,21 @@ func (a App) DeleteTag(ctx context.Context, name string) error {
 }
 
 type UpdateTagRequest struct {
-	Name   *string `json:"name"`
-	Status *string `json:"status"`
-	Type   *string `json:"type"`
-	Color  *string `json:"color"`
-	Icon   *string `json:"icon"`
+	Name   *string          `json:"name"`
+	Status *enums.TagStatus `json:"status"`
+	Type   *enums.TagType   `json:"type"`
+	Color  *string          `json:"color"`
+	Icon   *string          `json:"icon"`
 }
 
 func (a App) UpdateTag(ctx context.Context, name string, request UpdateTagRequest) error {
 	input := repo.TagUpdateInput{}
 
 	if request.Status != nil {
-		_, err := models.ParseTagStatus(*request.Status)
-		if err != nil {
-			return err
-		}
 		input.Status = request.Status
 	}
 
 	if request.Type != nil {
-		_, err := models.ParseTagType(*request.Type)
-		if err != nil {
-			return err
-		}
 		input.Type = request.Type
 	}
 	if request.Color != nil {

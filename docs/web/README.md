@@ -104,6 +104,8 @@ Class | Method | HTTP request | Description
  - [AuthorUpdateData](docs/AuthorUpdateData.md)
  - [AuthorUpdateDataAttributes](docs/AuthorUpdateDataAttributes.md)
  - [Content](docs/Content.md)
+ - [ContentMedia](docs/ContentMedia.md)
+ - [ContentTextInner](docs/ContentTextInner.md)
  - [LinksDirect](docs/LinksDirect.md)
  - [LinksDirectData](docs/LinksDirectData.md)
  - [LinksDirectLinks](docs/LinksDirectLinks.md)

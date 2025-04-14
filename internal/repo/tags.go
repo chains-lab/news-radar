@@ -2,50 +2,38 @@ package repo
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/hs-zavet/news-radar/internal/config"
+	"github.com/hs-zavet/news-radar/internal/enums"
 	"github.com/hs-zavet/news-radar/internal/repo/neodb"
-	"github.com/hs-zavet/news-radar/internal/repo/redisdb"
 )
 
 type TagModel struct {
-	Name      string    `json:"name"`
-	Status    string    `json:"status"`
-	Type      string    `json:"type"`
-	Color     string    `json:"color"`
-	Icon      string    `json:"icon"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
-type tagsRedis interface {
-	Create(ctx context.Context, input redisdb.TagCreateInput) error
-	Delete(ctx context.Context, tag string) error
-
-	Get(ctx context.Context, tag string) (redisdb.TagModel, error)
-
-	UpdateIcon(ctx context.Context, tag string, icon string) error
-	UpdateColor(ctx context.Context, tag string, color string) error
-
-	Drop(ctx context.Context) error
+	Name      string          `json:"name"`
+	Status    enums.TagStatus `json:"status"`
+	Type      enums.TagType   `json:"type"`
+	Color     string          `json:"color"`
+	Icon      string          `json:"icon"`
+	CreatedAt time.Time       `json:"created_at"`
 }
 
 type tagsNeo interface {
 	Create(ctx context.Context, input neodb.TagCreateInput) error
 	Delete(ctx context.Context, name string) error
 
-	UpdateStatus(ctx context.Context, name string, status string) error
+	UpdateStatus(ctx context.Context, name string, status enums.TagStatus) error
 	UpdateName(ctx context.Context, name string, newName string) error
-	UpdateType(ctx context.Context, name string, newType string) error
+	UpdateType(ctx context.Context, name string, newType enums.TagType) error
+	UpdateColor(ctx context.Context, name string, color string) error
+	UpdateIcon(ctx context.Context, name string, icon string) error
 
 	Get(ctx context.Context, name string) (neodb.TagModel, error)
-	Select(ctx context.Context) ([]neodb.TagModel, error)
+	GetAll(ctx context.Context) ([]neodb.TagModel, error)
 }
 
 type Tags struct {
-	redis tagsRedis
-	neo   tagsNeo
+	neo tagsNeo
 }
 
 func NewTags(cfg config.Config) (*Tags, error) {
@@ -53,20 +41,18 @@ func NewTags(cfg config.Config) (*Tags, error) {
 	if err != nil {
 		return nil, err
 	}
-	redis := redisdb.NewTags(cfg.Database.Redis.Addr, cfg.Database.Redis.Password, cfg.Database.Redis.DB)
 	return &Tags{
-		neo:   neo,
-		redis: redis,
+		neo: neo,
 	}, nil
 }
 
 type TagCreateInput struct {
-	Name      string    `json:"name"`
-	Status    string    `json:"status"`
-	Type      string    `json:"type"`
-	Color     string    `json:"color"`
-	Icon      string    `json:"icon"`
-	CreatedAt time.Time `json:"created_at"`
+	Name      string          `json:"name"`
+	Status    enums.TagStatus `json:"status"`
+	Type      enums.TagType   `json:"type"`
+	Color     string          `json:"color"`
+	Icon      string          `json:"icon"`
+	CreatedAt time.Time       `json:"created_at"`
 }
 
 func (t *Tags) Create(input TagCreateInput) error {
@@ -78,15 +64,6 @@ func (t *Tags) Create(input TagCreateInput) error {
 		Status:    input.Status,
 		Type:      input.Type,
 		CreatedAt: input.CreatedAt,
-	})
-	if err != nil {
-		return err
-	}
-
-	err = t.redis.Create(ctxSync, redisdb.TagCreateInput{
-		Name:  input.Name,
-		Color: input.Color,
-		Icon:  input.Icon,
 	})
 	if err != nil {
 		return err
@@ -104,39 +81,20 @@ func (t *Tags) Delete(name string) error {
 		return err
 	}
 
-	err = t.redis.Delete(ctxSync, name)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
 type TagUpdateInput struct {
-	Color  *string `json:"color"`
-	Icon   *string `json:"icon"`
-	Status *string `json:"status"`
-	Type   *string `json:"type"`
-	Name   *string `json:"name"`
+	Name   *string          `json:"name"`
+	Status *enums.TagStatus `json:"status"`
+	Type   *enums.TagType   `json:"type"`
+	Color  *string          `json:"color"`
+	Icon   *string          `json:"icon"`
 }
 
 func (t *Tags) Update(name string, input TagUpdateInput) error {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
-
-	if input.Color != nil {
-		err := t.redis.UpdateColor(ctxSync, name, *input.Color)
-		if err != nil {
-			return err
-		}
-	}
-
-	if input.Icon != nil {
-		err := t.redis.UpdateIcon(ctxSync, name, *input.Icon)
-		if err != nil {
-			return err
-		}
-	}
 
 	if input.Status != nil {
 		err := t.neo.UpdateStatus(ctxSync, name, *input.Status)
@@ -157,15 +115,20 @@ func (t *Tags) Update(name string, input TagUpdateInput) error {
 		if err != nil {
 			return err
 		}
-		err = t.redis.Delete(ctxSync, name)
+	}
+
+	if input.Color != nil {
+		err := t.neo.UpdateColor(ctxSync, name, *input.Color)
 		if err != nil {
 			return err
 		}
-		err = t.redis.Create(ctxSync, redisdb.TagCreateInput{
-			Name:  *input.Name,
-			Color: *input.Color,
-			Icon:  *input.Icon,
-		})
+	}
+
+	if input.Icon != nil {
+		err := t.neo.UpdateIcon(ctxSync, name, *input.Icon)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -180,30 +143,36 @@ func (t *Tags) Get(name string) (TagModel, error) {
 		return TagModel{}, err
 	}
 
-	redisTag, err := t.redis.Get(ctxSync, name)
-	if err != nil {
-		return TagModel{}, err
-	}
-
-	tag, err := TagsCreateModel(redisTag, neoTag)
-	if err != nil {
-		return TagModel{}, err
-	}
-
-	return tag, nil
+	return TagModel{
+		Name:      neoTag.Name,
+		Status:    neoTag.Status,
+		Type:      neoTag.Type,
+		Color:     neoTag.Color,
+		Icon:      neoTag.Icon,
+		CreatedAt: neoTag.CreatedAt,
+	}, nil
 }
 
-func TagsCreateModel(redis redisdb.TagModel, neo neodb.TagModel) (TagModel, error) {
-	if redis.Name != neo.Name {
-		return TagModel{}, fmt.Errorf("redis and neo names do not match")
+func (t *Tags) GetAll() ([]TagModel, error) {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	neoTags, err := t.neo.GetAll(ctxSync)
+	if err != nil {
+		return nil, err
 	}
 
-	return TagModel{
-		Name:      neo.Name,
-		Status:    neo.Status,
-		Type:      neo.Type,
-		Color:     redis.Color,
-		Icon:      redis.Icon,
-		CreatedAt: neo.CreatedAt,
-	}, nil
+	tags := make([]TagModel, len(neoTags))
+	for i, neoTag := range neoTags {
+		tags[i] = TagModel{
+			Name:      neoTag.Name,
+			Status:    neoTag.Status,
+			Type:      neoTag.Type,
+			Color:     neoTag.Color,
+			Icon:      neoTag.Icon,
+			CreatedAt: neoTag.CreatedAt,
+		}
+	}
+
+	return tags, nil
 }

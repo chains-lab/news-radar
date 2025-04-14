@@ -8,13 +8,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/hs-zavet/news-radar/internal/app/models"
 	"github.com/hs-zavet/news-radar/internal/content"
+	"github.com/hs-zavet/news-radar/internal/enums"
 	"github.com/hs-zavet/news-radar/internal/repo"
 )
 
 type CreateArticleRequest struct {
 	Title string `json:"title"`
-	//Icon    string            `json:"icon"`
-	//Desc    string            `json:"desc"`
 }
 
 func (a App) CreateArticle(ctx context.Context, request CreateArticleRequest) (models.Article, error) {
@@ -22,12 +21,9 @@ func (a App) CreateArticle(ctx context.Context, request CreateArticleRequest) (m
 	CreatedAt := time.Now().UTC()
 
 	err := a.articles.Create(repo.ArticleCreateInput{
-		ID:    ArticleID,
-		Title: request.Title,
-		//Icon:      request.Icon,
-		//Desc:      request.Desc,
-		//Content:   request.Content,
-		Status:    string(models.AuthorStatusInactive),
+		ID:        ArticleID,
+		Title:     request.Title,
+		Status:    enums.ArticleStatusInactive,
 		CreatedAt: CreatedAt,
 	})
 	if err != nil {
@@ -44,9 +40,7 @@ func (a App) CreateArticle(ctx context.Context, request CreateArticleRequest) (m
 		Icon:      nil,
 		Desc:      nil,
 		Content:   nil,
-		Likes:     0,
-		Reposts:   0,
-		Status:    models.ArticleStatus(res.Status),
+		Status:    enums.ArticleStatusInactive,
 		UpdatedAt: nil,
 		CreatedAt: res.CreatedAt,
 
@@ -56,30 +50,24 @@ func (a App) CreateArticle(ctx context.Context, request CreateArticleRequest) (m
 }
 
 type UpdateArticleRequest struct {
-	Title   *string           `json:"title,omitempty"`
-	Status  *string           `json:"status,omitempty"`
-	Icon    *string           `json:"icon,omitempty"`
-	Desc    *string           `json:"desc,omitempty"`
-	Content []content.Section `json:"content,omitempty"`
-	Likes   *int              `json:"likes,omitempty"`
-	Reposts *int              `json:"reposts,omitempty"`
+	Title   *string              `json:"title,omitempty"`
+	Status  *enums.ArticleStatus `json:"status,omitempty"`
+	Icon    *string              `json:"icon,omitempty"`
+	Desc    *string              `json:"desc,omitempty"`
+	Content []content.Section    `json:"content,omitempty"`
+	Likes   *int                 `json:"likes,omitempty"`
+	Reposts *int                 `json:"reposts,omitempty"`
 }
 
 func (a App) UpdateArticle(ctx context.Context, articleID uuid.UUID, request UpdateArticleRequest) (models.Article, error) {
 	UpdatedAt := time.Now().UTC()
 
-	_, err := models.ParseArticleStatus(*request.Status)
-	if err != nil {
-		return models.Article{}, err
-	}
-	err = a.articles.Update(articleID, repo.ArticleUpdateInput{
+	err := a.articles.Update(articleID, repo.ArticleUpdateInput{
 		Title:     request.Title,
 		Status:    request.Status,
 		Icon:      request.Icon,
 		Desc:      request.Desc,
 		Content:   request.Content,
-		Likes:     request.Likes,
-		Reposts:   request.Reposts,
 		UpdatedAt: UpdatedAt,
 	})
 	if err != nil {
@@ -87,11 +75,6 @@ func (a App) UpdateArticle(ctx context.Context, articleID uuid.UUID, request Upd
 	}
 
 	article, err := a.articles.GetByID(articleID)
-	if err != nil {
-		return models.Article{}, err
-	}
-
-	status, err := models.ParseArticleStatus(article.Status)
 	if err != nil {
 		return models.Article{}, err
 	}
@@ -106,13 +89,10 @@ func (a App) UpdateArticle(ctx context.Context, articleID uuid.UUID, request Upd
 	}
 	return models.Article{
 		ID:        article.ID,
-		Status:    status,
 		Title:     article.Title,
 		Icon:      article.Icon,
 		Desc:      article.Desc,
 		Content:   article.Content,
-		Likes:     article.Likes,
-		Reposts:   article.Reposts,
 		UpdatedAt: article.UpdatedAt,
 		CreatedAt: article.CreatedAt,
 		Authors:   authors,
@@ -124,45 +104,36 @@ func (a App) DeleteArticle(ctx context.Context, articleID uuid.UUID) error {
 	return a.articles.Delete(articleID)
 }
 
-func (a App) GetArticleByID(ctx context.Context, userID, articleID uuid.UUID) (models.Article, bool, error) {
+func (a App) GetArticleByID(ctx context.Context, articleID uuid.UUID) (models.Article, error) {
 	article, err := a.articles.GetByID(articleID)
 	if err != nil {
-		return models.Article{}, false, err
+		return models.Article{}, err
 	}
 
 	res := models.Article{
-		ID:     article.ID,
-		Status: models.ArticleStatus(article.Status),
-
+		ID:        article.ID,
 		Title:     article.Title,
 		Icon:      article.Icon,
 		Desc:      article.Desc,
 		Content:   article.Content,
-		Likes:     article.Likes,
-		Reposts:   article.Reposts,
 		UpdatedAt: article.UpdatedAt,
 		CreatedAt: article.CreatedAt,
 	}
 
 	authors, err := a.articles.GetAuthors(articleID)
 	if err != nil {
-		return models.Article{}, false, err
+		return models.Article{}, err
 	}
 
 	tags, err := a.articles.GetTags(articleID)
 	if err != nil {
-		return models.Article{}, false, err
+		return models.Article{}, err
 	}
 
 	res.Authors = authors
 	res.Tags = tags
 
-	likeIt, err := a.reactions.GetLikesForUserAndArticle(userID, articleID)
-	if err != nil {
-		return models.Article{}, false, err
-	}
-
-	return res, likeIt, nil
+	return res, nil
 }
 
 func (a App) SetTags(ctx context.Context, articleID uuid.UUID, tags []string) error {

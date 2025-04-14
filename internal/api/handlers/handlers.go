@@ -14,7 +14,7 @@ type App interface {
 	CreateArticle(ctx context.Context, request app.CreateArticleRequest) (models.Article, error)
 	UpdateArticle(ctx context.Context, articleID uuid.UUID, request app.UpdateArticleRequest) (models.Article, error)
 	DeleteArticle(ctx context.Context, articleID uuid.UUID) error
-	GetArticleByID(ctx context.Context, userID, articleID uuid.UUID) (models.Article, bool, error)
+	GetArticleByID(ctx context.Context, articleID uuid.UUID) (models.Article, error)
 	SetTags(ctx context.Context, articleID uuid.UUID, tags []string) error
 	SetAuthors(ctx context.Context, articleID uuid.UUID, authors []uuid.UUID) error
 }

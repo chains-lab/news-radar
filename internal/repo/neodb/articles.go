@@ -5,12 +5,13 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/hs-zavet/news-radar/internal/enums"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
 
 type ArticleModel struct {
 	ID     uuid.UUID
-	Status string
+	Status enums.ArticleStatus
 }
 
 type ArticlesImpl struct {
@@ -36,7 +37,7 @@ func NewArticles(uri, username, password string) (*ArticlesImpl, error) {
 
 type ArticleInsertInput struct {
 	ID     uuid.UUID
-	Status string
+	Status enums.ArticleStatus
 }
 
 func (a *ArticlesImpl) Create(ctx context.Context, input ArticleInsertInput) error {
@@ -120,7 +121,7 @@ func (a *ArticlesImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 }
 
-func (a *ArticlesImpl) UpdateStatus(ctx context.Context, ID uuid.UUID, status string) error {
+func (a *ArticlesImpl) UpdateStatus(ctx context.Context, ID uuid.UUID, status enums.ArticleStatus) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -205,9 +206,18 @@ func (a *ArticlesImpl) GetByID(ctx context.Context, ID uuid.UUID) (ArticleModel,
 				article := ArticleModel{
 					ID: ID,
 				}
-				if status, ok := props["status"].(string); ok {
-					article.Status = status
+
+				statusStr, ok := props["status"].(string)
+				if !ok {
+					return nil, fmt.Errorf("invalid status type")
 				}
+
+				st, ok := enums.ParseArticleStatus(statusStr)
+				if !ok {
+					return nil, fmt.Errorf("unknown status value: %q", statusStr)
+				}
+
+				article.Status = st
 
 				return article, nil
 			}

@@ -5,13 +5,13 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/hs-zavet/news-radar/internal/enums"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
 
 type AuthorModel struct {
-	ID     uuid.UUID `json:"id"`
-	Name   string    `json:"name"`
-	Status string    `json:"status"`
+	ID     uuid.UUID          `json:"id"`
+	Status enums.AuthorStatus `json:"status"`
 }
 
 type AuthorsImpl struct {
@@ -36,9 +36,8 @@ func NewAuthors(uri, username, password string) (*AuthorsImpl, error) {
 }
 
 type AuthorCreateInput struct {
-	ID     uuid.UUID `json:"id"`
-	Name   string    `json:"name"`
-	Status string    `json:"status"`
+	ID     uuid.UUID          `json:"id"`
+	Status enums.AuthorStatus `json:"status"`
 }
 
 func (a *AuthorsImpl) Create(ctx context.Context, input AuthorCreateInput) error {
@@ -56,7 +55,6 @@ func (a *AuthorsImpl) Create(ctx context.Context, input AuthorCreateInput) error
 			cypher := `
 				CREATE (au:Author { 
 					id: $id,
-					name: $name, 
 					status: $status 
 				})
 				RETURN au
@@ -64,8 +62,7 @@ func (a *AuthorsImpl) Create(ctx context.Context, input AuthorCreateInput) error
 
 			params := map[string]any{
 				"id":     input.ID.String(),
-				"name":   input.Name,
-				"status": input.Status,
+				"status": string(input.Status),
 			}
 
 			_, err := tx.Run(cypher, params)
@@ -123,49 +120,7 @@ func (a *AuthorsImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 }
 
-func (a *AuthorsImpl) UpdateName(ctx context.Context, id uuid.UUID, name string) error {
-	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
-	if err != nil {
-		return err
-	}
-
-	defer session.Close()
-
-	resultChan := make(chan error, 1)
-
-	go func() {
-		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-			cypher := `
-				MATCH (au:Author { id: $id })
-				SET au.name = $name
-				RETURN au
-			`
-
-			params := map[string]any{
-				"id":   id.String(),
-				"name": name,
-			}
-
-			_, err := tx.Run(cypher, params)
-			if err != nil {
-				return nil, fmt.Errorf("failed to update author: %w", err)
-			}
-			return nil, nil
-		})
-		resultChan <- err
-	}()
-
-	select {
-	case err := <-resultChan:
-		return err
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-
-	return err
-}
-
-func (a *AuthorsImpl) UpdateStatus(ctx context.Context, id uuid.UUID, status string) error {
+func (a *AuthorsImpl) UpdateStatus(ctx context.Context, id uuid.UUID, status enums.AuthorStatus) error {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
@@ -185,7 +140,7 @@ func (a *AuthorsImpl) UpdateStatus(ctx context.Context, id uuid.UUID, status str
 
 			params := map[string]any{
 				"id":     id.String(),
-				"status": status,
+				"status": string(status),
 			}
 
 			_, err := tx.Run(cypher, params)
@@ -251,10 +206,19 @@ func (a *AuthorsImpl) GetByID(ctx context.Context, ID uuid.UUID) (AuthorModel, e
 					return nil, fmt.Errorf("failed to parse author id: %w", err)
 				}
 
+				statusStr, ok := props["status"].(string)
+				if !ok {
+					return nil, fmt.Errorf("invalid status type")
+				}
+
+				status, ok := enums.ParseAuthorStatus(statusStr)
+				if !ok {
+					return nil, fmt.Errorf("invalid status value")
+				}
+
 				author := AuthorModel{
 					ID:     authorID,
-					Name:   props["name"].(string),
-					Status: props["status"].(string),
+					Status: status,
 				}
 
 				return author, nil

@@ -4,14 +4,16 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**Id** | **string** |  | 
 **Type** | **string** |  | 
-**Content** | **map[string]interface{}** |  | 
+**Text** | Pointer to [**[]ContentTextInner**](ContentTextInner.md) |  | [optional] 
+**Media** | Pointer to [**ContentMedia**](ContentMedia.md) |  | [optional] 
 
 ## Methods
 
 ### NewContent
 
-`func NewContent(type_ string, content map[string]interface{}, ) *Content`
+`func NewContent(id string, type_ string, ) *Content`
 
 NewContent instantiates a new Content object
 This constructor will assign default values to properties that have it defined,
@@ -25,6 +27,26 @@ will change when the set of required properties is changed
 NewContentWithDefaults instantiates a new Content object
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
+
+### GetId
+
+`func (o *Content) GetId() string`
+
+GetId returns the Id field if non-nil, zero value otherwise.
+
+### GetIdOk
+
+`func (o *Content) GetIdOk() (*string, bool)`
+
+GetIdOk returns a tuple with the Id field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetId
+
+`func (o *Content) SetId(v string)`
+
+SetId sets Id field to given value.
+
 
 ### GetType
 
@@ -46,25 +68,55 @@ and a boolean to check if the value has been set.
 SetType sets Type field to given value.
 
 
-### GetContent
+### GetText
 
-`func (o *Content) GetContent() map[string]interface{}`
+`func (o *Content) GetText() []ContentTextInner`
 
-GetContent returns the Content field if non-nil, zero value otherwise.
+GetText returns the Text field if non-nil, zero value otherwise.
 
-### GetContentOk
+### GetTextOk
 
-`func (o *Content) GetContentOk() (*map[string]interface{}, bool)`
+`func (o *Content) GetTextOk() (*[]ContentTextInner, bool)`
 
-GetContentOk returns a tuple with the Content field if it's non-nil, zero value otherwise
+GetTextOk returns a tuple with the Text field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
-### SetContent
+### SetText
 
-`func (o *Content) SetContent(v map[string]interface{})`
+`func (o *Content) SetText(v []ContentTextInner)`
 
-SetContent sets Content field to given value.
+SetText sets Text field to given value.
 
+### HasText
+
+`func (o *Content) HasText() bool`
+
+HasText returns a boolean if a field has been set.
+
+### GetMedia
+
+`func (o *Content) GetMedia() ContentMedia`
+
+GetMedia returns the Media field if non-nil, zero value otherwise.
+
+### GetMediaOk
+
+`func (o *Content) GetMediaOk() (*ContentMedia, bool)`
+
+GetMediaOk returns a tuple with the Media field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetMedia
+
+`func (o *Content) SetMedia(v ContentMedia)`
+
+SetMedia sets Media field to given value.
+
+### HasMedia
+
+`func (o *Content) HasMedia() bool`
+
+HasMedia returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

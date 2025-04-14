@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hs-zavet/news-radar/internal/config"
 	"github.com/hs-zavet/news-radar/internal/content"
+	"github.com/hs-zavet/news-radar/internal/enums"
 	"github.com/hs-zavet/news-radar/internal/repo/mongodb"
 	"github.com/hs-zavet/news-radar/internal/repo/neodb"
 )
@@ -17,16 +18,14 @@ const (
 )
 
 type ArticleModel struct {
-	ID        uuid.UUID         `json:"id" bson:"_id"`
-	Title     string            `json:"title" bson:"title"`
-	Icon      *string           `json:"icon,omitempty" bson:"icon,omitempty"`
-	Desc      *string           `json:"desc,omitempty" bson:"desc,omitempty"`
-	Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
-	Likes     int               `json:"likes" bson:"likes"`
-	Reposts   int               `json:"reposts" bson:"reposts"`
-	Status    string            `json:"status" bson:"status"`
-	UpdatedAt *time.Time        `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
-	CreatedAt time.Time         `json:"created_at" bson:"created_at"`
+	ID        uuid.UUID           `json:"id" bson:"_id"`
+	Status    enums.ArticleStatus `json:"status" bson:"status"`
+	Title     string              `json:"title" bson:"title"`
+	Icon      *string             `json:"icon,omitempty" bson:"icon,omitempty"`
+	Desc      *string             `json:"desc,omitempty" bson:"desc,omitempty"`
+	Content   []content.Section   `json:"content,omitempty" bson:"content,omitempty"`
+	UpdatedAt *time.Time          `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	CreatedAt time.Time           `json:"created_at" bson:"created_at"`
 }
 
 type articlesMongoQ interface {
@@ -55,7 +54,7 @@ type articlesNeoQ interface {
 
 	GetByID(ctx context.Context, ID uuid.UUID) (neodb.ArticleModel, error)
 
-	UpdateStatus(ctx context.Context, ID uuid.UUID, status string) error
+	UpdateStatus(ctx context.Context, ID uuid.UUID, status enums.ArticleStatus) error
 }
 
 type ArticlesRepo struct {
@@ -93,13 +92,10 @@ func NewArticles(cfg config.Config) (*ArticlesRepo, error) {
 }
 
 type ArticleCreateInput struct {
-	ID    uuid.UUID `json:"id" bson:"_id"`
-	Title string    `json:"title" bson:"title"`
-	//Icon      string            `json:"icon" bson:"icon"`
-	//Desc      string            `json:"desc" bson:"desc"`
-	Status string `json:"status" bson:"status"`
-	//Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
-	CreatedAt time.Time `json:"created_at" bson:"created_at"`
+	ID        uuid.UUID           `json:"id" bson:"_id"`
+	Title     string              `json:"title" bson:"title"`
+	Status    enums.ArticleStatus `json:"status" bson:"status"`
+	CreatedAt time.Time           `json:"created_at" bson:"created_at"`
 }
 
 func (a *ArticlesRepo) Create(input ArticleCreateInput) error {
@@ -107,11 +103,8 @@ func (a *ArticlesRepo) Create(input ArticleCreateInput) error {
 	defer cancel()
 
 	err := a.mongo.New().Insert(ctxSync, mongodb.ArticleInsertInput{
-		ID:    input.ID,
-		Title: input.Title,
-		//Icon:      input.Icon,
-		//Desc:      input.Desc,
-		//Content:   input.Content,
+		ID:        input.ID,
+		Title:     input.Title,
 		CreatedAt: input.CreatedAt,
 	})
 	if err != nil {
@@ -130,14 +123,12 @@ func (a *ArticlesRepo) Create(input ArticleCreateInput) error {
 }
 
 type ArticleUpdateInput struct {
-	Title     *string           `json:"title,omitempty" bson:"title,omitempty"`
-	Icon      *string           `json:"icon,omitempty" bson:"icon,omitempty"`
-	Desc      *string           `json:"desc,omitempty" bson:"desc,omitempty"`
-	Status    *string           `json:"status,omitempty" bson:"status,omitempty"`
-	Content   []content.Section `json:"content,omitempty" bson:"content,omitempty"`
-	Likes     *int              `json:"likes,omitempty" bson:"likes,omitempty"`
-	Reposts   *int              `json:"reposts,omitempty" bson:"reposts,omitempty"`
-	UpdatedAt time.Time         `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	Status    *enums.ArticleStatus `json:"status,omitempty" bson:"status,omitempty"`
+	Title     *string              `json:"title,omitempty" bson:"title,omitempty"`
+	Icon      *string              `json:"icon,omitempty" bson:"icon,omitempty"`
+	Desc      *string              `json:"desc,omitempty" bson:"desc,omitempty"`
+	Content   []content.Section    `json:"content,omitempty" bson:"content,omitempty"`
+	UpdatedAt time.Time            `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }
 
 func (a *ArticlesRepo) Update(ID uuid.UUID, input ArticleUpdateInput) error {
@@ -152,12 +143,11 @@ func (a *ArticlesRepo) Update(ID uuid.UUID, input ArticleUpdateInput) error {
 	}
 
 	_, err := a.mongo.FilterID(ID).Update(ctxSync, mongodb.ArticleUpdateInput{
+		Status:    input.Status,
 		Title:     input.Title,
 		Icon:      input.Icon,
 		Desc:      input.Desc,
 		Content:   input.Content,
-		Likes:     input.Likes,
-		Reposts:   input.Reposts,
 		UpdatedAt: input.UpdatedAt,
 	})
 	if err != nil {
@@ -217,8 +207,6 @@ func CreateArticleModel(mongo mongodb.ArticleModel, neo neodb.ArticleModel) (Art
 		Icon:      mongo.Icon,
 		Desc:      mongo.Desc,
 		Content:   mongo.Content,
-		Likes:     mongo.Likes,
-		Reposts:   mongo.Reposts,
 		Status:    neo.Status,
 		UpdatedAt: mongo.UpdatedAt,
 		CreatedAt: mongo.CreatedAt,
