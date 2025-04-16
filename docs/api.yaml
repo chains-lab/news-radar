@@ -42,6 +42,10 @@ components:
       $ref: './spec/components/schemas/AuthorshipSet.yaml'
     Content:
       $ref: './spec/components/schemas/Content.yaml'
+    ContentUpdate:
+      $ref: './spec/components/schemas/ContentUpdate.yaml'
+    ContentUpdateResponse:
+      $ref: './spec/components/schemas/ContentUpdateResponse.yaml'
     Tag:
       $ref: './spec/components/schemas/Tag.yaml'
     TagData:

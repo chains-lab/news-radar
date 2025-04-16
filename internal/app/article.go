@@ -100,6 +100,15 @@ func (a App) UpdateArticle(ctx context.Context, articleID uuid.UUID, request Upd
 	}, nil
 }
 
+func (a App) UpdateArticleContent(ctx context.Context, articleID uuid.UUID, index int, section content.Section) error {
+	err := a.articles.UpdateContent(articleID, index, section)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (a App) DeleteArticle(ctx context.Context, articleID uuid.UUID) error {
 	return a.articles.Delete(articleID)
 }

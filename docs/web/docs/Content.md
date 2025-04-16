@@ -8,6 +8,7 @@ Name | Type | Description | Notes
 **Type** | **string** |  | 
 **Text** | Pointer to [**[]ContentTextInner**](ContentTextInner.md) |  | [optional] 
 **Media** | Pointer to [**ContentMedia**](ContentMedia.md) |  | [optional] 
+**Audio** | Pointer to [**ContentAudio**](ContentAudio.md) |  | [optional] 
 
 ## Methods
 
@@ -117,6 +118,31 @@ SetMedia sets Media field to given value.
 `func (o *Content) HasMedia() bool`
 
 HasMedia returns a boolean if a field has been set.
+
+### GetAudio
+
+`func (o *Content) GetAudio() ContentAudio`
+
+GetAudio returns the Audio field if non-nil, zero value otherwise.
+
+### GetAudioOk
+
+`func (o *Content) GetAudioOk() (*ContentAudio, bool)`
+
+GetAudioOk returns a tuple with the Audio field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetAudio
+
+`func (o *Content) SetAudio(v ContentAudio)`
+
+SetAudio sets Audio field to given value.
+
+### HasAudio
+
+`func (o *Content) HasAudio() bool`
+
+HasAudio returns a boolean if a field has been set.
 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

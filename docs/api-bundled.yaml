@@ -382,6 +382,91 @@ components:
               type: integer
             source:
               type: string
+        audio:
+          type: object
+          required:
+            - url
+            - caption
+            - duration
+            - icon
+          properties:
+            url:
+              type: string
+            duration:
+              type: integer
+            caption:
+              type: string
+            icon:
+              type: string
+    ContentUpdate:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - type
+            - attributes
+          properties:
+            type:
+              type: string
+              enum:
+                - article_content_update
+            attributes:
+              type: object
+              required:
+                - sectionID
+                - action
+                - content
+              properties:
+                sectionID:
+                  type: integer
+                  description: The ID of the section to be updated.
+                action:
+                  type: string
+                  enum:
+                    - add
+                    - remove
+                    - update
+                  description: The action to be performed on the content.
+                content:
+                  $ref: '#/components/schemas/Content'
+    ContentUpdateResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - type
+            - attributes
+          properties:
+            type:
+              type: string
+              enum:
+                - article_content_update_response
+            attributes:
+              type: object
+              required:
+                - status
+                - section_number
+                - message
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - success
+                    - error
+                  description: The status of the content update operation.
+                message:
+                  type: string
+                  description: A message providing additional information about the operation.
+                section_number:
+                  type: integer
+                content:
+                  $ref: '#/components/schemas/Content'
     Tag:
       type: object
       required:
@@ -555,7 +640,7 @@ components:
                     description: The ID of the author.
                 articleID:
                   type: string
-                  format: uuid.UUID
+                  format: uuid
                   description: The ID of the article.
     Relationships:
       type: object

@@ -208,9 +208,25 @@ components:
           type: array
         media:
           $ref: '#/components/schemas/Content_media'
+        audio:
+          $ref: '#/components/schemas/Content_audio'
       required:
       - id
       - type
+      type: object
+    ContentUpdate:
+      properties:
+        data:
+          $ref: '#/components/schemas/ContentUpdate_data'
+      required:
+      - data
+      type: object
+    ContentUpdateResponse:
+      properties:
+        data:
+          $ref: '#/components/schemas/ContentUpdateResponse_data'
+      required:
+      - data
       type: object
     Tag:
       properties:
@@ -522,6 +538,85 @@ components:
       - url
       - width
       type: object
+    Content_audio:
+      properties:
+        url:
+          type: string
+        duration:
+          type: integer
+        caption:
+          type: string
+        icon:
+          type: string
+      required:
+      - caption
+      - duration
+      - icon
+      - url
+      type: object
+    ContentUpdate_data_attributes:
+      properties:
+        sectionID:
+          description: The ID of the section to be updated.
+          type: integer
+        action:
+          description: The action to be performed on the content.
+          enum:
+          - add
+          - remove
+          - update
+          type: string
+        content:
+          $ref: '#/components/schemas/Content'
+      required:
+      - action
+      - content
+      - sectionID
+      type: object
+    ContentUpdate_data:
+      properties:
+        type:
+          enum:
+          - article_content_update
+          type: string
+        attributes:
+          $ref: '#/components/schemas/ContentUpdate_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
+    ContentUpdateResponse_data_attributes:
+      properties:
+        status:
+          description: The status of the content update operation.
+          enum:
+          - success
+          - error
+          type: string
+        message:
+          description: A message providing additional information about the operation.
+          type: string
+        section_number:
+          type: integer
+        content:
+          $ref: '#/components/schemas/Content'
+      required:
+      - message
+      - section_number
+      - status
+      type: object
+    ContentUpdateResponse_data:
+      properties:
+        type:
+          enum:
+          - article_content_update_response
+          type: string
+        attributes:
+          $ref: '#/components/schemas/ContentUpdateResponse_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
     TagCreate_data_attributes:
       properties:
         name:
@@ -623,7 +718,7 @@ components:
           type: array
         articleID:
           description: The ID of the article.
-          format: uuid.UUID
+          format: uuid
           type: string
       required:
       - articleID

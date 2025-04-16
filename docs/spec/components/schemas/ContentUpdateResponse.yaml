@@ -1,0 +1,31 @@
+type: object
+required:
+  - data
+properties:
+  data:
+    type: object
+    required:
+      - type
+      - attributes
+    properties:
+      type:
+        type: string
+        enum: [ article_content_update_response ]
+      attributes:
+        type: object
+        required:
+          - status
+          - section_number
+          - message
+        properties:
+          status:
+            type: string
+            enum: [ success, error ]
+            description: The status of the content update operation.
+          message:
+            type: string
+            description: A message providing additional information about the operation.
+          section_number:
+            type: integer
+          content:
+            $ref: './Content.yaml'

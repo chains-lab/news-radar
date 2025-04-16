@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/google/uuid"
 	"github.com/hs-zavet/news-radar/internal/config"
+	"github.com/hs-zavet/news-radar/internal/content"
 	"github.com/hs-zavet/news-radar/internal/repo"
 	"github.com/sirupsen/logrus"
 )
@@ -50,6 +51,8 @@ type articlesRepo interface {
 	DeleteAuthor(ID uuid.UUID, author uuid.UUID) error
 	SetAuthors(ID uuid.UUID, authors []uuid.UUID) error
 	GetAuthors(ID uuid.UUID) ([]uuid.UUID, error)
+
+	UpdateContent(ID uuid.UUID, index int, section content.Section) error
 
 	GetByID(ID uuid.UUID) (repo.ArticleModel, error)
 }

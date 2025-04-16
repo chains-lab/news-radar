@@ -54,8 +54,11 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 
 				r.Route("/{article_id}", func(r chi.Router) {
 					r.Get("/", nil)
-					r.With(admin).Put("/", nil)
 					r.With(admin).Delete("/", a.handlers.DeleteArticle)
+
+					r.Route("/ws", func(r chi.Router) {
+						r.Get("/content", a.handlers.ArticleContentWS)
+					})
 
 					r.Route("/tags", func(r chi.Router) {
 						r.Get("/", nil)

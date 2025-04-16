@@ -25,6 +25,7 @@ type Content struct {
 	Type string `json:"type"`
 	Text []ContentTextInner `json:"text,omitempty"`
 	Media *ContentMedia `json:"media,omitempty"`
+	Audio *ContentAudio `json:"audio,omitempty"`
 }
 
 type _Content Content
@@ -160,6 +161,38 @@ func (o *Content) SetMedia(v ContentMedia) {
 	o.Media = &v
 }
 
+// GetAudio returns the Audio field value if set, zero value otherwise.
+func (o *Content) GetAudio() ContentAudio {
+	if o == nil || IsNil(o.Audio) {
+		var ret ContentAudio
+		return ret
+	}
+	return *o.Audio
+}
+
+// GetAudioOk returns a tuple with the Audio field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *Content) GetAudioOk() (*ContentAudio, bool) {
+	if o == nil || IsNil(o.Audio) {
+		return nil, false
+	}
+	return o.Audio, true
+}
+
+// HasAudio returns a boolean if a field has been set.
+func (o *Content) HasAudio() bool {
+	if o != nil && !IsNil(o.Audio) {
+		return true
+	}
+
+	return false
+}
+
+// SetAudio gets a reference to the given ContentAudio and assigns it to the Audio field.
+func (o *Content) SetAudio(v ContentAudio) {
+	o.Audio = &v
+}
+
 func (o Content) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -177,6 +210,9 @@ func (o Content) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Media) {
 		toSerialize["media"] = o.Media
+	}
+	if !IsNil(o.Audio) {
+		toSerialize["audio"] = o.Audio
 	}
 	return toSerialize, nil
 }

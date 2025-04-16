@@ -42,6 +42,7 @@ type articlesMongoQ interface {
 	FilterDate(filters map[string]any, after bool) *mongodb.ArticlesQ
 
 	Update(ctx context.Context, input mongodb.ArticleUpdateInput) (mongodb.ArticleModel, error)
+	UpdateContent(ctx context.Context, index int, section content.Section) error
 
 	Limit(limit int64) *mongodb.ArticlesQ
 	Skip(skip int64) *mongodb.ArticlesQ
@@ -154,6 +155,17 @@ func (a *ArticlesRepo) Update(ID uuid.UUID, input ArticleUpdateInput) error {
 		return err
 	}
 
+	return nil
+}
+
+func (a *ArticlesRepo) UpdateContent(ID uuid.UUID, index int, section content.Section) error {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	err := a.mongo.FilterID(ID).UpdateContent(ctxSync, index, section)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

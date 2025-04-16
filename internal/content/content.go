@@ -6,7 +6,15 @@ type Section struct {
 	ID    string            `json:"id" bson:"_id"`
 	Type  enums.SectionType `json:"type" bson:"type"`
 	Media *Media            `json:"media,omitempty" bson:"media,omitempty"`
+	Audio *Audio            `json:"audio,omitempty" bson:"audio,omitempty"`
 	Text  []TextBlock       `json:"blocks,omitempty" bson:"blocks,omitempty"`
+}
+
+type Audio struct {
+	URL      string `json:"url" bson:"url"`
+	Duration int    `json:"duration" bson:"duration"`
+	Caption  string `json:"caption" bson:"caption"`
+	Icon     string `json:"icon" bson:"icon"`
 }
 
 type Media struct {

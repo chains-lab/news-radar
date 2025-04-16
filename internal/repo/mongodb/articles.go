@@ -2,6 +2,7 @@ package mongodb
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -250,6 +251,68 @@ func (a *ArticlesQ) Update(ctx context.Context, input ArticleUpdateInput) (Artic
 	}
 
 	return updated, nil
+}
+
+func (a *ArticlesQ) UpdateContent(ctx context.Context, index int, section content.Section) error {
+	// 1) Сначала читаем текущую статью, чтобы узнать длину массива content.
+	var art ArticleModel
+	err := a.collection.FindOne(ctx, a.filters).Decode(&art)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return fmt.Errorf("article not found")
+		}
+		return fmt.Errorf("failed to load article: %w", err)
+	}
+
+	// 2) Помощник для проверки "пустой" секции
+	isEmpty := func(s content.Section) bool {
+		return s.Media == nil &&
+			len(s.Text) == 0 &&
+			s.Audio == nil
+	}
+
+	// 3) Строим документ обновления
+	var update bson.M
+
+	switch {
+	// 3a) Пустая секция и индекс в пределах — удаляем элемент:
+	case isEmpty(section) && index < len(art.Content):
+		update = bson.M{
+			// unset попавший в позицию null
+			"$unset": bson.M{fmt.Sprintf("content.%d", index): 1},
+			// удаляем все null из массива
+			"$pull": bson.M{"content": nil},
+			// обновляем метку времени
+			"$currentDate": bson.M{"updated_at": true},
+		}
+
+	// 3b) Непустая секция и индекс в пределах — перезаписываем:
+	case !isEmpty(section) && index < len(art.Content):
+		update = bson.M{
+			"$set":         bson.M{fmt.Sprintf("content.%d", index): section},
+			"$currentDate": bson.M{"updated_at": true},
+		}
+
+	// 3c) Непустая секция и индекс вне пределов — добавляем в конец:
+	case !isEmpty(section) && index >= len(art.Content):
+		update = bson.M{
+			"$push":        bson.M{"content": section},
+			"$currentDate": bson.M{"updated_at": true},
+		}
+
+	// 3d) Пустая секция и индекс вне пределов — просто обновляем метку времени:
+	default:
+		update = bson.M{
+			"$currentDate": bson.M{"updated_at": true},
+		}
+	}
+
+	// 4) Выполняем UpdateOne — это один запрос к БД
+	_, err = a.collection.UpdateOne(ctx, a.filters, update)
+	if err != nil {
+		return fmt.Errorf("failed to update content at index %d: %w", index, err)
+	}
+	return nil
 }
 
 func (a *ArticlesQ) Limit(limit int64) *ArticlesQ {

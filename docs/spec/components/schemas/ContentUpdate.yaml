@@ -1,0 +1,29 @@
+type: object
+required:
+  - data
+properties:
+  data:
+    type: object
+    required:
+      - type
+      - attributes
+    properties:
+      type:
+        type: string
+        enum: [ article_content_update ]
+      attributes:
+        type: object
+        required:
+          - sectionID
+          - action
+          - content
+        properties:
+          sectionID:
+            type: integer
+            description: The ID of the section to be updated.
+          action:
+            type: string
+            enum: [ add, remove, update ]
+            description: The action to be performed on the content.
+          content:
+            $ref: './Content.yaml'

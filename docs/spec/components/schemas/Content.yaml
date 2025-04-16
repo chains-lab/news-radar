@@ -44,3 +44,19 @@ properties:
         type: integer
       source:
         type: string
+  audio:
+    type: object
+    required:
+        - url
+        - caption
+        - duration
+        - icon
+    properties:
+      url:
+        type: string
+      duration:
+        type: integer
+      caption:
+        type: string
+      icon:
+        type: string
