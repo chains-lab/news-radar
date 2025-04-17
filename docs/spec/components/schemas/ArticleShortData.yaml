@@ -1,0 +1,29 @@
+type: object
+required:
+  - id
+  - type
+  - attributes
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "article ID"
+  type:
+    type: string
+    enum: [ article ]
+  attributes:
+    $ref: './ArticleShortAttributes.yaml'
+  relationships:
+    type: object
+    required:
+      - authors
+      - tags
+    properties:
+      authors:
+        type: array
+        items:
+          $ref: './Relationships.yaml'
+      tags:
+        type: array
+        items:
+          $ref: './Relationships.yaml'

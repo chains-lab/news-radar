@@ -17,13 +17,10 @@ properties:
         enum: [ tag_update ]
       attributes:
         type: object
-        required:
-          - status
-          - type
-          - description
-          - color
-          - icon
         properties:
+          name:
+            type: string
+            description: "tag name"
           status:
             type: string
             enum: [ active, inactive ]

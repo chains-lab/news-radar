@@ -1,0 +1,7 @@
+type: object
+required:
+  - data
+  - included
+properties:
+  data:
+    $ref: './ArticleShortData.yaml'

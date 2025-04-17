@@ -24,42 +24,57 @@ components:
       $ref: './spec/components/schemas/ArticleAttributes.yaml'
     ArticleInclude:
       $ref: './spec/components/schemas/ArticleInclude.yaml'
-    ArticleCreate:
-      $ref: './spec/components/schemas/ArticleCreate.yaml'
-    ArticleUpdate:
-      $ref: './spec/components/schemas/ArticleUpdate.yaml'
+    CreateArticle:
+      $ref: './spec/components/schemas/CreateArticle.yaml'
+    UpdateArticle:
+      $ref: './spec/components/schemas/UpdateArticle.yaml'
+    ArticleShort:
+      $ref: './spec/components/schemas/ArticleShort.yaml'
+    ArticleShortCollection:
+      $ref: './spec/components/schemas/ArticleShortCollection.yaml'
+
     Author:
       $ref: './spec/components/schemas/Author.yaml'
     AuthorData:
       $ref: './spec/components/schemas/AuthorData.yaml'
     AuthorAttributes:
       $ref: './spec/components/schemas/AuthorAttributes.yaml'
-    AuthorCreate:
-      $ref: './spec/components/schemas/AuthorCreate.yaml'
-    AuthorUpdate:
-      $ref: './spec/components/schemas/AuthorUpdate.yaml'
-    AuthorshipCreate:
-      $ref: './spec/components/schemas/AuthorshipSet.yaml'
+    CreateAuthor:
+      $ref: './spec/components/schemas/CreateAuthor.yaml'
+    UpdateAuthor:
+      $ref: './spec/components/schemas/UpdateAuthor.yaml'
+    AuthorsCollection:
+      $ref: './spec/components/schemas/AuthorsCollection.yaml'
+
+    SetAuthorship:
+      $ref: './spec/components/schemas/SetAuthorship.yaml'
+
     Content:
       $ref: './spec/components/schemas/Content.yaml'
-    ContentUpdate:
-      $ref: './spec/components/schemas/ContentUpdate.yaml'
-    ContentUpdateResponse:
-      $ref: './spec/components/schemas/ContentUpdateResponse.yaml'
+    UpdateContent:
+      $ref: './spec/components/schemas/UpdateContent.yaml'
+    UpdateContentResponse:
+      $ref: './spec/components/schemas/UpdateContentResponse.yaml'
+
     Tag:
       $ref: './spec/components/schemas/Tag.yaml'
     TagData:
       $ref: './spec/components/schemas/TagData.yaml'
     TagAttributes:
       $ref: './spec/components/schemas/TagAttributes.yaml'
-    TagCreate:
-      $ref: './spec/components/schemas/TagCreate.yaml'
-    TagUpdate:
-      $ref: './spec/components/schemas/TagUpdate.yaml'
-    HashtagCreate:
-      $ref: './spec/components/schemas/HashtagSet.yaml'
+    CreateTag:
+      $ref: './spec/components/schemas/CreateTag.yaml'
+    UpdateTag:
+      $ref: './spec/components/schemas/UpdateTag.yaml'
+    TagCollection:
+      $ref: './spec/components/schemas/TagCollection.yaml'
+
+    CreateHashtag:
+      $ref: './spec/components/schemas/SetHashtag.yaml'
+
     Relationships:
       $ref: './spec/components/schemas/Relationships.yaml'
+
     LinksDirect:
       $ref: './spec/components/schemas/LinksDirect.yaml'
     LinksPagination:

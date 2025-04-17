@@ -1,0 +1,23 @@
+type: object
+required:
+  - data
+  - links
+properties:
+  data:
+    type: object
+    required:
+      - type
+      - attributes
+    properties:
+      type:
+        type: string
+        enum: [ authors_collection ]
+      attributes:
+        type: object
+        required:
+          - data
+        properties:
+          data:
+            type: array
+            items:
+              $ref: './AuthorData.yaml'

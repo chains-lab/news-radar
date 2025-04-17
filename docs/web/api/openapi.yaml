@@ -20,6 +20,8 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/ArticleData'
+        included:
+          $ref: '#/components/schemas/ArticleInclude'
       required:
       - data
       - included
@@ -36,8 +38,6 @@ components:
           type: string
         attributes:
           $ref: '#/components/schemas/ArticleAttributes'
-        relationships:
-          $ref: '#/components/schemas/ArticleData_relationships'
       required:
       - attributes
       - id
@@ -65,16 +65,6 @@ components:
           items:
             $ref: '#/components/schemas/Content'
           type: array
-        likes:
-          description: Article likes
-          example: 100
-          format: int64
-          type: integer
-        reposts:
-          description: Article reposts
-          example: 50
-          format: int64
-          type: integer
         updated_at:
           description: Updated at
           example: 2020-01-01T00:00:00Z
@@ -90,8 +80,6 @@ components:
       - created_at
       - desc
       - icon
-      - likes
-      - reposts
       - status
       - title
       type: object
@@ -109,21 +97,37 @@ components:
       - authors
       - tags
       type: object
-    ArticleCreate:
+    CreateArticle:
       properties:
         data:
-          $ref: '#/components/schemas/ArticleCreate_data'
+          $ref: '#/components/schemas/CreateArticle_data'
       required:
       - data
       - included
       type: object
-    ArticleUpdate:
+    UpdateArticle:
       properties:
         data:
-          $ref: '#/components/schemas/ArticleUpdate_data'
+          $ref: '#/components/schemas/UpdateArticle_data'
       required:
       - data
       - included
+      type: object
+    ArticleShort:
+      properties:
+        data:
+          $ref: '#/components/schemas/ArticleShort_data'
+      required:
+      - data
+      - included
+      type: object
+    ArticleShortCollection:
+      properties:
+        data:
+          $ref: '#/components/schemas/ArticleShortCollection_data'
+      required:
+      - data
+      - links
       type: object
     Author:
       properties:
@@ -175,24 +179,32 @@ components:
       - created_at
       - name
       type: object
-    AuthorCreate:
+    CreateAuthor:
       properties:
         data:
-          $ref: '#/components/schemas/AuthorCreate_data'
+          $ref: '#/components/schemas/CreateAuthor_data'
       required:
       - data
       type: object
-    AuthorUpdate:
+    UpdateAuthor:
       properties:
         data:
-          $ref: '#/components/schemas/AuthorUpdate_data'
+          $ref: '#/components/schemas/UpdateAuthor_data'
       required:
       - data
       type: object
-    AuthorshipCreate:
+    AuthorsCollection:
       properties:
         data:
-          $ref: '#/components/schemas/AuthorshipCreate_data'
+          $ref: '#/components/schemas/AuthorsCollection_data'
+      required:
+      - data
+      - links
+      type: object
+    SetAuthorship:
+      properties:
+        data:
+          $ref: '#/components/schemas/SetAuthorship_data'
       required:
       - data
       type: object
@@ -214,17 +226,17 @@ components:
       - id
       - type
       type: object
-    ContentUpdate:
+    UpdateContent:
       properties:
         data:
-          $ref: '#/components/schemas/ContentUpdate_data'
+          $ref: '#/components/schemas/UpdateContent_data'
       required:
       - data
       type: object
-    ContentUpdateResponse:
+    UpdateContentResponse:
       properties:
         data:
-          $ref: '#/components/schemas/ContentUpdateResponse_data'
+          $ref: '#/components/schemas/UpdateContentResponse_data'
       required:
       - data
       type: object
@@ -275,24 +287,32 @@ components:
       - status
       - type
       type: object
-    TagCreate:
+    CreateTag:
       properties:
         data:
-          $ref: '#/components/schemas/TagCreate_data'
+          $ref: '#/components/schemas/CreateTag_data'
       required:
       - data
       type: object
-    TagUpdate:
+    UpdateTag:
       properties:
         data:
-          $ref: '#/components/schemas/TagUpdate_data'
+          $ref: '#/components/schemas/UpdateTag_data'
       required:
       - data
       type: object
-    HashtagCreate:
+    TagCollection:
       properties:
         data:
-          $ref: '#/components/schemas/HashtagCreate_data'
+          $ref: '#/components/schemas/TagCollection_data'
+      required:
+      - data
+      - links
+      type: object
+    CreateHashtag:
+      properties:
+        data:
+          $ref: '#/components/schemas/CreateHashtag_data'
       required:
       - data
       type: object
@@ -340,21 +360,7 @@ components:
       required:
       - self
       type: object
-    ArticleData_relationships:
-      properties:
-        authors:
-          items:
-            $ref: '#/components/schemas/Relationships'
-          type: array
-        tags:
-          items:
-            $ref: '#/components/schemas/Relationships'
-          type: array
-      required:
-      - authors
-      - tags
-      type: object
-    ArticleCreate_data_attributes:
+    CreateArticle_data_attributes:
       properties:
         title:
           description: Article title
@@ -363,19 +369,19 @@ components:
       required:
       - title
       type: object
-    ArticleCreate_data:
+    CreateArticle_data:
       properties:
         type:
           enum:
           - article_create
           type: string
         attributes:
-          $ref: '#/components/schemas/ArticleCreate_data_attributes'
+          $ref: '#/components/schemas/CreateArticle_data_attributes'
       required:
       - attributes
       - type
       type: object
-    ArticleUpdate_data_attributes:
+    UpdateArticle_data_attributes:
       properties:
         status:
           description: Article status
@@ -407,19 +413,98 @@ components:
             type: string
           type: array
       type: object
-    ArticleUpdate_data:
+    UpdateArticle_data:
       properties:
         type:
           enum:
           - article_updated
           type: string
         attributes:
-          $ref: '#/components/schemas/ArticleUpdate_data_attributes'
+          $ref: '#/components/schemas/UpdateArticle_data_attributes'
       required:
       - attributes
       - type
       type: object
-    AuthorCreate_data_attributes:
+    ArticleShort_data_attributes:
+      properties:
+        title:
+          description: Article title
+          example: Article title
+          type: string
+        icon:
+          description: Article link
+          example: Article link
+          type: string
+        desc:
+          description: Article description
+          example: Article description
+          type: string
+        created_at:
+          description: Created at
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
+      required:
+      - created_at
+      - desc
+      - icon
+      - title
+      type: object
+    ArticleShort_data_relationships:
+      properties:
+        authors:
+          items:
+            $ref: '#/components/schemas/Relationships'
+          type: array
+        tags:
+          items:
+            $ref: '#/components/schemas/Relationships'
+          type: array
+      required:
+      - authors
+      - tags
+      type: object
+    ArticleShort_data:
+      properties:
+        id:
+          description: article ID
+          format: uuid
+          type: string
+        type:
+          enum:
+          - article
+          type: string
+        attributes:
+          $ref: '#/components/schemas/ArticleShort_data_attributes'
+        relationships:
+          $ref: '#/components/schemas/ArticleShort_data_relationships'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+    ArticleShortCollection_data_attributes:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/ArticleShort/properties/data'
+          type: array
+      required:
+      - data
+      type: object
+    ArticleShortCollection_data:
+      properties:
+        type:
+          enum:
+          - article_short_collection
+          type: string
+        attributes:
+          $ref: '#/components/schemas/ArticleShortCollection_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
+    CreateAuthor_data_attributes:
       properties:
         name:
           type: string
@@ -436,21 +521,23 @@ components:
       required:
       - name
       type: object
-    AuthorCreate_data:
+    CreateAuthor_data:
       properties:
         type:
           enum:
           - author_create
           type: string
         attributes:
-          $ref: '#/components/schemas/AuthorCreate_data_attributes'
+          $ref: '#/components/schemas/CreateAuthor_data_attributes'
       required:
       - attributes
       - type
       type: object
-    AuthorUpdate_data_attributes:
+    UpdateAuthor_data_attributes:
       properties:
         name:
+          type: string
+        status:
           type: string
         desc:
           type: string
@@ -463,19 +550,40 @@ components:
         twitter:
           type: string
       type: object
-    AuthorUpdate_data:
+    UpdateAuthor_data:
       properties:
         type:
           enum:
           - author_update
           type: string
         attributes:
-          $ref: '#/components/schemas/AuthorUpdate_data_attributes'
+          $ref: '#/components/schemas/UpdateAuthor_data_attributes'
       required:
       - attributes
       - type
       type: object
-    AuthorshipCreate_data_attributes:
+    AuthorsCollection_data_attributes:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/AuthorData'
+          type: array
+      required:
+      - data
+      type: object
+    AuthorsCollection_data:
+      properties:
+        type:
+          enum:
+          - authors_collection
+          type: string
+        attributes:
+          $ref: '#/components/schemas/AuthorsCollection_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
+    SetAuthorship_data_attributes:
       properties:
         authorID:
           items:
@@ -491,14 +599,14 @@ components:
       - articleID
       - authors
       type: object
-    AuthorshipCreate_data:
+    SetAuthorship_data:
       properties:
         type:
           enum:
           - authorship_set
           type: string
         attributes:
-          $ref: '#/components/schemas/AuthorshipCreate_data_attributes'
+          $ref: '#/components/schemas/SetAuthorship_data_attributes'
       required:
       - attributes
       - type
@@ -554,7 +662,7 @@ components:
       - icon
       - url
       type: object
-    ContentUpdate_data_attributes:
+    UpdateContent_data_attributes:
       properties:
         sectionID:
           description: The ID of the section to be updated.
@@ -573,19 +681,19 @@ components:
       - content
       - sectionID
       type: object
-    ContentUpdate_data:
+    UpdateContent_data:
       properties:
         type:
           enum:
           - article_content_update
           type: string
         attributes:
-          $ref: '#/components/schemas/ContentUpdate_data_attributes'
+          $ref: '#/components/schemas/UpdateContent_data_attributes'
       required:
       - attributes
       - type
       type: object
-    ContentUpdateResponse_data_attributes:
+    UpdateContentResponse_data_attributes:
       properties:
         status:
           description: The status of the content update operation.
@@ -605,19 +713,19 @@ components:
       - section_number
       - status
       type: object
-    ContentUpdateResponse_data:
+    UpdateContentResponse_data:
       properties:
         type:
           enum:
           - article_content_update_response
           type: string
         attributes:
-          $ref: '#/components/schemas/ContentUpdateResponse_data_attributes'
+          $ref: '#/components/schemas/UpdateContentResponse_data_attributes'
       required:
       - attributes
       - type
       type: object
-    TagCreate_data_attributes:
+    CreateTag_data_attributes:
       properties:
         name:
           description: tag name
@@ -650,21 +758,24 @@ components:
       - status
       - type
       type: object
-    TagCreate_data:
+    CreateTag_data:
       properties:
         type:
           enum:
           - tag_create
           type: string
         attributes:
-          $ref: '#/components/schemas/TagCreate_data_attributes'
+          $ref: '#/components/schemas/CreateTag_data_attributes'
       required:
       - attributes
       - id
       - type
       type: object
-    TagUpdate_data_attributes:
+    UpdateTag_data_attributes:
       properties:
+        name:
+          description: tag name
+          type: string
         status:
           description: tag status
           enum:
@@ -685,14 +796,8 @@ components:
         icon:
           description: tag icon
           type: string
-      required:
-      - color
-      - description
-      - icon
-      - status
-      - type
       type: object
-    TagUpdate_data:
+    UpdateTag_data:
       properties:
         id:
           description: tag name
@@ -702,13 +807,34 @@ components:
           - tag_update
           type: string
         attributes:
-          $ref: '#/components/schemas/TagUpdate_data_attributes'
+          $ref: '#/components/schemas/UpdateTag_data_attributes'
       required:
       - attributes
       - id
       - type
       type: object
-    HashtagCreate_data_attributes:
+    TagCollection_data_attributes:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/TagData'
+          type: array
+      required:
+      - data
+      type: object
+    TagCollection_data:
+      properties:
+        type:
+          enum:
+          - tags_collection
+          type: string
+        attributes:
+          $ref: '#/components/schemas/TagCollection_data_attributes'
+      required:
+      - attributes
+      - type
+      type: object
+    CreateHashtag_data_attributes:
       properties:
         tags:
           items:
@@ -724,14 +850,14 @@ components:
       - articleID
       - tags
       type: object
-    HashtagCreate_data:
+    CreateHashtag_data:
       properties:
         type:
           enum:
           - hashtag_set
           type: string
         attributes:
-          $ref: '#/components/schemas/HashtagCreate_data_attributes'
+          $ref: '#/components/schemas/CreateHashtag_data_attributes'
       required:
       - attributes
       - type

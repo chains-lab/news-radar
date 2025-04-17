@@ -5,12 +5,13 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Data** | [**ArticleData**](ArticleData.md) |  | 
+**Included** | [**ArticleInclude**](ArticleInclude.md) |  | 
 
 ## Methods
 
 ### NewArticle
 
-`func NewArticle(data ArticleData, ) *Article`
+`func NewArticle(data ArticleData, included ArticleInclude, ) *Article`
 
 NewArticle instantiates a new Article object
 This constructor will assign default values to properties that have it defined,
@@ -43,6 +44,26 @@ and a boolean to check if the value has been set.
 `func (o *Article) SetData(v ArticleData)`
 
 SetData sets Data field to given value.
+
+
+### GetIncluded
+
+`func (o *Article) GetIncluded() ArticleInclude`
+
+GetIncluded returns the Included field if non-nil, zero value otherwise.
+
+### GetIncludedOk
+
+`func (o *Article) GetIncludedOk() (*ArticleInclude, bool)`
+
+GetIncludedOk returns a tuple with the Included field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetIncluded
+
+`func (o *Article) SetIncluded(v ArticleInclude)`
+
+SetIncluded sets Included field to given value.
 
 
 

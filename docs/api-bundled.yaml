@@ -22,6 +22,8 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/ArticleData'
+        included:
+          $ref: '#/components/schemas/ArticleInclude'
     ArticleData:
       type: object
       required:
@@ -39,20 +41,6 @@ components:
             - article
         attributes:
           $ref: '#/components/schemas/ArticleAttributes'
-        relationships:
-          type: object
-          required:
-            - authors
-            - tags
-          properties:
-            authors:
-              type: array
-              items:
-                $ref: '#/components/schemas/Relationships'
-            tags:
-              type: array
-              items:
-                $ref: '#/components/schemas/Relationships'
     ArticleAttributes:
       type: object
       required:
@@ -61,8 +49,6 @@ components:
         - icon
         - desc
         - content
-        - likes
-        - reposts
         - created_at
       properties:
         title:
@@ -85,16 +71,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Content'
-        likes:
-          type: integer
-          description: Article likes
-          format: int64
-          example: 100
-        reposts:
-          type: integer
-          description: Article reposts
-          format: int64
-          example: 50
         updated_at:
           type: string
           format: date-time
@@ -119,7 +95,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TagData'
-    ArticleCreate:
+    CreateArticle:
       type: object
       required:
         - data
@@ -144,7 +120,7 @@ components:
                   type: string
                   description: Article title
                   example: Article title
-    ArticleUpdate:
+    UpdateArticle:
       type: object
       required:
         - data
@@ -192,6 +168,91 @@ components:
                   type: array
                   items:
                     type: string
+    ArticleShort:
+      type: object
+      required:
+        - data
+        - included
+      properties:
+        data:
+          type: object
+          required:
+            - id
+            - type
+            - attributes
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: article ID
+            type:
+              type: string
+              enum:
+                - article
+            attributes:
+              type: object
+              required:
+                - title
+                - icon
+                - desc
+                - created_at
+              properties:
+                title:
+                  type: string
+                  description: Article title
+                  example: Article title
+                icon:
+                  type: string
+                  description: Article link
+                  example: Article link
+                desc:
+                  type: string
+                  description: Article description
+                  example: Article description
+                created_at:
+                  type: string
+                  format: date-time
+                  description: Created at
+                  example: '2020-01-01T00:00:00Z'
+            relationships:
+              type: object
+              required:
+                - authors
+                - tags
+              properties:
+                authors:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Relationships'
+                tags:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Relationships'
+    ArticleShortCollection:
+      type: object
+      required:
+        - data
+        - links
+      properties:
+        data:
+          type: object
+          required:
+            - type
+            - attributes
+          properties:
+            type:
+              type: string
+              enum:
+                - article_short_collection
+            attributes:
+              type: object
+              required:
+                - data
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ArticleShort/properties/data'
     Author:
       type: object
       required:
@@ -242,7 +303,7 @@ components:
         created_at:
           type: string
           format: date-time
-    AuthorCreate:
+    CreateAuthor:
       type: object
       required:
         - data
@@ -274,7 +335,7 @@ components:
                   type: string
                 twitter:
                   type: string
-    AuthorUpdate:
+    UpdateAuthor:
       type: object
       required:
         - data
@@ -294,6 +355,8 @@ components:
               properties:
                 name:
                   type: string
+                status:
+                  type: string
                 desc:
                   type: string
                 avatar:
@@ -304,7 +367,32 @@ components:
                   type: string
                 twitter:
                   type: string
-    AuthorshipCreate:
+    AuthorsCollection:
+      type: object
+      required:
+        - data
+        - links
+      properties:
+        data:
+          type: object
+          required:
+            - type
+            - attributes
+          properties:
+            type:
+              type: string
+              enum:
+                - authors_collection
+            attributes:
+              type: object
+              required:
+                - data
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/AuthorData'
+    SetAuthorship:
       type: object
       required:
         - data
@@ -398,7 +486,7 @@ components:
               type: string
             icon:
               type: string
-    ContentUpdate:
+    UpdateContent:
       type: object
       required:
         - data
@@ -432,7 +520,7 @@ components:
                   description: The action to be performed on the content.
                 content:
                   $ref: '#/components/schemas/Content'
-    ContentUpdateResponse:
+    UpdateContentResponse:
       type: object
       required:
         - data
@@ -514,7 +602,7 @@ components:
         created_at:
           type: string
           format: date-time
-    TagCreate:
+    CreateTag:
       type: object
       required:
         - data
@@ -563,7 +651,7 @@ components:
                 icon:
                   type: string
                   description: tag icon
-    TagUpdate:
+    UpdateTag:
       type: object
       required:
         - data
@@ -584,13 +672,10 @@ components:
                 - tag_update
             attributes:
               type: object
-              required:
-                - status
-                - type
-                - description
-                - color
-                - icon
               properties:
+                name:
+                  type: string
+                  description: tag name
                 status:
                   type: string
                   enum:
@@ -611,7 +696,32 @@ components:
                 icon:
                   type: string
                   description: tag icon
-    HashtagCreate:
+    TagCollection:
+      type: object
+      required:
+        - data
+        - links
+      properties:
+        data:
+          type: object
+          required:
+            - type
+            - attributes
+          properties:
+            type:
+              type: string
+              enum:
+                - tags_collection
+            attributes:
+              type: object
+              required:
+                - data
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/TagData'
+    CreateHashtag:
       type: object
       required:
         - data

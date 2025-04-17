@@ -16,6 +16,8 @@ properties:
         properties:
           name:
             type: string
+          status:
+            type: string
           desc:
             type: string
           avatar:

@@ -5,3 +5,5 @@ required:
 properties:
   data:
     $ref: './ArticleData.yaml'
+  included:
+    $ref: './ArticleInclude.yaml'

@@ -1,20 +1,14 @@
 type: object
 required:
   - title
-  - status
   - icon
   - desc
-  - content
   - created_at
 properties:
   title:
     type: string
     description: "Article title"
     example: "Article title"
-  status:
-    type: string
-    description: "Article status"
-    example: "Article status"
   icon:
     type: string
     description: "Article link"
@@ -23,15 +17,6 @@ properties:
     type: string
     description: "Article description"
     example: "Article description"
-  content:
-    type: array
-    items:
-      $ref: './Content.yaml'
-  updated_at:
-    type: string
-    format: date-time
-    description: "Updated at"
-    example: "2020-01-01T00:00:00Z"
   created_at:
     type: string
     format: date-time
