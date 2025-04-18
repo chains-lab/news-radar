@@ -40,9 +40,13 @@ type articlesMongoQ interface {
 	FilterID(id uuid.UUID) *mongodb.ArticlesQ
 	FilterTitle(title string) *mongodb.ArticlesQ
 	FilterDate(filters map[string]any, after bool) *mongodb.ArticlesQ
+	FilterStatus(status enums.ArticleStatus) *mongodb.ArticlesQ
 
-	Update(ctx context.Context, input mongodb.ArticleUpdateInput) (mongodb.ArticleModel, error)
-	UpdateContent(ctx context.Context, index int, section content.Section) error
+	UpdateStatus(ctx context.Context, updatedAt time.Time, status enums.ArticleStatus) (mongodb.ArticleModel, error)
+	UpdateTitle(ctx context.Context, updatedAt time.Time, title string) (mongodb.ArticleModel, error)
+	UpdateIcon(ctx context.Context, updatedAt time.Time, icon *string) (mongodb.ArticleModel, error)
+	UpdateDesc(ctx context.Context, updatedAt time.Time, desc *string) (mongodb.ArticleModel, error)
+	UpdateContent(ctx context.Context, updatedAt time.Time, index int, section content.Section) (mongodb.ArticleModel, error)
 
 	Limit(limit int64) *mongodb.ArticlesQ
 	Skip(skip int64) *mongodb.ArticlesQ
@@ -123,50 +127,114 @@ func (a *ArticlesRepo) Create(input ArticleCreateInput) error {
 	return nil
 }
 
-type ArticleUpdateInput struct {
-	Status    *enums.ArticleStatus `json:"status,omitempty" bson:"status,omitempty"`
-	Title     *string              `json:"title,omitempty" bson:"title,omitempty"`
-	Icon      *string              `json:"icon,omitempty" bson:"icon,omitempty"`
-	Desc      *string              `json:"desc,omitempty" bson:"desc,omitempty"`
-	Content   []content.Section    `json:"content,omitempty" bson:"content,omitempty"`
-	UpdatedAt time.Time            `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
-}
-
-func (a *ArticlesRepo) Update(ID uuid.UUID, input ArticleUpdateInput) error {
+func (a *ArticlesRepo) UpdateStatus(ID uuid.UUID, status enums.ArticleStatus) (ArticleModel, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	if input.Status != nil {
-		err := a.neo.UpdateStatus(ctxSync, ID, *input.Status)
-		if err != nil {
-			return err
-		}
-	}
-
-	_, err := a.mongo.FilterID(ID).Update(ctxSync, mongodb.ArticleUpdateInput{
-		Status:    input.Status,
-		Title:     input.Title,
-		Icon:      input.Icon,
-		Desc:      input.Desc,
-		Content:   input.Content,
-		UpdatedAt: input.UpdatedAt,
-	})
+	err := a.neo.UpdateStatus(ctxSync, ID, status)
 	if err != nil {
-		return err
+		return ArticleModel{}, err
 	}
 
-	return nil
+	res, err := a.mongo.FilterID(ID).UpdateStatus(ctxSync, time.Now().UTC(), status)
+	if err != nil {
+		return ArticleModel{}, err
+	}
+
+	return ArticleModel{
+		ID:        res.ID,
+		Status:    res.Status,
+		Title:     res.Title,
+		Icon:      res.Icon,
+		Desc:      res.Desc,
+		Content:   res.Content,
+		UpdatedAt: res.UpdatedAt,
+		CreatedAt: res.CreatedAt,
+	}, nil
 }
 
-func (a *ArticlesRepo) UpdateContent(ID uuid.UUID, index int, section content.Section) error {
+func (a *ArticlesRepo) UpdateTitle(ID uuid.UUID, title string) (ArticleModel, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	err := a.mongo.FilterID(ID).UpdateContent(ctxSync, index, section)
+	res, err := a.mongo.FilterID(ID).UpdateTitle(ctxSync, time.Now().UTC(), title)
 	if err != nil {
-		return err
+		return ArticleModel{}, err
 	}
-	return nil
+
+	return ArticleModel{
+		ID:        res.ID,
+		Status:    res.Status,
+		Title:     res.Title,
+		Icon:      res.Icon,
+		Desc:      res.Desc,
+		Content:   res.Content,
+		UpdatedAt: res.UpdatedAt,
+		CreatedAt: res.CreatedAt,
+	}, nil
+}
+
+func (a *ArticlesRepo) UpdateIcon(ID uuid.UUID, icon *string) (ArticleModel, error) {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	res, err := a.mongo.FilterID(ID).UpdateIcon(ctxSync, time.Now().UTC(), icon)
+	if err != nil {
+		return ArticleModel{}, err
+	}
+
+	return ArticleModel{
+		ID:        res.ID,
+		Status:    res.Status,
+		Title:     res.Title,
+		Icon:      res.Icon,
+		Desc:      res.Desc,
+		Content:   res.Content,
+		UpdatedAt: res.UpdatedAt,
+		CreatedAt: res.CreatedAt,
+	}, nil
+}
+
+func (a *ArticlesRepo) UpdateDesc(ID uuid.UUID, desc *string) (ArticleModel, error) {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	res, err := a.mongo.FilterID(ID).UpdateDesc(ctxSync, time.Now().UTC(), desc)
+	if err != nil {
+		return ArticleModel{}, err
+	}
+
+	return ArticleModel{
+		ID:        res.ID,
+		Status:    res.Status,
+		Title:     res.Title,
+		Icon:      res.Icon,
+		Desc:      res.Desc,
+		Content:   res.Content,
+		UpdatedAt: res.UpdatedAt,
+		CreatedAt: res.CreatedAt,
+	}, nil
+}
+
+func (a *ArticlesRepo) UpdateContent(ID uuid.UUID, index int, section content.Section) (ArticleModel, error) {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	res, err := a.mongo.FilterID(ID).UpdateContent(ctxSync, time.Now().UTC(), index, section)
+	if err != nil {
+		return ArticleModel{}, err
+	}
+
+	return ArticleModel{
+		ID:        res.ID,
+		Status:    res.Status,
+		Title:     res.Title,
+		Icon:      res.Icon,
+		Desc:      res.Desc,
+		Content:   res.Content,
+		UpdatedAt: res.UpdatedAt,
+		CreatedAt: res.CreatedAt,
+	}, nil
 }
 
 func (a *ArticlesRepo) Delete(ID uuid.UUID) error {

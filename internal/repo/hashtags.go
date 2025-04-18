@@ -11,6 +11,7 @@ type hashtag interface {
 	Delete(ctx context.Context, articleID uuid.UUID, tag string) error
 
 	GetForArticle(ctx context.Context, articleID uuid.UUID) ([]string, error)
+	GetArticlesForTag(ctx context.Context, tag string) ([]uuid.UUID, error)
 
 	SetForArticle(ctx context.Context, articleID uuid.UUID, tags []string) error
 }
@@ -61,4 +62,16 @@ func (a *ArticlesRepo) GetTags(articleID uuid.UUID) ([]string, error) {
 	}
 
 	return tags, nil
+}
+
+func (a *ArticlesRepo) GetArticlesForTag(name string) ([]uuid.UUID, error) {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	articles, err := a.hashtag.GetArticlesForTag(ctxSync, name)
+	if err != nil {
+		return nil, err
+	}
+
+	return articles, nil
 }

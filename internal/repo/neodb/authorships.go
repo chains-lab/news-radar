@@ -108,62 +108,6 @@ func (a *Authorship) Delete(ctx context.Context, articleID uuid.UUID, authorID u
 	}
 }
 
-func (a *Authorship) SetForArticle(ctx context.Context, articleID uuid.UUID, authors []uuid.UUID) error {
-	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
-	if err != nil {
-		return err
-	}
-
-	defer session.Close()
-
-	resultChan := make(chan error, 1)
-
-	go func() {
-		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-			deleteCypher := `
-				MATCH (a:Article { id: $id })-[r:AUTHORED_BY]->(:Author)
-				DELETE r
-			`
-			params := map[string]any{
-				"id": articleID.String(),
-			}
-			_, err := tx.Run(deleteCypher, params)
-			if err != nil {
-				return nil, fmt.Errorf("failed to delete existing Authorship relationships: %w", err)
-			}
-
-			authorIDs := make([]string, len(authors))
-			for i, authID := range authors {
-				authorIDs[i] = authID.String()
-			}
-
-			createCypher := `
-				MATCH (a:Article { id: $id })
-				FOREACH (authorId IN $authors |
-					MATCH (au:Author { id: authorId })
-					MERGE (a)-[:AUTHORED_BY]->(au)
-				)
-			`
-			params["authors"] = authorIDs
-
-			_, err = tx.Run(createCypher, params)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create new Authorship relationships: %w", err)
-			}
-
-			return nil, nil
-		})
-		resultChan <- err
-	}()
-
-	select {
-	case err := <-resultChan:
-		return err
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-}
-
 func (a *Authorship) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]uuid.UUID, error) {
 	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
@@ -296,5 +240,61 @@ func (a *Authorship) GetForAuthor(ctx context.Context, authorID uuid.UUID) ([]uu
 		return res.ids, res.err
 	case <-ctx.Done():
 		return nil, ctx.Err()
+	}
+}
+
+func (a *Authorship) SetForArticle(ctx context.Context, articleID uuid.UUID, authors []uuid.UUID) error {
+	session, err := a.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	if err != nil {
+		return err
+	}
+
+	defer session.Close()
+
+	resultChan := make(chan error, 1)
+
+	go func() {
+		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+			deleteCypher := `
+				MATCH (a:Article { id: $id })-[r:AUTHORED_BY]->(:Author)
+				DELETE r
+			`
+			params := map[string]any{
+				"id": articleID.String(),
+			}
+			_, err := tx.Run(deleteCypher, params)
+			if err != nil {
+				return nil, fmt.Errorf("failed to delete existing Authorship relationships: %w", err)
+			}
+
+			authorIDs := make([]string, len(authors))
+			for i, authID := range authors {
+				authorIDs[i] = authID.String()
+			}
+
+			createCypher := `
+				MATCH (a:Article { id: $id })
+				FOREACH (authorId IN $authors |
+					MATCH (au:Author { id: authorId })
+					MERGE (a)-[:AUTHORED_BY]->(au)
+				)
+			`
+			params["authors"] = authorIDs
+
+			_, err = tx.Run(createCypher, params)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create new Authorship relationships: %w", err)
+			}
+
+			return nil, nil
+		})
+		resultChan <- err
+	}()
+
+	select {
+	case err := <-resultChan:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
 	}
 }

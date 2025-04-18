@@ -14,7 +14,7 @@ import (
 
 type AuthorModel struct {
 	ID        uuid.UUID          `json:"id" bson:"id"`
-	Name      string             `json:"name" bson:"name"`
+	Title     string             `json:"title" bson:"title"`
 	Status    enums.AuthorStatus `json:"status" bson:"status"`
 	Desc      *string            `json:"desc" bson:"desc"`
 	Avatar    *string            `json:"avatar,omitempty" bson:"avatar,omitempty"`
@@ -37,7 +37,14 @@ type authorsMongo interface {
 	FilterID(id uuid.UUID) *mongodb.AuthorsQ
 	FilterName(name string) *mongodb.AuthorsQ
 
-	Update(ctx context.Context, input mongodb.AuthorUpdateInput) (mongodb.AuthorModel, error)
+	UpdateStatus(ctx context.Context, status enums.AuthorStatus, updatedAt time.Time) (mongodb.AuthorModel, error)
+	UpdateDescription(ctx context.Context, desc *string, updatedAt time.Time) (mongodb.AuthorModel, error)
+	UpdateAvatar(ctx context.Context, avatar *string, updatedAt time.Time) (mongodb.AuthorModel, error)
+	UpdateContactInfo(
+		ctx context.Context,
+		email, telegram, twitter *string,
+		updatedAt time.Time,
+	) (mongodb.AuthorModel, error)
 
 	Limit(limit int64) *mongodb.AuthorsQ
 	Skip(skip int64) *mongodb.AuthorsQ
@@ -79,11 +86,6 @@ type AuthorCreateInput struct {
 	ID        uuid.UUID          `json:"id" bson:"id"`
 	Name      string             `json:"name" bson:"name"`
 	Status    enums.AuthorStatus `json:"status" bson:"status"`
-	Desc      *string            `json:"desc" bson:"desc"`
-	Avatar    *string            `json:"avatar,omitempty" bson:"avatar,omitempty"`
-	Email     *string            `json:"email,omitempty" bson:"email,omitempty"`
-	Telegram  *string            `json:"telegram,omitempty" bson:"telegram,omitempty"`
-	Twitter   *string            `json:"twitter,omitempty" bson:"twitter,omitempty"`
 	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
 }
 
@@ -94,12 +96,8 @@ func (a *Authors) Create(input AuthorCreateInput) error {
 	err := a.mongo.New().Insert(ctxSync, mongodb.AuthorInsertInput{
 		ID:        input.ID,
 		Name:      input.Name,
+		Status:    input.Status,
 		CreatedAt: input.CreatedAt,
-		Desc:      input.Desc,
-		Avatar:    input.Avatar,
-		Email:     input.Email,
-		Telegram:  input.Telegram,
-		Twitter:   input.Twitter,
 	})
 
 	if err = a.neo.Create(ctxSync, neodb.AuthorCreateInput{
@@ -112,41 +110,89 @@ func (a *Authors) Create(input AuthorCreateInput) error {
 	return nil
 }
 
-type AuthorUpdateInput struct {
-	Name      *string             `json:"name" bson:"name"`
-	Status    *enums.AuthorStatus `json:"status" bson:"status"`
-	Desc      *string             `json:"desc" bson:"desc"`
-	Avatar    *string             `json:"avatar,omitempty" bson:"avatar,omitempty"`
-	Email     *string             `json:"email,omitempty" bson:"email,omitempty"`
-	Telegram  *string             `json:"telegram,omitempty" bson:"telegram,omitempty"`
-	Twitter   *string             `json:"twitter,omitempty" bson:"twitter,omitempty"`
-	UpdatedAt time.Time           `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
-}
-
-func (a *Authors) Update(ID uuid.UUID, input AuthorUpdateInput) error {
+func (a *Authors) UpdateStatus(ID uuid.UUID, status enums.AuthorStatus, updatedAt time.Time) (AuthorModel, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	if input.Status == nil {
-		if err := a.neo.UpdateStatus(ctxSync, ID, *input.Status); err != nil {
-			return err
-		}
+	if err := a.neo.UpdateStatus(ctxSync, ID, status); err != nil {
+		return AuthorModel{}, err
 	}
 
-	_, err := a.mongo.New().FilterID(ID).Update(ctxSync, mongodb.AuthorUpdateInput{
-		Name:      input.Name,
-		Desc:      input.Desc,
-		Avatar:    input.Avatar,
-		Email:     input.Email,
-		Telegram:  input.Telegram,
-		Twitter:   input.Twitter,
-		UpdatedAt: input.UpdatedAt,
+	mongo, err := a.mongo.New().FilterID(ID).UpdateStatus(ctxSync, status, updatedAt)
+	if err != nil {
+		return AuthorModel{}, err
+	}
+
+	res, err := authorsCreateModel(mongo, neodb.AuthorModel{
+		ID:     ID,
+		Status: status,
 	})
 	if err != nil {
-		return err
+		return AuthorModel{}, err
 	}
 
-	return nil
+	return res, nil
+}
+
+func (a *Authors) UpdateDescription(ID uuid.UUID, desc *string, updatedAt time.Time) (AuthorModel, error) {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	mongo, err := a.mongo.New().FilterID(ID).UpdateDescription(ctxSync, desc, updatedAt)
+	if err != nil {
+		return AuthorModel{}, err
+	}
+
+	res, err := authorsCreateModel(mongo, neodb.AuthorModel{
+		ID:     ID,
+		Status: mongo.Status,
+	})
+	if err != nil {
+		return AuthorModel{}, err
+	}
+
+	return res, nil
+}
+
+func (a *Authors) UpdateAvatar(ID uuid.UUID, avatar *string, updatedAt time.Time) (AuthorModel, error) {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	mongo, err := a.mongo.New().FilterID(ID).UpdateAvatar(ctxSync, avatar, updatedAt)
+	if err != nil {
+		return AuthorModel{}, err
+	}
+
+	res, err := authorsCreateModel(mongo, neodb.AuthorModel{
+		ID:     ID,
+		Status: mongo.Status,
+	})
+	if err != nil {
+		return AuthorModel{}, err
+	}
+
+	return res, nil
+}
+
+func (a *Authors) UpdateContactInfo(
+	ID uuid.UUID, email, telegram, twitter *string, updatedAt time.Time) (AuthorModel, error) {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	mongo, err := a.mongo.New().FilterID(ID).UpdateContactInfo(ctxSync, email, telegram, twitter, updatedAt)
+	if err != nil {
+		return AuthorModel{}, err
+	}
+
+	res, err := authorsCreateModel(mongo, neodb.AuthorModel{
+		ID:     ID,
+		Status: mongo.Status,
+	})
+	if err != nil {
+		return AuthorModel{}, err
+	}
+
+	return res, nil
 }
 
 func (a *Authors) Delete(ID uuid.UUID) error {
@@ -178,7 +224,7 @@ func (a *Authors) GetByID(ID uuid.UUID) (AuthorModel, error) {
 		return AuthorModel{}, err
 	}
 
-	res, err := AuthorsCreateModel(mongo, neo)
+	res, err := authorsCreateModel(mongo, neo)
 	if err != nil {
 		return AuthorModel{}, err
 	}
@@ -186,14 +232,14 @@ func (a *Authors) GetByID(ID uuid.UUID) (AuthorModel, error) {
 	return res, nil
 }
 
-func AuthorsCreateModel(mongo mongodb.AuthorModel, neo neodb.AuthorModel) (AuthorModel, error) {
+func authorsCreateModel(mongo mongodb.AuthorModel, neo neodb.AuthorModel) (AuthorModel, error) {
 	if mongo.ID != neo.ID {
 		return AuthorModel{}, fmt.Errorf("mongo and neo IDs do not match")
 	}
 
 	res := AuthorModel{
 		ID:        mongo.ID,
-		Name:      mongo.Name,
+		Title:     mongo.Name,
 		Status:    neo.Status,
 		CreatedAt: mongo.CreatedAt,
 	}

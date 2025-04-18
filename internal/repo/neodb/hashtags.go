@@ -185,6 +185,77 @@ func (h *Hashtag) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]str
 	}
 }
 
+func (h *Hashtag) GetArticlesForTag(ctx context.Context, tag string) ([]uuid.UUID, error) {
+	session, err := h.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+
+	type resultWrapper struct {
+		ids []uuid.UUID
+		err error
+	}
+	resultChan := make(chan resultWrapper, 1)
+
+	go func() {
+		res, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
+			cypher := `
+                MATCH (t:Tag { name: $name })<-[:HAS_TAG]-(a:Article)
+                RETURN a.id AS articleID
+            `
+			params := map[string]any{
+				"name": tag,
+			}
+
+			records, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, err
+			}
+
+			var articleIDs []uuid.UUID
+			for records.Next() {
+				rec := records.Record()
+				raw, ok := rec.Get("articleID")
+				if !ok {
+					continue
+				}
+				strID, ok := raw.(string)
+				if !ok {
+					continue
+				}
+				parsed, err := uuid.Parse(strID)
+				if err != nil {
+					continue
+				}
+				articleIDs = append(articleIDs, parsed)
+			}
+			if err = records.Err(); err != nil {
+				return nil, err
+			}
+			return articleIDs, nil
+		})
+		if err != nil {
+			resultChan <- resultWrapper{nil, err}
+			return
+		}
+
+		ids, ok := res.([]uuid.UUID)
+		if !ok {
+			resultChan <- resultWrapper{nil, fmt.Errorf("unexpected result type")}
+			return
+		}
+		resultChan <- resultWrapper{ids, nil}
+	}()
+
+	select {
+	case r := <-resultChan:
+		return r.ids, r.err
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+}
+
 func (h *Hashtag) SetForArticle(ctx context.Context, articleID uuid.UUID, tags []string) error {
 	session, err := h.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {

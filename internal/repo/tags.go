@@ -15,6 +15,7 @@ type TagModel struct {
 	Type      enums.TagType   `json:"type"`
 	Color     string          `json:"color"`
 	Icon      string          `json:"icon"`
+	UpdatedAt *time.Time      `json:"updated_at,omitempty"`
 	CreatedAt time.Time       `json:"created_at"`
 }
 
@@ -22,11 +23,11 @@ type tagsNeo interface {
 	Create(ctx context.Context, input neodb.TagCreateInput) error
 	Delete(ctx context.Context, name string) error
 
-	UpdateStatus(ctx context.Context, name string, status enums.TagStatus) error
-	UpdateName(ctx context.Context, name string, newName string) error
-	UpdateType(ctx context.Context, name string, newType enums.TagType) error
-	UpdateColor(ctx context.Context, name string, color string) error
-	UpdateIcon(ctx context.Context, name string, icon string) error
+	UpdateStatus(ctx context.Context, name string, status enums.TagStatus, updatedAt time.Time) (neodb.TagModel, error)
+	UpdateName(ctx context.Context, name string, newName string, updatedAt time.Time) (neodb.TagModel, error)
+	UpdateType(ctx context.Context, name string, newType enums.TagType, updatedAt time.Time) (neodb.TagModel, error)
+	UpdateColor(ctx context.Context, name string, color string, updatedAt time.Time) (neodb.TagModel, error)
+	UpdateIcon(ctx context.Context, name string, icon string, updatedAt time.Time) (neodb.TagModel, error)
 
 	Get(ctx context.Context, name string) (neodb.TagModel, error)
 	GetAll(ctx context.Context) ([]neodb.TagModel, error)
@@ -84,54 +85,99 @@ func (t *Tags) Delete(name string) error {
 	return nil
 }
 
-type TagUpdateInput struct {
-	Name   *string          `json:"name"`
-	Status *enums.TagStatus `json:"status"`
-	Type   *enums.TagType   `json:"type"`
-	Color  *string          `json:"color"`
-	Icon   *string          `json:"icon"`
-}
-
-func (t *Tags) Update(name string, input TagUpdateInput) error {
+func (t *Tags) UpdateStatus(name string, status enums.TagStatus) (TagModel, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	if input.Status != nil {
-		err := t.neo.UpdateStatus(ctxSync, name, *input.Status)
-		if err != nil {
-			return err
-		}
+	res, err := t.neo.UpdateStatus(ctxSync, name, status)
+	if err != nil {
+		return TagModel{}, err
 	}
 
-	if input.Type != nil {
-		err := t.neo.UpdateType(ctxSync, name, *input.Type)
-		if err != nil {
-			return err
-		}
+	return TagModel{
+		Name:      res.Name,
+		Status:    res.Status,
+		Type:      res.Type,
+		Color:     res.Color,
+		Icon:      res.Icon,
+		CreatedAt: res.CreatedAt,
+	}, nil
+}
+
+func (t *Tags) UpdateType(name string, tagType enums.TagType) (TagModel, error) {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	res, err := t.neo.UpdateType(ctxSync, name, tagType)
+	if err != nil {
+		return TagModel{}, err
 	}
 
-	if input.Name != nil {
-		err := t.neo.UpdateName(ctxSync, name, *input.Name)
-		if err != nil {
-			return err
-		}
+	return TagModel{
+		Name:      res.Name,
+		Status:    res.Status,
+		Type:      res.Type,
+		Color:     res.Color,
+		Icon:      res.Icon,
+		CreatedAt: res.CreatedAt,
+	}, nil
+}
+
+func (t *Tags) UpdateColor(name string, color string) (TagModel, error) {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	res, err := t.neo.UpdateColor(ctxSync, name, color)
+	if err != nil {
+		return TagModel{}, err
 	}
 
-	if input.Color != nil {
-		err := t.neo.UpdateColor(ctxSync, name, *input.Color)
-		if err != nil {
-			return err
-		}
+	return TagModel{
+		Name:      res.Name,
+		Status:    res.Status,
+		Type:      res.Type,
+		Color:     res.Color,
+		Icon:      res.Icon,
+		CreatedAt: res.CreatedAt,
+	}, nil
+}
+
+func (t *Tags) UpdateIcon(name string, icon string) (TagModel, error) {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	res, err := t.neo.UpdateIcon(ctxSync, name, icon)
+	if err != nil {
+		return TagModel{}, err
 	}
 
-	if input.Icon != nil {
-		err := t.neo.UpdateIcon(ctxSync, name, *input.Icon)
-		if err != nil {
-			return err
-		}
+	return TagModel{
+		Name:      res.Name,
+		Status:    res.Status,
+		Type:      res.Type,
+		Color:     res.Color,
+		Icon:      res.Icon,
+		CreatedAt: res.CreatedAt,
+	}, nil
+}
+
+func (t *Tags) UpdateName(name string, newName string) (TagModel, error) {
+	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
+	defer cancel()
+
+	res, err := t.neo.UpdateName(ctxSync, name, newName)
+	if err != nil {
+		return TagModel{}, err
 	}
 
-	return nil
+	return TagModel{
+		Name:      res.Name,
+		Status:    res.Status,
+		Type:      res.Type,
+		Color:     res.Color,
+		Icon:      res.Icon,
+		CreatedAt: res.CreatedAt,
+	}, nil
 }
 
 func (t *Tags) Get(name string) (TagModel, error) {
