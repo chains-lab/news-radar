@@ -266,31 +266,38 @@ func (h *Hashtag) SetForArticle(ctx context.Context, articleID uuid.UUID, tags [
 	errChan := make(chan error, 1)
 
 	go func() {
-		_, err := session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+			// 1) delete all old HAS_TAG relationships
 			deleteCypher := `
-				MATCH (a:Article { id: $id })-[r:HAS_TAG]->(:Tag)
-				DELETE r
-			`
-
+            MATCH (a:Article { id: $id })-[r:HAS_TAG]->()
+            DELETE r
+        `
 			params := map[string]any{"id": articleID.String()}
-			_, err := tx.Run(deleteCypher, params)
+			res, err := tx.Run(deleteCypher, params)
 			if err != nil {
 				return nil, fmt.Errorf("failed to delete existing HAS_TAG relationships: %w", err)
 			}
+			// drain the result so driver can run next query
+			if _, err = res.Consume(); err != nil {
+				return nil, err
+			}
 
-			createCypher := `
-				MATCH (a:Article { id: $id })
-				FOREACH (tagName IN $tags |
-					MATCH (t:Tag { name: tagName })
-					MERGE (a)-[:HAS_TAG]->(t)
-				)
-			`
-
+			// 2) create new HAS_TAG via UNWIND
 			params["tags"] = tags
-			_, err = tx.Run(createCypher, params)
+			createCypher := `
+            MATCH (a:Article { id: $id })
+            UNWIND $tags AS tagName
+            MATCH (t:Tag { name: tagName })
+            MERGE (a)-[:HAS_TAG]->(t)
+        `
+			res2, err := tx.Run(createCypher, params)
 			if err != nil {
 				return nil, fmt.Errorf("failed to create new HAS_TAG relationships: %w", err)
 			}
+			if _, err = res2.Consume(); err != nil {
+				return nil, err
+			}
+
 			return nil, nil
 		})
 		errChan <- err

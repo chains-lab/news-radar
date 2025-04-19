@@ -4,6 +4,7 @@ type SectionType string
 
 const (
 	SectionTypeText     SectionType = "text"
+	SectionTypeAudio    SectionType = "audio"
 	SectionTypeImage    SectionType = "image"
 	SectionTypeVideo    SectionType = "video"
 	SectionTypeLocation SectionType = "location"
@@ -16,6 +17,8 @@ func SectionTypeParse(s string) (SectionType, bool) {
 		return SectionTypeText, true
 	case "image":
 		return SectionTypeImage, true
+	case "audio":
+		return SectionTypeAudio, true
 	case "video":
 		return SectionTypeVideo, true
 	case "location":

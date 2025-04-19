@@ -250,61 +250,81 @@ func (a *ArticlesQ) Update(ctx context.Context, input ArticleUpdateInput) (Artic
 	return updated, nil
 }
 
-func (a *ArticlesQ) UpdateContent(ctx context.Context, index int, section content.Section, updatedAt time.Time) (ArticleModel, error) {
+func (a *ArticlesQ) UpdateContent(
+	ctx context.Context,
+	index int,
+	section content.Section,
+	updatedAt time.Time,
+) (ArticleModel, error) {
+	// 1. Считали статью
 	var article ArticleModel
-	err := a.collection.FindOne(ctx, a.filters).Decode(&article)
-	if err != nil {
+	if err := a.collection.FindOne(ctx, a.filters).Decode(&article); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return ArticleModel{}, fmt.Errorf("article not found")
 		}
 		return ArticleModel{}, fmt.Errorf("failed to load article: %w", err)
 	}
 
+	// 2. Определяем, пустая ли секция
 	isEmpty := func(s content.Section) bool {
 		return s.Media == nil &&
 			len(s.Text) == 0 &&
 			s.Audio == nil
 	}
 
+	// 3. Собираем update
 	var update bson.M
 
 	switch {
+	// Удаление: пересобираем слайс без элемента с индексом
 	case isEmpty(section) && index < len(article.Content):
+		newContent := make([]content.Section, 0, len(article.Content)-1)
+		for i, sec := range article.Content {
+			if i != index {
+				newContent = append(newContent, sec)
+			}
+		}
 		update = bson.M{
-			// unset попавший в позицию null
-			"$unset": bson.M{fmt.Sprintf("content.%d", index): 1},
-			// удаляем все null из массива
-			"$pull": bson.M{"content": nil},
-			// обновляем метку времени
-			"$currentDate": bson.M{"updated_at": updatedAt},
+			"$set": bson.M{
+				"content":    newContent,
+				"updated_at": updatedAt,
+			},
 		}
 
-	// 3b) Непустая секция и индекс в пределах — перезаписываем:
+	// Перезапись существующей
 	case !isEmpty(section) && index < len(article.Content):
 		update = bson.M{
-			"$set":         bson.M{fmt.Sprintf("content.%d", index): section},
-			"$currentDate": bson.M{"updated_at": updatedAt},
+			"$set": bson.M{
+				fmt.Sprintf("content.%d", index): section,
+				"updated_at":                     updatedAt,
+			},
 		}
 
-	// 3c) Непустая секция и индекс вне пределов — добавляем в конец:
+	// Добавление в конец
 	case !isEmpty(section) && index >= len(article.Content):
 		update = bson.M{
-			"$push":        bson.M{"content": section},
-			"$currentDate": bson.M{"updated_at": updatedAt},
+			"$push": bson.M{"content": section},
+			"$set":  bson.M{"updated_at": updatedAt},
 		}
 
-	// 3d) Пустая секция и индекс вне пределов — просто обновляем метку времени:
+	// Пустая секция вне диапазона — только updated_at
 	default:
 		update = bson.M{
-			"$currentDate": bson.M{"updated_at": updatedAt},
+			"$set": bson.M{"updated_at": updatedAt},
 		}
 	}
 
-	err = a.collection.FindOneAndUpdate(ctx, a.filters, update).Decode(&article)
-	if err != nil {
-		return ArticleModel{}, fmt.Errorf("failed to update content at index %d: %w", index, err)
+	// 4. Применяем с опцией возврата обновлённого документа
+	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+	var updated ArticleModel
+	if err := a.collection.
+		FindOneAndUpdate(ctx, a.filters, update, opts).
+		Decode(&updated); err != nil {
+		return ArticleModel{}, fmt.Errorf(
+			"failed to update content at index %d: %w", index, err,
+		)
 	}
-	return article, nil
+	return updated, nil
 }
 
 func (a *ArticlesQ) Limit(limit int64) *ArticlesQ {

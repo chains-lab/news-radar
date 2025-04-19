@@ -87,7 +87,7 @@ func (a *Authorship) Delete(ctx context.Context, articleID uuid.UUID, authorID u
 			`
 			params := map[string]any{
 				"articleID": articleID.String(),
-				"authorID":  authorID,
+				"authorID":  authorID.String(),
 			}
 
 			_, err := tx.Run(cypher, params)
@@ -262,9 +262,12 @@ func (a *Authorship) SetForArticle(ctx context.Context, articleID uuid.UUID, aut
 			params := map[string]any{
 				"id": articleID.String(),
 			}
-			_, err := tx.Run(deleteCypher, params)
+			res, err := tx.Run(deleteCypher, params)
 			if err != nil {
 				return nil, fmt.Errorf("failed to delete existing Authorship relationships: %w", err)
+			}
+			if _, err = res.Consume(); err != nil {
+				return nil, err
 			}
 
 			authorIDs := make([]string, len(authors))
@@ -272,18 +275,22 @@ func (a *Authorship) SetForArticle(ctx context.Context, articleID uuid.UUID, aut
 				authorIDs[i] = authID.String()
 			}
 
-			createCypher := `
-				MATCH (a:Article { id: $id })
-				FOREACH (authorId IN $authors |
-					MATCH (au:Author { id: authorId })
-					MERGE (a)-[:AUTHORED_BY]->(au)
-				)
-			`
 			params["authors"] = authorIDs
 
-			_, err = tx.Run(createCypher, params)
+			createCypher := `
+				MATCH (a:Article { id: $id })
+				UNWIND $authors AS authorId
+				MATCH (au:Author { id: authorId })
+				MERGE (a)-[:AUTHORED_BY]->(au)
+			`
+
+			res2, err := tx.Run(createCypher, params)
 			if err != nil {
 				return nil, fmt.Errorf("failed to create new Authorship relationships: %w", err)
+			}
+
+			if _, err = res2.Consume(); err != nil {
+				return nil, err
 			}
 
 			return nil, nil
