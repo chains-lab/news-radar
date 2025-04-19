@@ -31,10 +31,6 @@ type ArticleAttributes struct {
 	// Article description
 	Desc string `json:"desc"`
 	Content []Content `json:"content"`
-	// Article likes
-	Likes int64 `json:"likes"`
-	// Article reposts
-	Reposts int64 `json:"reposts"`
 	// Updated at
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	// Created at
@@ -47,15 +43,13 @@ type _ArticleAttributes ArticleAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewArticleAttributes(title string, status string, icon string, desc string, content []Content, likes int64, reposts int64, createdAt time.Time) *ArticleAttributes {
+func NewArticleAttributes(title string, status string, icon string, desc string, content []Content, createdAt time.Time) *ArticleAttributes {
 	this := ArticleAttributes{}
 	this.Title = title
 	this.Status = status
 	this.Icon = icon
 	this.Desc = desc
 	this.Content = content
-	this.Likes = likes
-	this.Reposts = reposts
 	this.CreatedAt = createdAt
 	return &this
 }
@@ -188,54 +182,6 @@ func (o *ArticleAttributes) SetContent(v []Content) {
 	o.Content = v
 }
 
-// GetLikes returns the Likes field value
-func (o *ArticleAttributes) GetLikes() int64 {
-	if o == nil {
-		var ret int64
-		return ret
-	}
-
-	return o.Likes
-}
-
-// GetLikesOk returns a tuple with the Likes field value
-// and a boolean to check if the value has been set.
-func (o *ArticleAttributes) GetLikesOk() (*int64, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Likes, true
-}
-
-// SetLikes sets field value
-func (o *ArticleAttributes) SetLikes(v int64) {
-	o.Likes = v
-}
-
-// GetReposts returns the Reposts field value
-func (o *ArticleAttributes) GetReposts() int64 {
-	if o == nil {
-		var ret int64
-		return ret
-	}
-
-	return o.Reposts
-}
-
-// GetRepostsOk returns a tuple with the Reposts field value
-// and a boolean to check if the value has been set.
-func (o *ArticleAttributes) GetRepostsOk() (*int64, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Reposts, true
-}
-
-// SetReposts sets field value
-func (o *ArticleAttributes) SetReposts(v int64) {
-	o.Reposts = v
-}
-
 // GetUpdatedAt returns the UpdatedAt field value if set, zero value otherwise.
 func (o *ArticleAttributes) GetUpdatedAt() time.Time {
 	if o == nil || IsNil(o.UpdatedAt) {
@@ -307,8 +253,6 @@ func (o ArticleAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize["icon"] = o.Icon
 	toSerialize["desc"] = o.Desc
 	toSerialize["content"] = o.Content
-	toSerialize["likes"] = o.Likes
-	toSerialize["reposts"] = o.Reposts
 	if !IsNil(o.UpdatedAt) {
 		toSerialize["updated_at"] = o.UpdatedAt
 	}
@@ -326,8 +270,6 @@ func (o *ArticleAttributes) UnmarshalJSON(data []byte) (err error) {
 		"icon",
 		"desc",
 		"content",
-		"likes",
-		"reposts",
 		"created_at",
 	}
 

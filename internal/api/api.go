@@ -47,52 +47,59 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 	admin := tokens.AccessGrant(a.cfg.JWT.AccessToken.SecretKey, roles.Admin, roles.SuperUser)
 
 	a.router.Route("/hs/news-radar", func(r chi.Router) {
+		r.Route("/ws", func(r chi.Router) {
+			r.Get("/content", a.handlers.ArticleContentWS)
+		})
+
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/articles", func(r chi.Router) {
-				r.Get("/", nil)
 				r.Post("/", a.handlers.CreateArticle)
 
 				r.Route("/{article_id}", func(r chi.Router) {
-					r.Get("/", nil)
+					r.Get("/", a.handlers.GetArticle)
 					r.With(admin).Delete("/", a.handlers.DeleteArticle)
+					r.With(admin).Put("/", a.handlers.UpdateArticle)
 
 					r.Route("/ws", func(r chi.Router) {
 						r.Get("/content", a.handlers.ArticleContentWS)
 					})
 
 					r.Route("/tags", func(r chi.Router) {
-						r.Get("/", nil)
+						r.Get("/", a.handlers.GetArticleTags)
 						r.With(auth).Put("/", a.handlers.SetHashTags)
+						r.With(auth).Delete("/", a.handlers.CleanArticleTags)
+						r.With(auth).Patch("/{tag}", a.handlers.AddTag)
+						r.With(auth).Delete("/{tag}", a.handlers.DeleteTag)
 					})
 
 					r.Route("/authors", func(r chi.Router) {
-						r.Get("/", nil)
+						r.Get("/", a.handlers.GetArticleAuthors)
 						r.With(auth).Put("/", a.handlers.SetAuthorship)
-						r.With(auth).Patch("/", nil)
-						r.With(auth).Delete("/", nil)
+						r.With(auth).Delete("/", a.handlers.CleanArticleAuthors)
+						r.With(auth).Patch("/{author_id}", a.handlers.AddAuthor)
+						r.With(auth).Delete("/{author_id}", a.handlers.DeleteAuthor)
 					})
 				})
 			})
 
-			// Endpoint to interact with authors
 			r.Route("/authors", func(r chi.Router) {
-				r.With(admin).Post("/create", nil)
+				r.With(admin).Post("/create", a.handlers.CreateAuthor)
 
 				r.Route("/{author_id}", func(r chi.Router) {
-					r.Get("/", nil)
-					r.With(admin).Put("/", nil)
-					r.With(admin).Delete("/", nil)
+					r.Get("/", a.handlers.GetAuthor)
+					r.With(admin).Put("/", a.handlers.UpdateAuthor)
+					r.With(admin).Delete("/", a.handlers.DeleteAuthor)
+					r.With(admin).Get("/articles", a.handlers.GetAuthorArticles)
 				})
 			})
 
-			//Full Admin endpoints group to manage tags and topics
 			r.With(auth).Route("/tags", func(r chi.Router) {
 				r.Post("/create", a.handlers.CreateTag)
 
-				r.Route("/{tag_id}", func(r chi.Router) {
-					r.Get("/", nil)
-					r.Put("/", nil)
-					r.Delete("/", nil)
+				r.Route("/{tag}", func(r chi.Router) {
+					r.Get("/", a.handlers.GetTag)
+					r.Put("/", a.handlers.UpdateTag)
+					r.Delete("/", a.handlers.DeleteTag)
 				})
 			})
 		})

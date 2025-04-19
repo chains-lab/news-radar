@@ -9,7 +9,7 @@ import (
 	"github.com/hs-zavet/news-radar/resources"
 )
 
-func SetAuthorship(r *http.Request) (req resources.AuthorshipCreate, err error) {
+func SetAuthorship(r *http.Request) (req resources.SetAuthorship, err error) {
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		err = jsonkit.NewDecodeError("body", err)
 		return

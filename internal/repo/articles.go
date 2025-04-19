@@ -42,11 +42,8 @@ type articlesMongoQ interface {
 	FilterDate(filters map[string]any, after bool) *mongodb.ArticlesQ
 	FilterStatus(status enums.ArticleStatus) *mongodb.ArticlesQ
 
-	UpdateStatus(ctx context.Context, updatedAt time.Time, status enums.ArticleStatus) (mongodb.ArticleModel, error)
-	UpdateTitle(ctx context.Context, updatedAt time.Time, title string) (mongodb.ArticleModel, error)
-	UpdateIcon(ctx context.Context, updatedAt time.Time, icon *string) (mongodb.ArticleModel, error)
-	UpdateDesc(ctx context.Context, updatedAt time.Time, desc *string) (mongodb.ArticleModel, error)
-	UpdateContent(ctx context.Context, updatedAt time.Time, index int, section content.Section) (mongodb.ArticleModel, error)
+	Update(ctx context.Context, input mongodb.ArticleUpdateInput) (mongodb.ArticleModel, error)
+	UpdateContent(ctx context.Context, index int, section content.Section, updatedAt time.Time) (mongodb.ArticleModel, error)
 
 	Limit(limit int64) *mongodb.ArticlesQ
 	Skip(skip int64) *mongodb.ArticlesQ
@@ -127,92 +124,55 @@ func (a *ArticlesRepo) Create(input ArticleCreateInput) error {
 	return nil
 }
 
-func (a *ArticlesRepo) UpdateStatus(ID uuid.UUID, status enums.ArticleStatus) (ArticleModel, error) {
-	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
-	defer cancel()
-
-	err := a.neo.UpdateStatus(ctxSync, ID, status)
-	if err != nil {
-		return ArticleModel{}, err
-	}
-
-	res, err := a.mongo.FilterID(ID).UpdateStatus(ctxSync, time.Now().UTC(), status)
-	if err != nil {
-		return ArticleModel{}, err
-	}
-
-	return ArticleModel{
-		ID:        res.ID,
-		Status:    res.Status,
-		Title:     res.Title,
-		Icon:      res.Icon,
-		Desc:      res.Desc,
-		Content:   res.Content,
-		UpdatedAt: res.UpdatedAt,
-		CreatedAt: res.CreatedAt,
-	}, nil
+type ArticleUpdateInput struct {
+	Status *enums.ArticleStatus `json:"status" bson:"status"`
+	Title  *string              `json:"title" bson:"title"`
+	Icon   *string              `json:"icon,omitempty" bson:"icon,omitempty"`
+	Desc   *string              `json:"desc,omitempty" bson:"desc,omitempty"`
 }
 
-func (a *ArticlesRepo) UpdateTitle(ID uuid.UUID, title string) (ArticleModel, error) {
+func (a *ArticlesRepo) UpdateStatus(ID uuid.UUID, input ArticleUpdateInput) (ArticleModel, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	res, err := a.mongo.FilterID(ID).UpdateTitle(ctxSync, time.Now().UTC(), title)
+	updatedAt := time.Now().UTC()
+
+	if status := input.Status; status != nil {
+		if err := a.neo.UpdateStatus(ctxSync, ID, *status); err != nil {
+			return ArticleModel{}, err
+		}
+	}
+
+	var mongoInput mongodb.ArticleUpdateInput
+
+	if input.Title != nil {
+		mongoInput.Title = input.Title
+	}
+	if input.Icon != nil {
+		mongoInput.Icon = input.Icon
+	}
+	if input.Desc != nil {
+		mongoInput.Desc = input.Desc
+	}
+	if input.Status != nil {
+		mongoInput.Status = input.Status
+	}
+	mongoInput.UpdatedAt = updatedAt
+
+	mongo, err := a.mongo.New().FilterID(ID).Update(ctxSync, mongoInput)
 	if err != nil {
 		return ArticleModel{}, err
 	}
 
 	return ArticleModel{
-		ID:        res.ID,
-		Status:    res.Status,
-		Title:     res.Title,
-		Icon:      res.Icon,
-		Desc:      res.Desc,
-		Content:   res.Content,
-		UpdatedAt: res.UpdatedAt,
-		CreatedAt: res.CreatedAt,
-	}, nil
-}
-
-func (a *ArticlesRepo) UpdateIcon(ID uuid.UUID, icon *string) (ArticleModel, error) {
-	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
-	defer cancel()
-
-	res, err := a.mongo.FilterID(ID).UpdateIcon(ctxSync, time.Now().UTC(), icon)
-	if err != nil {
-		return ArticleModel{}, err
-	}
-
-	return ArticleModel{
-		ID:        res.ID,
-		Status:    res.Status,
-		Title:     res.Title,
-		Icon:      res.Icon,
-		Desc:      res.Desc,
-		Content:   res.Content,
-		UpdatedAt: res.UpdatedAt,
-		CreatedAt: res.CreatedAt,
-	}, nil
-}
-
-func (a *ArticlesRepo) UpdateDesc(ID uuid.UUID, desc *string) (ArticleModel, error) {
-	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
-	defer cancel()
-
-	res, err := a.mongo.FilterID(ID).UpdateDesc(ctxSync, time.Now().UTC(), desc)
-	if err != nil {
-		return ArticleModel{}, err
-	}
-
-	return ArticleModel{
-		ID:        res.ID,
-		Status:    res.Status,
-		Title:     res.Title,
-		Icon:      res.Icon,
-		Desc:      res.Desc,
-		Content:   res.Content,
-		UpdatedAt: res.UpdatedAt,
-		CreatedAt: res.CreatedAt,
+		ID:        mongo.ID,
+		Status:    mongo.Status,
+		Title:     mongo.Title,
+		Icon:      mongo.Icon,
+		Desc:      mongo.Desc,
+		Content:   mongo.Content,
+		UpdatedAt: mongo.UpdatedAt,
+		CreatedAt: mongo.CreatedAt,
 	}, nil
 }
 
@@ -220,7 +180,7 @@ func (a *ArticlesRepo) UpdateContent(ID uuid.UUID, index int, section content.Se
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	res, err := a.mongo.FilterID(ID).UpdateContent(ctxSync, time.Now().UTC(), index, section)
+	res, err := a.mongo.FilterID(ID).UpdateContent(ctxSync, index, section, time.Now().UTC())
 	if err != nil {
 		return ArticleModel{}, err
 	}

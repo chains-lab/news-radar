@@ -22,6 +22,7 @@ var _ MappedNullable = &Article{}
 // Article struct for Article
 type Article struct {
 	Data ArticleData `json:"data"`
+	Included ArticleInclude `json:"included"`
 }
 
 type _Article Article
@@ -30,9 +31,10 @@ type _Article Article
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewArticle(data ArticleData) *Article {
+func NewArticle(data ArticleData, included ArticleInclude) *Article {
 	this := Article{}
 	this.Data = data
+	this.Included = included
 	return &this
 }
 
@@ -68,6 +70,30 @@ func (o *Article) SetData(v ArticleData) {
 	o.Data = v
 }
 
+// GetIncluded returns the Included field value
+func (o *Article) GetIncluded() ArticleInclude {
+	if o == nil {
+		var ret ArticleInclude
+		return ret
+	}
+
+	return o.Included
+}
+
+// GetIncludedOk returns a tuple with the Included field value
+// and a boolean to check if the value has been set.
+func (o *Article) GetIncludedOk() (*ArticleInclude, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Included, true
+}
+
+// SetIncluded sets field value
+func (o *Article) SetIncluded(v ArticleInclude) {
+	o.Included = v
+}
+
 func (o Article) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -79,6 +105,7 @@ func (o Article) MarshalJSON() ([]byte, error) {
 func (o Article) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["data"] = o.Data
+	toSerialize["included"] = o.Included
 	return toSerialize, nil
 }
 
@@ -88,6 +115,7 @@ func (o *Article) UnmarshalJSON(data []byte) (err error) {
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
 		"data",
+		"included",
 	}
 
 	allProperties := make(map[string]interface{})

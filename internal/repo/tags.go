@@ -23,11 +23,7 @@ type tagsNeo interface {
 	Create(ctx context.Context, input neodb.TagCreateInput) error
 	Delete(ctx context.Context, name string) error
 
-	UpdateStatus(ctx context.Context, name string, status enums.TagStatus, updatedAt time.Time) (neodb.TagModel, error)
-	UpdateName(ctx context.Context, name string, newName string, updatedAt time.Time) (neodb.TagModel, error)
-	UpdateType(ctx context.Context, name string, newType enums.TagType, updatedAt time.Time) (neodb.TagModel, error)
-	UpdateColor(ctx context.Context, name string, color string, updatedAt time.Time) (neodb.TagModel, error)
-	UpdateIcon(ctx context.Context, name string, icon string, updatedAt time.Time) (neodb.TagModel, error)
+	Update(ctx context.Context, name string, input neodb.TagUpdateInput) (neodb.TagModel, error)
 
 	Get(ctx context.Context, name string) (neodb.TagModel, error)
 	GetAll(ctx context.Context) ([]neodb.TagModel, error)
@@ -85,98 +81,51 @@ func (t *Tags) Delete(name string) error {
 	return nil
 }
 
-func (t *Tags) UpdateStatus(name string, status enums.TagStatus) (TagModel, error) {
-	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
-	defer cancel()
-
-	res, err := t.neo.UpdateStatus(ctxSync, name, status)
-	if err != nil {
-		return TagModel{}, err
-	}
-
-	return TagModel{
-		Name:      res.Name,
-		Status:    res.Status,
-		Type:      res.Type,
-		Color:     res.Color,
-		Icon:      res.Icon,
-		CreatedAt: res.CreatedAt,
-	}, nil
+type TagUpdateInput struct {
+	Name   *string          `json:"name"`
+	Status *enums.TagStatus `json:"status"`
+	Type   *enums.TagType   `json:"type"`
+	Color  *string          `json:"color"`
+	Icon   *string          `json:"icon"`
 }
 
-func (t *Tags) UpdateType(name string, tagType enums.TagType) (TagModel, error) {
+func (t *Tags) Update(name string, input TagUpdateInput) (TagModel, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	res, err := t.neo.UpdateType(ctxSync, name, tagType)
+	var neoInput neodb.TagUpdateInput
+
+	if input.Name != nil {
+		neoInput.NewName = input.Name
+	}
+	if input.Status != nil {
+		neoInput.Status = input.Status
+	}
+	if input.Type != nil {
+		neoInput.Type = input.Type
+	}
+	if input.Color != nil {
+		neoInput.Color = input.Color
+	}
+	if input.Icon != nil {
+		neoInput.Icon = input.Icon
+	}
+	if input.Status != nil {
+		neoInput.Status = input.Status
+	}
+
+	neoTag, err := t.neo.Update(ctxSync, name, neoInput)
 	if err != nil {
 		return TagModel{}, err
 	}
 
 	return TagModel{
-		Name:      res.Name,
-		Status:    res.Status,
-		Type:      res.Type,
-		Color:     res.Color,
-		Icon:      res.Icon,
-		CreatedAt: res.CreatedAt,
-	}, nil
-}
-
-func (t *Tags) UpdateColor(name string, color string) (TagModel, error) {
-	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
-	defer cancel()
-
-	res, err := t.neo.UpdateColor(ctxSync, name, color)
-	if err != nil {
-		return TagModel{}, err
-	}
-
-	return TagModel{
-		Name:      res.Name,
-		Status:    res.Status,
-		Type:      res.Type,
-		Color:     res.Color,
-		Icon:      res.Icon,
-		CreatedAt: res.CreatedAt,
-	}, nil
-}
-
-func (t *Tags) UpdateIcon(name string, icon string) (TagModel, error) {
-	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
-	defer cancel()
-
-	res, err := t.neo.UpdateIcon(ctxSync, name, icon)
-	if err != nil {
-		return TagModel{}, err
-	}
-
-	return TagModel{
-		Name:      res.Name,
-		Status:    res.Status,
-		Type:      res.Type,
-		Color:     res.Color,
-		Icon:      res.Icon,
-		CreatedAt: res.CreatedAt,
-	}, nil
-}
-
-func (t *Tags) UpdateName(name string, newName string) (TagModel, error) {
-	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
-	defer cancel()
-
-	res, err := t.neo.UpdateName(ctxSync, name, newName)
-	if err != nil {
-		return TagModel{}, err
-	}
-
-	return TagModel{
-		Name:      res.Name,
-		Status:    res.Status,
-		Type:      res.Type,
-		Color:     res.Color,
-		Icon:      res.Icon,
-		CreatedAt: res.CreatedAt,
+		Name:      neoTag.Name,
+		Status:    neoTag.Status,
+		Type:      neoTag.Type,
+		Color:     neoTag.Color,
+		Icon:      neoTag.Icon,
+		CreatedAt: neoTag.CreatedAt,
 	}, nil
 }
 

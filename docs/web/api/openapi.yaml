@@ -399,10 +399,6 @@ components:
           description: Article description
           example: Article description
           type: string
-        content:
-          additionalProperties: true
-          description: Article content
-          type: object
         authors:
           description: Authors ID uuid
           items:

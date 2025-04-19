@@ -155,10 +155,6 @@ components:
                   type: string
                   description: Article description
                   example: Article description
-                content:
-                  type: object
-                  additionalProperties: true
-                  description: Article content
                 authors:
                   type: array
                   items:

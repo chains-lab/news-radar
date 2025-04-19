@@ -3,6 +3,7 @@ package neodb
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hs-zavet/news-radar/internal/enums"
@@ -274,29 +275,127 @@ func (t *TagsImpl) GetAll(ctx context.Context) ([]TagModel, error) {
 	}
 }
 
-// UpdateStatus sets status and returns updated TagModel
-func (t *TagsImpl) UpdateStatus(ctx context.Context, name string, status enums.TagStatus, updatedAt time.Time) (TagModel, error) {
-	return t.applyUpdateAndGet(ctx, name, updatedAt, map[string]any{"status": string(status)})
+type TagUpdateInput struct {
+	NewName   *string          `json:"name"`
+	Status    *enums.TagStatus `json:"status"`
+	Type      *enums.TagType   `json:"type"`
+	Color     *string          `json:"color"`
+	Icon      *string          `json:"icon"`
+	UpdatedAt time.Time        `json:"updated_at,omitempty"`
 }
 
-// UpdateName sets name (node primary key) - returns updated TagModel
-func (t *TagsImpl) UpdateName(ctx context.Context, name, newName string, updatedAt time.Time) (TagModel, error) {
-	return t.applyUpdateAndGet(ctx, name, updatedAt, map[string]any{"name": newName})
-}
+func (t *TagsImpl) Update(ctx context.Context, name string, input TagUpdateInput) (TagModel, error) {
+	setClauses := []string{"t.updated_at = $updated_at"}
+	params := map[string]any{
+		"current_name": name,
+		"updated_at":   input.UpdatedAt,
+	}
 
-// UpdateType sets type and returns updated TagModel
-func (t *TagsImpl) UpdateType(ctx context.Context, name string, newType enums.TagType, updatedAt time.Time) (TagModel, error) {
-	return t.applyUpdateAndGet(ctx, name, updatedAt, map[string]any{"type": string(newType)})
-}
+	if input.NewName != nil {
+		if *input.NewName == "" {
+			return TagModel{}, fmt.Errorf("new name cannot be empty")
+		}
+		setClauses = append(setClauses, "t.name = $new_name")
+		params["new_name"] = *input.NewName
+	}
 
-// UpdateColor sets color and returns updated TagModel
-func (t *TagsImpl) UpdateColor(ctx context.Context, name, newColor string, updatedAt time.Time) (TagModel, error) {
-	return t.applyUpdateAndGet(ctx, name, updatedAt, map[string]any{"color": newColor})
-}
+	if input.Status != nil {
+		if *input.Status == "" {
+			return TagModel{}, fmt.Errorf("status cannot be empty")
+		}
+		setClauses = append(setClauses, "t.status = $status")
+		params["status"] = string(*input.Status)
+	}
 
-// UpdateIcon sets icon and returns updated TagModel
-func (t *TagsImpl) UpdateIcon(ctx context.Context, name, newIcon string, updatedAt time.Time) (TagModel, error) {
-	return t.applyUpdateAndGet(ctx, name, updatedAt, map[string]any{"icon": newIcon})
+	if input.Type != nil {
+		if *input.Type == "" {
+			return TagModel{}, fmt.Errorf("type cannot be empty")
+		}
+		setClauses = append(setClauses, "t.type = $type")
+		params["type"] = string(*input.Type)
+	}
+
+	if input.Color != nil {
+		if *input.Color == "" {
+			return TagModel{}, fmt.Errorf("color cannot be empty")
+		}
+		setClauses = append(setClauses, "t.color = $color")
+		params["color"] = *input.Color
+	}
+
+	if input.Icon != nil {
+		if *input.Icon == "" {
+			return TagModel{}, fmt.Errorf("icon cannot be empty")
+		}
+		setClauses = append(setClauses, "t.icon = $icon")
+		params["icon"] = *input.Icon
+
+	}
+
+	if len(setClauses) == 1 {
+		return t.Get(ctx, name)
+	}
+
+	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	if err != nil {
+		return TagModel{}, err
+	}
+	defer session.Close()
+
+	type resultWrapper struct {
+		tag TagModel
+		err error
+	}
+	resultChan := make(chan resultWrapper, 1)
+
+	go func() {
+		cypher := fmt.Sprintf(
+			`MATCH (t:Tag { name: $current_name })
+		 SET  %s
+		 RETURN t`, strings.Join(setClauses, ", "))
+
+		result, err := session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+			cursor, err := tx.Run(cypher, params)
+			if err != nil {
+				return nil, err
+			}
+			if cursor.Next() {
+				nodeVal, ok := cursor.Record().Get("t")
+				if !ok {
+					return nil, fmt.Errorf("failed to find tag")
+				}
+				node, ok := nodeVal.(neo4j.Node)
+				if !ok {
+					return nil, fmt.Errorf("unexpected type for tag node")
+				}
+
+				props := node.Props()
+				tag, err := parseTagFromProps(props)
+				if err != nil {
+					return nil, err
+				}
+				return tag, nil
+			}
+			return TagModel{}, fmt.Errorf("failed to find tag")
+		})
+		if err != nil {
+			resultChan <- resultWrapper{TagModel{}, err}
+			return
+		}
+		tag, ok := result.(TagModel)
+		if !ok {
+			resultChan <- resultWrapper{TagModel{}, fmt.Errorf("unexpected result type")}
+			return
+		}
+		resultChan <- resultWrapper{tag, nil}
+	}()
+
+	select {
+	case res := <-resultChan:
+		return res.tag, res.err
+	case <-ctx.Done():
+		return TagModel{}, ctx.Err()
+	}
 }
 
 func parseTagFromProps(props map[string]any) (TagModel, error) {
@@ -356,66 +455,5 @@ func parseTagFromProps(props map[string]any) (TagModel, error) {
 		tag.UpdatedAt = &updatedAt
 	}
 
-	return tag, nil
-}
-
-func stringJoin(parts []string, sep string) string {
-	result := ""
-	for i, p := range parts {
-		if i > 0 {
-			result += sep
-		}
-		result += p
-	}
-	return result
-}
-
-func (t *TagsImpl) applyUpdateAndGet(ctx context.Context, name string, updatedAt time.Time, setClauses map[string]any) (TagModel, error) {
-	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
-	if err != nil {
-		return TagModel{}, err
-	}
-	defer session.Close()
-
-	result, err := session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-		setParts := []string{}
-		params := map[string]any{
-			"name":       name,
-			"updated_at": updatedAt,
-		}
-		setParts = append(setParts, "t.updated_at = $updated_at")
-		for field, val := range setClauses {
-			placeholder := field
-			setParts = append(setParts, fmt.Sprintf("t.%s = $%s", field, placeholder))
-			params[placeholder] = val
-		}
-		cypher := fmt.Sprintf(
-			"MATCH (t:Tag { name: $name }) SET %s RETURN t",
-			stringJoin(setParts, ", "),
-		)
-		cursor, err := tx.Run(cypher, params)
-		if err != nil {
-			return nil, fmt.Errorf("failed to update tag: %w", err)
-		}
-		if !cursor.Next() {
-			return nil, fmt.Errorf("tag not found or update failed")
-		}
-		nodeVal, ok := cursor.Record().Get("t")
-		if !ok {
-			return nil, fmt.Errorf("returned record missing tag node")
-		}
-		node, ok := nodeVal.(neo4j.Node)
-		if !ok {
-			return nil, fmt.Errorf("unexpected type for tag node")
-		}
-		return parseTagFromProps(node.Props())
-	})
-	if err != nil {
-		return TagModel{}, err
-	}
-	tag, ok := result.(TagModel)
-	if !ok {
-		return TagModel{}, fmt.Errorf("unexpected result type")
-	}
 	return tag, nil
 }

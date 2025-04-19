@@ -9,7 +9,7 @@ import (
 	"github.com/hs-zavet/news-radar/resources"
 )
 
-func SetHashtag(r *http.Request) (req resources.HashtagCreate, err error) {
+func SetHashtag(r *http.Request) (req resources.CreateHashtag, err error) {
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		err = jsonkit.NewDecodeError("body", err)
 		return

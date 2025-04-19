@@ -37,14 +37,7 @@ type authorsMongo interface {
 	FilterID(id uuid.UUID) *mongodb.AuthorsQ
 	FilterName(name string) *mongodb.AuthorsQ
 
-	UpdateStatus(ctx context.Context, status enums.AuthorStatus, updatedAt time.Time) (mongodb.AuthorModel, error)
-	UpdateDescription(ctx context.Context, desc *string, updatedAt time.Time) (mongodb.AuthorModel, error)
-	UpdateAvatar(ctx context.Context, avatar *string, updatedAt time.Time) (mongodb.AuthorModel, error)
-	UpdateContactInfo(
-		ctx context.Context,
-		email, telegram, twitter *string,
-		updatedAt time.Time,
-	) (mongodb.AuthorModel, error)
+	Update(ctx context.Context, input mongodb.AuthorUpdateInput) (mongodb.AuthorModel, error)
 
 	Limit(limit int64) *mongodb.AuthorsQ
 	Skip(skip int64) *mongodb.AuthorsQ
@@ -110,89 +103,71 @@ func (a *Authors) Create(input AuthorCreateInput) error {
 	return nil
 }
 
-func (a *Authors) UpdateStatus(ID uuid.UUID, status enums.AuthorStatus, updatedAt time.Time) (AuthorModel, error) {
-	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
-	defer cancel()
-
-	if err := a.neo.UpdateStatus(ctxSync, ID, status); err != nil {
-		return AuthorModel{}, err
-	}
-
-	mongo, err := a.mongo.New().FilterID(ID).UpdateStatus(ctxSync, status, updatedAt)
-	if err != nil {
-		return AuthorModel{}, err
-	}
-
-	res, err := authorsCreateModel(mongo, neodb.AuthorModel{
-		ID:     ID,
-		Status: status,
-	})
-	if err != nil {
-		return AuthorModel{}, err
-	}
-
-	return res, nil
+type AuthorUpdateInput struct {
+	Title    *string             `json:"title" bson:"title"`
+	Status   *enums.AuthorStatus `json:"status" bson:"status"`
+	Desc     *string             `json:"desc" bson:"desc"`
+	Avatar   *string             `json:"avatar,omitempty" bson:"avatar,omitempty"`
+	Email    *string             `json:"email,omitempty" bson:"email,omitempty"`
+	Telegram *string             `json:"telegram,omitempty" bson:"telegram,omitempty"`
+	Twitter  *string             `json:"twitter,omitempty" bson:"twitter,omitempty"`
 }
 
-func (a *Authors) UpdateDescription(ID uuid.UUID, desc *string, updatedAt time.Time) (AuthorModel, error) {
+func (a *Authors) Update(ID uuid.UUID, input AuthorUpdateInput) (AuthorModel, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	mongo, err := a.mongo.New().FilterID(ID).UpdateDescription(ctxSync, desc, updatedAt)
-	if err != nil {
-		return AuthorModel{}, err
+	var mongoInput mongodb.AuthorUpdateInput
+
+	if input.Title != nil {
+		mongoInput.Name = input.Title
+	}
+	if input.Desc != nil {
+		mongoInput.Desc = input.Desc
+	}
+	if input.Avatar != nil {
+		mongoInput.Avatar = input.Avatar
+	}
+	if input.Email != nil {
+		mongoInput.Email = input.Email
+	}
+	if input.Telegram != nil {
+		mongoInput.Telegram = input.Telegram
+	}
+	if input.Twitter != nil {
+		mongoInput.Twitter = input.Twitter
+	}
+	if input.Status != nil {
+		if err := a.neo.UpdateStatus(ctxSync, ID, *input.Status); err != nil {
+			return AuthorModel{}, err
+		}
+		mongoInput.Status = input.Status
 	}
 
-	res, err := authorsCreateModel(mongo, neodb.AuthorModel{
-		ID:     ID,
-		Status: mongo.Status,
+	mongo, err := a.mongo.New().FilterID(ID).Update(ctxSync, mongodb.AuthorUpdateInput{
+		Name:     input.Title,
+		Desc:     input.Desc,
+		Avatar:   input.Avatar,
+		Email:    input.Email,
+		Telegram: input.Telegram,
+		Twitter:  input.Twitter,
 	})
 	if err != nil {
 		return AuthorModel{}, err
 	}
 
-	return res, nil
-}
-
-func (a *Authors) UpdateAvatar(ID uuid.UUID, avatar *string, updatedAt time.Time) (AuthorModel, error) {
-	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
-	defer cancel()
-
-	mongo, err := a.mongo.New().FilterID(ID).UpdateAvatar(ctxSync, avatar, updatedAt)
-	if err != nil {
-		return AuthorModel{}, err
-	}
-
-	res, err := authorsCreateModel(mongo, neodb.AuthorModel{
-		ID:     ID,
-		Status: mongo.Status,
-	})
-	if err != nil {
-		return AuthorModel{}, err
-	}
-
-	return res, nil
-}
-
-func (a *Authors) UpdateContactInfo(
-	ID uuid.UUID, email, telegram, twitter *string, updatedAt time.Time) (AuthorModel, error) {
-	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
-	defer cancel()
-
-	mongo, err := a.mongo.New().FilterID(ID).UpdateContactInfo(ctxSync, email, telegram, twitter, updatedAt)
-	if err != nil {
-		return AuthorModel{}, err
-	}
-
-	res, err := authorsCreateModel(mongo, neodb.AuthorModel{
-		ID:     ID,
-		Status: mongo.Status,
-	})
-	if err != nil {
-		return AuthorModel{}, err
-	}
-
-	return res, nil
+	return AuthorModel{
+		ID:        mongo.ID,
+		Title:     mongo.Name,
+		Status:    mongo.Status,
+		Desc:      mongo.Desc,
+		Avatar:    mongo.Avatar,
+		Email:     mongo.Email,
+		Telegram:  mongo.Telegram,
+		Twitter:   mongo.Twitter,
+		UpdatedAt: mongo.UpdatedAt,
+		CreatedAt: mongo.CreatedAt,
+	}, nil
 }
 
 func (a *Authors) Delete(ID uuid.UUID) error {

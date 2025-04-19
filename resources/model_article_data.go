@@ -25,7 +25,6 @@ type ArticleData struct {
 	Id string `json:"id"`
 	Type string `json:"type"`
 	Attributes ArticleAttributes `json:"attributes"`
-	Relationships *ArticleDataRelationships `json:"relationships,omitempty"`
 }
 
 type _ArticleData ArticleData
@@ -122,38 +121,6 @@ func (o *ArticleData) SetAttributes(v ArticleAttributes) {
 	o.Attributes = v
 }
 
-// GetRelationships returns the Relationships field value if set, zero value otherwise.
-func (o *ArticleData) GetRelationships() ArticleDataRelationships {
-	if o == nil || IsNil(o.Relationships) {
-		var ret ArticleDataRelationships
-		return ret
-	}
-	return *o.Relationships
-}
-
-// GetRelationshipsOk returns a tuple with the Relationships field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *ArticleData) GetRelationshipsOk() (*ArticleDataRelationships, bool) {
-	if o == nil || IsNil(o.Relationships) {
-		return nil, false
-	}
-	return o.Relationships, true
-}
-
-// HasRelationships returns a boolean if a field has been set.
-func (o *ArticleData) HasRelationships() bool {
-	if o != nil && !IsNil(o.Relationships) {
-		return true
-	}
-
-	return false
-}
-
-// SetRelationships gets a reference to the given ArticleDataRelationships and assigns it to the Relationships field.
-func (o *ArticleData) SetRelationships(v ArticleDataRelationships) {
-	o.Relationships = &v
-}
-
 func (o ArticleData) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -167,9 +134,6 @@ func (o ArticleData) ToMap() (map[string]interface{}, error) {
 	toSerialize["id"] = o.Id
 	toSerialize["type"] = o.Type
 	toSerialize["attributes"] = o.Attributes
-	if !IsNil(o.Relationships) {
-		toSerialize["relationships"] = o.Relationships
-	}
 	return toSerialize, nil
 }
 

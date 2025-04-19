@@ -9,7 +9,7 @@ import (
 	"github.com/hs-zavet/news-radar/resources"
 )
 
-func CreateArticle(r *http.Request) (req resources.ArticleCreate, err error) {
+func CreateArticle(r *http.Request) (req resources.CreateArticle, err error) {
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		err = jsonkit.NewDecodeError("body", err)
 		return req, err

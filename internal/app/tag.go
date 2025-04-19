@@ -70,7 +70,7 @@ func (a App) UpdateTag(ctx context.Context, name string, request UpdateTagReques
 	return a.tags.Update(name, input)
 }
 
-func (a App) Get(ctx context.Context, name string) (models.Tag, error) {
+func (a App) GetTag(ctx context.Context, name string) (models.Tag, error) {
 	res, err := a.tags.Get(name)
 	if err != nil {
 		return models.Tag{}, fmt.Errorf("tag with name %s not found", name)

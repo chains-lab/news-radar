@@ -164,70 +164,61 @@ func (a *AuthorsQ) FilterName(name string) *AuthorsQ {
 	return a
 }
 
-func (a *AuthorsQ) applyUpdates(ctx context.Context, fields bson.M, updatedAt time.Time) (AuthorModel, error) {
-	fields["updated_at"] = updatedAt
+type AuthorUpdateInput struct {
+	Name      *string             `json:"name" bson:"name"`
+	Status    *enums.AuthorStatus `json:"status" bson:"status"`
+	Desc      *string             `json:"desc" bson:"desc"`
+	Avatar    *string             `json:"avatar,omitempty" bson:"avatar,omitempty"`
+	Email     *string             `json:"email,omitempty" bson:"email,omitempty"`
+	Telegram  *string             `json:"telegram,omitempty" bson:"telegram,omitempty"`
+	Twitter   *string             `json:"twitter,omitempty" bson:"twitter,omitempty"`
+	UpdatedAt time.Time           `json:"updated_at" bson:"updated_at"`
+}
+
+func (a *AuthorsQ) Update(ctx context.Context, input AuthorUpdateInput) (AuthorModel, error) {
+	updateFields := bson.M{}
+
+	if input.Name != nil {
+		updateFields["name"] = *input.Name
+	}
+	if input.Status != nil {
+		updateFields["status"] = *input.Status
+	}
+	if input.Desc != nil {
+		updateFields["desc"] = *input.Desc
+	}
+	if input.Avatar != nil {
+		updateFields["avatar"] = *input.Avatar
+	}
+	if input.Email != nil {
+		updateFields["email"] = *input.Email
+	}
+	if input.Telegram != nil {
+		updateFields["telegram"] = *input.Telegram
+	}
+	if input.Twitter != nil {
+		updateFields["twitter"] = *input.Twitter
+	}
+	if len(updateFields) == 0 {
+		return AuthorModel{}, fmt.Errorf("nothing to update")
+	}
+	updateFields["updated_at"] = input.UpdatedAt
 
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 	var updated AuthorModel
 
-	err := a.collection.
-		FindOneAndUpdate(ctx, a.filters, bson.M{"$set": fields}, opts).
-		Decode(&updated)
+	err := a.collection.FindOneAndUpdate(ctx, a.filters, bson.M{"$set": updateFields}, opts).Decode(&updated)
 	if err != nil {
 		return AuthorModel{}, err
 	}
 
-	for k, v := range fields {
-		a.filters[k] = v
+	for key, value := range updateFields {
+		if _, exists := a.filters[key]; exists {
+			a.filters[key] = value
+		}
 	}
 
 	return updated, nil
-}
-
-func (a *AuthorsQ) UpdateName(ctx context.Context, name *string, updatedAt time.Time) (AuthorModel, error) {
-	if name == nil {
-		return AuthorModel{}, fmt.Errorf("name is required")
-	}
-	return a.applyUpdates(ctx, bson.M{"name": *name}, updatedAt)
-}
-
-func (a *AuthorsQ) UpdateDescription(ctx context.Context, desc *string, updatedAt time.Time) (AuthorModel, error) {
-	if desc == nil {
-		return AuthorModel{}, fmt.Errorf("desc is required")
-	}
-	return a.applyUpdates(ctx, bson.M{"desc": *desc}, updatedAt)
-}
-
-func (a *AuthorsQ) UpdateAvatar(ctx context.Context, avatar *string, updatedAt time.Time) (AuthorModel, error) {
-	return a.applyUpdates(ctx, bson.M{"avatar": avatar}, updatedAt)
-}
-
-func (a *AuthorsQ) UpdateStatus(ctx context.Context, status enums.AuthorStatus, updatedAt time.Time) (AuthorModel, error) {
-	if status == "" {
-		return AuthorModel{}, fmt.Errorf("status is required")
-	}
-	return a.applyUpdates(ctx, bson.M{"status": status}, updatedAt)
-}
-
-func (a *AuthorsQ) UpdateContactInfo(
-	ctx context.Context,
-	email, telegram, twitter *string,
-	updatedAt time.Time,
-) (AuthorModel, error) {
-	fields := bson.M{}
-	if email != nil {
-		fields["email"] = *email
-	}
-	if telegram != nil {
-		fields["telegram"] = *telegram
-	}
-	if twitter != nil {
-		fields["twitter"] = *twitter
-	}
-	if len(fields) == 0 {
-		return AuthorModel{}, fmt.Errorf("nothing to update in contacts")
-	}
-	return a.applyUpdates(ctx, fields, updatedAt)
 }
 
 func (a *AuthorsQ) Limit(limit int64) *AuthorsQ {

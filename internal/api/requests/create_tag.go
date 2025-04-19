@@ -9,7 +9,7 @@ import (
 	"github.com/hs-zavet/news-radar/resources"
 )
 
-func CreateTag(r *http.Request) (req resources.TagCreate, err error) {
+func CreateTag(r *http.Request) (req resources.CreateTag, err error) {
 	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
 		err = jsonkit.NewDecodeError("body", err)
 		return

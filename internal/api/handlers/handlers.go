@@ -15,18 +15,28 @@ import (
 
 type App interface {
 	CreateArticle(ctx context.Context, request app.CreateArticleRequest) (models.Article, error)
+	GetArticleByID(ctx context.Context, articleID uuid.UUID) (models.Article, error)
 	UpdateArticle(ctx context.Context, articleID uuid.UUID, request app.UpdateArticleRequest) (models.Article, error)
 	DeleteArticle(ctx context.Context, articleID uuid.UUID) error
-	GetArticleByID(ctx context.Context, articleID uuid.UUID) (models.Article, error)
-	SetTags(ctx context.Context, articleID uuid.UUID, tags []string) error
+
+	SetArticleTags(ctx context.Context, articleID uuid.UUID, tags []string) error
+	GetArticleTags(ctx context.Context, articleID uuid.UUID) ([]models.Tag, error)
+	AddArticleTag(ctx context.Context, articleID uuid.UUID, tag string) error
+	DeleteArticleTag(ctx context.Context, articleID uuid.UUID, tag string) error
+	CleanArticleTags(ctx context.Context, articleID uuid.UUID) error
+
 	SetAuthors(ctx context.Context, articleID uuid.UUID, authors []uuid.UUID) error
+	GetArticleForAuthors(ctx context.Context, articleID uuid.UUID) ([]models.Article, error)
+	AddArticleAuthor(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error
+	DeleteArticleAuthor(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error
+	CleanArticleAuthors(ctx context.Context, articleID uuid.UUID) error
 
 	UpdateArticleContent(ctx context.Context, articleID uuid.UUID, index int, section content.Section) error
 
 	CreateTag(ctx context.Context, request app.CreateTagRequest) error
 	DeleteTag(ctx context.Context, name string) error
 	UpdateTag(ctx context.Context, name string, request app.UpdateTagRequest) error
-	Get(ctx context.Context, name string) (models.Tag, error)
+	GetTag(ctx context.Context, name string) (models.Tag, error)
 
 	CreateAuthor(ctx context.Context, request app.CreateAuthorRequest) error
 	UpdateAuthor(ctx context.Context, authorID uuid.UUID, request app.UpdateAuthorRequest) error
@@ -45,7 +55,7 @@ func NewHandlers(cfg config.Config, log *logrus.Entry, app *app.App) Handler {
 	var upgrader = websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			//allowedOrigin := "https://example.com"
-			//return r.Header.Get("Origin") == allowedOrigin
+			//return r.Header.GetTag("Origin") == allowedOrigin
 			return true
 		},
 	}

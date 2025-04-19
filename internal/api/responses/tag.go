@@ -20,3 +20,32 @@ func Tag(tag models.Tag) resources.Tag {
 		},
 	}
 }
+
+func TagsCollection(tags []models.Tag) resources.TagCollection {
+	data := make([]resources.TagData, len(tags))
+
+	for _, tag := range tags {
+		element := resources.TagData{
+			Id:   tag.Name,
+			Type: resources.TagCreateType,
+			Attributes: resources.TagAttributes{
+				Status:    string(tag.Status),
+				Type:      string(tag.Type),
+				Icon:      tag.Icon,
+				Color:     tag.Color,
+				CreatedAt: tag.CreatedAt,
+			},
+		}
+
+		data = append(data, element)
+	}
+
+	return resources.TagCollection{
+		Data: resources.TagCollectionData{
+			Type: resources.TagsCollectionType,
+			Attributes: resources.TagCollectionDataAttributes{
+				Data: data,
+			},
+		},
+	}
+}

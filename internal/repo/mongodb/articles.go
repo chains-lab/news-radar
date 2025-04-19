@@ -213,116 +213,98 @@ func (a *ArticlesQ) FilterStatus(status enums.ArticleStatus) *ArticlesQ {
 	return a
 }
 
-func (a *ArticlesQ) applyUpdate(ctx context.Context, updatedAt time.Time, update bson.M) (ArticleModel, error) {
-	// гарантируем, что updated_at будет записан
-	setUpdated := func(m bson.M) {
-		if _, ok := m["updated_at"]; !ok {
-			m["updated_at"] = updatedAt
-		}
+type ArticleUpdateInput struct {
+	Status    *enums.ArticleStatus `json:"status" bson:"status"`
+	Title     *string              `json:"title,omitempty" bson:"title,omitempty"`
+	Icon      *string              `json:"icon,omitempty" bson:"icon,omitempty"`
+	Desc      *string              `json:"desc,omitempty" bson:"desc,omitempty"`
+	UpdatedAt time.Time            `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+}
+
+func (a *ArticlesQ) Update(ctx context.Context, input ArticleUpdateInput) (ArticleModel, error) {
+	updateFields := bson.M{}
+
+	if input.Title != nil {
+		updateFields["title"] = *input.Title
+	}
+	if input.Icon != nil {
+		updateFields["icon"] = *input.Icon
+	}
+	if input.Desc != nil {
+		updateFields["desc"] = *input.Desc
 	}
 
-	// если в апдейте есть $set/$currentDate, добавляем туда updated_at
-	if set, ok := update["$set"].(bson.M); ok {
-		setUpdated(set)
-	} else if cd, ok := update["$currentDate"].(bson.M); ok {
-		setUpdated(cd)
-	} else {
-		// вообще нет $set или $currentDate → создаём $set
-		update["$set"] = bson.M{"updated_at": updatedAt}
+	if len(updateFields) == 0 {
+		return ArticleModel{}, fmt.Errorf("nothing to update")
 	}
+	updateFields["updated_at"] = input.UpdatedAt
 
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 	var updated ArticleModel
-	if err := a.collection.FindOneAndUpdate(ctx, a.filters, update, opts).Decode(&updated); err != nil {
-		return ArticleModel{}, err
-	}
 
-	// синхронизируем filters, чтобы можно было звать методы цепочкой
-	for k, v := range update {
-		if k != "$set" {
-			continue
-		}
-		if setMap, ok := v.(bson.M); ok {
-			for field, val := range setMap {
-				a.filters[field] = val
-			}
-		}
+	err := a.collection.FindOneAndUpdate(ctx, a.filters, bson.M{"$set": updateFields}, opts).Decode(&updated)
+	if err != nil {
+		return ArticleModel{}, fmt.Errorf("failed to update article: %w", err)
 	}
 
 	return updated, nil
 }
 
-// applySet — сахар над applyUpdate для простых $set обновлений.
-func (a *ArticlesQ) applySet(ctx context.Context, updatedAt time.Time, fields bson.M) (ArticleModel, error) {
-	return a.applyUpdate(ctx, updatedAt, bson.M{"$set": fields})
-}
-
-func (a *ArticlesQ) UpdateStatus(ctx context.Context, updatedAt time.Time, status enums.ArticleStatus) (ArticleModel, error) {
-	return a.applySet(ctx, updatedAt, bson.M{"status": status})
-}
-
-func (a *ArticlesQ) UpdateTitle(ctx context.Context, updatedAt time.Time, title string) (ArticleModel, error) {
-	return a.applySet(ctx, updatedAt, bson.M{"title": title})
-}
-
-// UpdateIcon позволяет как заменить иконку, так и сбросить её, передав nil.
-func (a *ArticlesQ) UpdateIcon(ctx context.Context, updatedAt time.Time, icon *string) (ArticleModel, error) {
-	return a.applySet(ctx, updatedAt, bson.M{"icon": icon})
-}
-
-func (a *ArticlesQ) UpdateDesc(ctx context.Context, updatedAt time.Time, desc *string) (ArticleModel, error) {
-	return a.applySet(ctx, updatedAt, bson.M{"desc": desc})
-}
-
-// UpdateContent изменяет, удаляет или добавляет секцию контента по правилам:
-//
-//	— если section «пустая» (нет media, audio и текста) и index < len(content) → удалить;
-//	— если не пустая и index < len(content) → заменить существующую;
-//	— если не пустая и index >= len(content) → push в конец;
-//	— если пустая и index >= len(content) → только updated_at.
-//
-// Возвращает итоговую версию статьи.
-func (a *ArticlesQ) UpdateContent(ctx context.Context, updatedAt time.Time, index int, section content.Section) (ArticleModel, error) {
-	// 1) Тянем действующую статью, чтобы знать длину content
-	var art ArticleModel
-	if err := a.collection.FindOne(ctx, a.filters).Decode(&art); err != nil {
+func (a *ArticlesQ) UpdateContent(ctx context.Context, index int, section content.Section, updatedAt time.Time) (ArticleModel, error) {
+	var article ArticleModel
+	err := a.collection.FindOne(ctx, a.filters).Decode(&article)
+	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return ArticleModel{}, fmt.Errorf("article not found")
 		}
 		return ArticleModel{}, fmt.Errorf("failed to load article: %w", err)
 	}
 
-	// 2) Проверяем «пустая» ли секция
 	isEmpty := func(s content.Section) bool {
-		return s.Media == nil && len(s.Text) == 0 && s.Audio == nil
+		return s.Media == nil &&
+			len(s.Text) == 0 &&
+			s.Audio == nil
 	}
 
-	// 3) Формируем update
 	var update bson.M
 
 	switch {
-	case isEmpty(section) && index < len(art.Content):
+	case isEmpty(section) && index < len(article.Content):
 		update = bson.M{
-			"$unset":       bson.M{fmt.Sprintf("content.%d", index): 1},
-			"$pull":        bson.M{"content": nil},
+			// unset попавший в позицию null
+			"$unset": bson.M{fmt.Sprintf("content.%d", index): 1},
+			// удаляем все null из массива
+			"$pull": bson.M{"content": nil},
+			// обновляем метку времени
 			"$currentDate": bson.M{"updated_at": updatedAt},
 		}
-	case !isEmpty(section) && index < len(art.Content):
+
+	// 3b) Непустая секция и индекс в пределах — перезаписываем:
+	case !isEmpty(section) && index < len(article.Content):
 		update = bson.M{
 			"$set":         bson.M{fmt.Sprintf("content.%d", index): section},
 			"$currentDate": bson.M{"updated_at": updatedAt},
 		}
-	case !isEmpty(section) && index >= len(art.Content):
+
+	// 3c) Непустая секция и индекс вне пределов — добавляем в конец:
+	case !isEmpty(section) && index >= len(article.Content):
 		update = bson.M{
 			"$push":        bson.M{"content": section},
 			"$currentDate": bson.M{"updated_at": updatedAt},
 		}
+
+	// 3d) Пустая секция и индекс вне пределов — просто обновляем метку времени:
 	default:
-		update = bson.M{"$set": bson.M{"updated_at": updatedAt}}
+		update = bson.M{
+			"$currentDate": bson.M{"updated_at": updatedAt},
+		}
 	}
 
-	// 4) Применяем и получаем обновлённую статью
-	return a.applyUpdate(ctx, updatedAt, update)
+	err = a.collection.FindOneAndUpdate(ctx, a.filters, update).Decode(&article)
+	if err != nil {
+		return ArticleModel{}, fmt.Errorf("failed to update content at index %d: %w", index, err)
+	}
+	return article, nil
 }
 
 func (a *ArticlesQ) Limit(limit int64) *ArticlesQ {

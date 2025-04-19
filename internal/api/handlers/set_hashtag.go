@@ -34,7 +34,7 @@ func (h *Handler) SetHashTags(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.app.SetTags(r.Context(), articleID, req.Data.Attributes.Tags)
+	err = h.app.SetArticleTags(r.Context(), articleID, req.Data.Attributes.Tags)
 	if err != nil {
 		switch {
 		case errors.Is(err, nil):

@@ -8,7 +8,6 @@ Name | Type | Description | Notes
 **Title** | Pointer to **string** | Article title | [optional] 
 **Icon** | Pointer to **string** | Article link | [optional] 
 **Desc** | Pointer to **string** | Article description | [optional] 
-**Content** | Pointer to **map[string]interface{}** | Article content | [optional] 
 **Authors** | Pointer to **[]string** | Authors ID uuid | [optional] 
 **Tags** | Pointer to **[]string** |  | [optional] 
 
@@ -130,31 +129,6 @@ SetDesc sets Desc field to given value.
 `func (o *UpdateArticleDataAttributes) HasDesc() bool`
 
 HasDesc returns a boolean if a field has been set.
-
-### GetContent
-
-`func (o *UpdateArticleDataAttributes) GetContent() map[string]interface{}`
-
-GetContent returns the Content field if non-nil, zero value otherwise.
-
-### GetContentOk
-
-`func (o *UpdateArticleDataAttributes) GetContentOk() (*map[string]interface{}, bool)`
-
-GetContentOk returns a tuple with the Content field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetContent
-
-`func (o *UpdateArticleDataAttributes) SetContent(v map[string]interface{})`
-
-SetContent sets Content field to given value.
-
-### HasContent
-
-`func (o *UpdateArticleDataAttributes) HasContent() bool`
-
-HasContent returns a boolean if a field has been set.
 
 ### GetAuthors
 
