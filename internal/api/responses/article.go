@@ -40,7 +40,6 @@ func Article(article models.Article) resources.Article {
 				Type: resources.AuthorType,
 			})
 		}
-		data.Relationships.Authors = authors
 	}
 
 	if article.Tags != nil {
@@ -51,7 +50,6 @@ func Article(article models.Article) resources.Article {
 				Type: resources.TagType,
 			})
 		}
-		data.Relationships.Tags = tags
 	}
 
 	return resources.Article{

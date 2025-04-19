@@ -26,20 +26,21 @@ type App interface {
 	CleanArticleTags(ctx context.Context, articleID uuid.UUID) error
 
 	SetAuthors(ctx context.Context, articleID uuid.UUID, authors []uuid.UUID) error
-	GetArticleForAuthors(ctx context.Context, articleID uuid.UUID) ([]models.Article, error)
+	GetArticleAuthors(ctx context.Context, articleID uuid.UUID) ([]models.Author, error)
+	GetArticleForAuthor(ctx context.Context, articleID uuid.UUID) ([]models.Article, error)
 	AddArticleAuthor(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error
 	DeleteArticleAuthor(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error
 	CleanArticleAuthors(ctx context.Context, articleID uuid.UUID) error
 
-	UpdateArticleContent(ctx context.Context, articleID uuid.UUID, index int, section content.Section) error
+	UpdateArticleContent(ctx context.Context, articleID uuid.UUID, index int, section content.Section) (models.Article, error)
 
 	CreateTag(ctx context.Context, request app.CreateTagRequest) error
 	DeleteTag(ctx context.Context, name string) error
-	UpdateTag(ctx context.Context, name string, request app.UpdateTagRequest) error
+	UpdateTag(ctx context.Context, name string, request app.UpdateTagRequest) (models.Tag, error)
 	GetTag(ctx context.Context, name string) (models.Tag, error)
 
 	CreateAuthor(ctx context.Context, request app.CreateAuthorRequest) error
-	UpdateAuthor(ctx context.Context, authorID uuid.UUID, request app.UpdateAuthorRequest) error
+	UpdateAuthor(ctx context.Context, authorID uuid.UUID, request app.UpdateAuthorRequest) (models.Author, error)
 	DeleteAuthor(ctx context.Context, authorID uuid.UUID) error
 	GetAuthorByID(ctx context.Context, authorID uuid.UUID) (models.Author, error)
 }

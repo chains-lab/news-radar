@@ -89,7 +89,7 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 					r.Get("/", a.handlers.GetAuthor)
 					r.With(admin).Put("/", a.handlers.UpdateAuthor)
 					r.With(admin).Delete("/", a.handlers.DeleteAuthor)
-					r.With(admin).Get("/articles", a.handlers.GetAuthorArticles)
+					r.With(admin).Get("/articles", a.handlers.GetArticlesForAuthor)
 				})
 			})
 

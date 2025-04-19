@@ -60,37 +60,26 @@ func (a App) UpdateArticle(ctx context.Context, articleID uuid.UUID, request Upd
 	var article repo.ArticleModel
 	var err error
 
+	input := repo.ArticleUpdateInput{}
 	updated := false
 
 	if request.Title != nil {
-		article, err = a.articles.UpdateTitle(articleID, *request.Title)
-		if err != nil {
-			return models.Article{}, err
-		}
+		input.Title = request.Title
 		updated = true
 	}
 
 	if request.Status != nil {
-		article, err = a.articles.UpdateStatus(articleID, *request.Status)
-		if err != nil {
-			return models.Article{}, err
-		}
+		input.Status = request.Status
 		updated = true
 	}
 
 	if request.Icon != nil {
-		article, err = a.articles.UpdateIcon(articleID, *request.Icon)
-		if err != nil {
-			return models.Article{}, err
-		}
+		input.Icon = request.Icon
 		updated = true
 	}
 
 	if request.Desc != nil {
-		article, err = a.articles.UpdateDesc(articleID, *request.Desc)
-		if err != nil {
-			return models.Article{}, err
-		}
+		input.Desc = request.Desc
 		updated = true
 	}
 
@@ -318,7 +307,37 @@ func (a App) SetAuthors(ctx context.Context, articleID uuid.UUID, authors []uuid
 	return a.articles.SetAuthors(articleID, authors)
 }
 
-func (a App) GetArticleForAuthors(ctx context.Context, authorID uuid.UUID) ([]models.Article, error) {
+func (a App) GetArticleAuthors(ctx context.Context, articleID uuid.UUID) ([]models.Author, error) {
+	authors, err := a.articles.GetAuthors(articleID)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []models.Author
+	for _, authorID := range authors {
+		author, err := a.authors.GetByID(authorID)
+		if err != nil {
+			return nil, err
+		}
+
+		res = append(res, models.Author{
+			ID:        author.ID,
+			Name:      author.Name,
+			Status:    author.Status,
+			Desc:      author.Desc,
+			Avatar:    author.Avatar,
+			Email:     author.Email,
+			Telegram:  author.Telegram,
+			Twitter:   author.Twitter,
+			CreatedAt: author.CreatedAt,
+			UpdatedAt: author.UpdatedAt,
+		})
+	}
+
+	return res, nil
+}
+
+func (a App) GetArticleForAuthor(ctx context.Context, authorID uuid.UUID) ([]models.Article, error) {
 	articles, err := a.articles.GetArticlesForAuthor(authorID)
 	if err != nil {
 		return nil, err

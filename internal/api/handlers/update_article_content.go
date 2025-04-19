@@ -72,24 +72,15 @@ func (h *Handler) ArticleContentWS(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		if err := h.app.UpdateArticleContent(
+		article, err := h.app.UpdateArticleContent(
 			r.Context(),
 			articleID,
 			int(wsMsg.Data.Attributes.SectionID),
 			section,
-		); err != nil {
+		)
+		if err != nil {
 			h.log.WithError(err).Warn("failed to update article content")
 			err := conn.WriteJSON(responses.ArticleContentUpdate("error", "Failed to update content", nil))
-			if err != nil {
-				return
-			}
-			continue
-		}
-
-		article, err := h.app.GetArticleByID(r.Context(), articleID)
-		if err != nil {
-			h.log.WithError(err).Error("failed to fetch updated article")
-			err := conn.WriteJSON(responses.ArticleContentUpdate("error", "Failed to load article", nil))
 			if err != nil {
 				return
 			}

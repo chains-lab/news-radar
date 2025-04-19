@@ -131,7 +131,7 @@ type ArticleUpdateInput struct {
 	Desc   *string              `json:"desc,omitempty" bson:"desc,omitempty"`
 }
 
-func (a *ArticlesRepo) UpdateStatus(ID uuid.UUID, input ArticleUpdateInput) (ArticleModel, error) {
+func (a *ArticlesRepo) Update(ID uuid.UUID, input ArticleUpdateInput) (ArticleModel, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 

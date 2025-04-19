@@ -10,7 +10,7 @@ import (
 	"github.com/hs-zavet/news-radar/internal/api/responses"
 )
 
-func (h *Handler) GetAuthorArticles(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetArticlesForAuthor(w http.ResponseWriter, r *http.Request) {
 	authorID, err := uuid.Parse(chi.URLParam(r, "author_id"))
 	if err != nil {
 		h.log.WithError(err).Warn("Error parsing request")
@@ -18,12 +18,12 @@ func (h *Handler) GetAuthorArticles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.app.GetAuthorArticles(r.Context(), authorID)
+	res, err := h.app.GetArticleForAuthor(r.Context(), authorID)
 	if err != nil {
 		h.log.WithError(err).Error("Error getting author articles")
 		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	httpkit.Render(w, responses.AuthorsCollection(res))
+	httpkit.Render(w, responses.ArticleShortsCollection(res))
 }

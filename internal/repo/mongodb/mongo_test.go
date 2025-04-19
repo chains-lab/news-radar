@@ -174,7 +174,7 @@ func TestArticlesCrud(t *testing.T) {
 		t.Errorf("Get returned wrong article: %v", art)
 	}
 
-	// Update Title
+	// Update Name
 	newTitle := "Updated"
 	updated := time.Now().UTC()
 	tstArt, err := aqt.Update(ctx, ArticleUpdateInput{Title: &newTitle, UpdatedAt: updated})

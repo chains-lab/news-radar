@@ -27,12 +27,7 @@ func (h *Handler) CreateAuthor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.app.CreateAuthor(r.Context(), app.CreateAuthorRequest{
-		Name:     req.Data.Attributes.Name,
-		Desc:     req.Data.Attributes.Desc,
-		Avatar:   req.Data.Attributes.Avatar,
-		Email:    req.Data.Attributes.Email,
-		Telegram: req.Data.Attributes.Telegram,
-		Twitter:  req.Data.Attributes.Twitter,
+		Name: req.Data.Attributes.Name,
 	})
 	if err != nil {
 		switch {

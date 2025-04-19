@@ -43,47 +43,32 @@ type UpdateAuthorRequest struct {
 
 func (a App) UpdateAuthor(ctx context.Context, authorID uuid.UUID, request UpdateAuthorRequest) (models.Author, error) {
 	var author repo.AuthorModel
-	var err error
 
+	input := repo.AuthorUpdateInput{}
 	updated := false
 
 	if request.Name != nil {
-		author, err = a.authors.UpdateName(authorID, *request.Name)
-		if err != nil {
-			return models.Author{}, err
-		}
+		input.Name = request.Name
 		updated = true
 	}
 
 	if request.Status != nil {
-		author, err = a.authors.UpdateStatus(authorID, *request.Status)
-		if err != nil {
-			return models.Author{}, err
-		}
+		input.Status = request.Status
 		updated = true
 	}
 
 	if request.Desc != nil {
-		author, err = a.authors.UpdateDescription(authorID, *request.Desc)
-		if err != nil {
-			return models.Author{}, err
-		}
+		input.Desc = request.Desc
 		updated = true
 	}
 
 	if request.Avatar != nil {
-		author, err = a.authors.UpdateAvatar(authorID, *request.Avatar)
-		if err != nil {
-			return models.Author{}, err
-		}
+		input.Avatar = request.Avatar
 		updated = true
 	}
 
 	if request.Email != nil || request.Telegram != nil || request.Twitter != nil {
-		author, err = a.authors.UpdateContactInfo(authorID, request.Email, request.Telegram, request.Twitter)
-		if err != nil {
-			return models.Author{}, err
-		}
+		input.Email = request.Email
 		updated = true
 	}
 
@@ -93,7 +78,7 @@ func (a App) UpdateAuthor(ctx context.Context, authorID uuid.UUID, request Updat
 
 	return models.Author{
 		ID:        author.ID,
-		Name:      author.Title,
+		Name:      author.Name,
 		Status:    author.Status,
 		Desc:      author.Desc,
 		Avatar:    author.Avatar,
@@ -117,7 +102,7 @@ func (a App) GetAuthorByID(ctx context.Context, authorID uuid.UUID) (models.Auth
 
 	return models.Author{
 		ID:        res.ID,
-		Name:      res.Title,
+		Name:      res.Name,
 		Status:    res.Status,
 		Desc:      res.Desc,
 		Avatar:    res.Avatar,

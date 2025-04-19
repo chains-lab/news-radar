@@ -64,7 +64,7 @@ func (h *Handler) UpdateAuthor(w http.ResponseWriter, r *http.Request) {
 		update.Email = req.Data.Attributes.Email
 	}
 
-	err = h.app.UpdateAuthor(r.Context(), authorID, update)
+	author, err := h.app.UpdateAuthor(r.Context(), authorID, update)
 	if err != nil {
 		switch {
 		case err == nil:
@@ -76,13 +76,6 @@ func (h *Handler) UpdateAuthor(w http.ResponseWriter, r *http.Request) {
 			httpkit.RenderErr(w, problems.InternalError())
 			return
 		}
-	}
-
-	author, err := h.app.GetAuthorByID(r.Context(), authorID)
-	if err != nil {
-		h.log.WithError(err).Error("Error getting author")
-		httpkit.RenderErr(w, problems.InternalError())
-		return
 	}
 
 	httpkit.Render(w, responses.Author(author))

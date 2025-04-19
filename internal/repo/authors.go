@@ -14,7 +14,7 @@ import (
 
 type AuthorModel struct {
 	ID        uuid.UUID          `json:"id" bson:"id"`
-	Title     string             `json:"title" bson:"title"`
+	Name      string             `json:"name" bson:"name"`
 	Status    enums.AuthorStatus `json:"status" bson:"status"`
 	Desc      *string            `json:"desc" bson:"desc"`
 	Avatar    *string            `json:"avatar,omitempty" bson:"avatar,omitempty"`
@@ -104,7 +104,7 @@ func (a *Authors) Create(input AuthorCreateInput) error {
 }
 
 type AuthorUpdateInput struct {
-	Title    *string             `json:"title" bson:"title"`
+	Name     *string             `json:"name" bson:"name"`
 	Status   *enums.AuthorStatus `json:"status" bson:"status"`
 	Desc     *string             `json:"desc" bson:"desc"`
 	Avatar   *string             `json:"avatar,omitempty" bson:"avatar,omitempty"`
@@ -119,8 +119,8 @@ func (a *Authors) Update(ID uuid.UUID, input AuthorUpdateInput) (AuthorModel, er
 
 	var mongoInput mongodb.AuthorUpdateInput
 
-	if input.Title != nil {
-		mongoInput.Name = input.Title
+	if input.Name != nil {
+		mongoInput.Name = input.Name
 	}
 	if input.Desc != nil {
 		mongoInput.Desc = input.Desc
@@ -145,7 +145,7 @@ func (a *Authors) Update(ID uuid.UUID, input AuthorUpdateInput) (AuthorModel, er
 	}
 
 	mongo, err := a.mongo.New().FilterID(ID).Update(ctxSync, mongodb.AuthorUpdateInput{
-		Name:     input.Title,
+		Name:     input.Name,
 		Desc:     input.Desc,
 		Avatar:   input.Avatar,
 		Email:    input.Email,
@@ -158,7 +158,7 @@ func (a *Authors) Update(ID uuid.UUID, input AuthorUpdateInput) (AuthorModel, er
 
 	return AuthorModel{
 		ID:        mongo.ID,
-		Title:     mongo.Name,
+		Name:      mongo.Name,
 		Status:    mongo.Status,
 		Desc:      mongo.Desc,
 		Avatar:    mongo.Avatar,
@@ -214,7 +214,7 @@ func authorsCreateModel(mongo mongodb.AuthorModel, neo neodb.AuthorModel) (Autho
 
 	res := AuthorModel{
 		ID:        mongo.ID,
-		Title:     mongo.Name,
+		Name:      mongo.Name,
 		Status:    neo.Status,
 		CreatedAt: mongo.CreatedAt,
 	}

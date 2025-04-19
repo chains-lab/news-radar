@@ -43,7 +43,7 @@ type UpdateTagRequest struct {
 	Icon   *string          `json:"icon"`
 }
 
-func (a App) UpdateTag(ctx context.Context, name string, request UpdateTagRequest) error {
+func (a App) UpdateTag(ctx context.Context, name string, request UpdateTagRequest) (models.Tag, error) {
 	input := repo.TagUpdateInput{}
 
 	if request.Status != nil {
@@ -62,12 +62,24 @@ func (a App) UpdateTag(ctx context.Context, name string, request UpdateTagReques
 	if request.Name != nil {
 		_, err := a.tags.Get(*request.Name)
 		if err != nil {
-			return fmt.Errorf("tag with name %s already exists", *request.Name)
+			return models.Tag{}, fmt.Errorf("tag with name %s already exists", *request.Name)
 		}
 		input.Name = request.Name
 	}
 
-	return a.tags.Update(name, input)
+	res, err := a.tags.Update(name, input)
+	if err != nil {
+		return models.Tag{}, fmt.Errorf("tag with name %s not found", name)
+	}
+
+	return models.Tag{
+		Name:      res.Name,
+		Status:    res.Status,
+		Type:      res.Type,
+		Color:     res.Color,
+		Icon:      res.Icon,
+		CreatedAt: res.CreatedAt,
+	}, nil
 }
 
 func (a App) GetTag(ctx context.Context, name string) (models.Tag, error) {
