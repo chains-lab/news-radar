@@ -6,9 +6,9 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Title** | **string** | Article title | 
 **Status** | **string** | Article status | 
-**Icon** | **string** | Article link | 
-**Desc** | **string** | Article description | 
-**Content** | [**[]Content**](Content.md) |  | 
+**Icon** | Pointer to **string** | Article link | [optional] 
+**Desc** | Pointer to **string** | Article description | [optional] 
+**Content** | Pointer to [**[]Content**](Content.md) |  | [optional] 
 **UpdatedAt** | Pointer to **time.Time** | Updated at | [optional] 
 **CreatedAt** | **time.Time** | Created at | 
 
@@ -16,7 +16,7 @@ Name | Type | Description | Notes
 
 ### NewArticleAttributes
 
-`func NewArticleAttributes(title string, status string, icon string, desc string, content []Content, createdAt time.Time, ) *ArticleAttributes`
+`func NewArticleAttributes(title string, status string, createdAt time.Time, ) *ArticleAttributes`
 
 NewArticleAttributes instantiates a new ArticleAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -90,6 +90,11 @@ and a boolean to check if the value has been set.
 
 SetIcon sets Icon field to given value.
 
+### HasIcon
+
+`func (o *ArticleAttributes) HasIcon() bool`
+
+HasIcon returns a boolean if a field has been set.
 
 ### GetDesc
 
@@ -110,6 +115,11 @@ and a boolean to check if the value has been set.
 
 SetDesc sets Desc field to given value.
 
+### HasDesc
+
+`func (o *ArticleAttributes) HasDesc() bool`
+
+HasDesc returns a boolean if a field has been set.
 
 ### GetContent
 
@@ -130,6 +140,11 @@ and a boolean to check if the value has been set.
 
 SetContent sets Content field to given value.
 
+### HasContent
+
+`func (o *ArticleAttributes) HasContent() bool`
+
+HasContent returns a boolean if a field has been set.
 
 ### GetUpdatedAt
 

@@ -106,6 +106,7 @@ func (a *ArticlesRepo) Create(input ArticleCreateInput) (ArticleModel, error) {
 
 	mongoTag, err := a.mongo.New().Insert(ctxSync, mongodb.ArticleInsertInput{
 		ID:        input.ID,
+		Status:    input.Status,
 		Title:     input.Title,
 		CreatedAt: input.CreatedAt,
 	})

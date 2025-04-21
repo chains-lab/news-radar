@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hs-zavet/news-radar/internal/app/ape"
 	"github.com/hs-zavet/news-radar/internal/app/models"
 	"github.com/hs-zavet/news-radar/internal/content"
 	"github.com/hs-zavet/news-radar/internal/enums"
@@ -53,7 +54,6 @@ type UpdateArticleRequest struct {
 }
 
 func (a App) UpdateArticle(ctx context.Context, articleID uuid.UUID, request UpdateArticleRequest) (models.Article, error) {
-	var article repo.ArticleModel
 	var err error
 
 	input := repo.ArticleUpdateInput{}
@@ -82,6 +82,11 @@ func (a App) UpdateArticle(ctx context.Context, articleID uuid.UUID, request Upd
 	if !updated {
 		//for idempotency
 		return a.GetArticleByID(ctx, articleID)
+	}
+
+	article, err := a.articles.Update(articleID, input)
+	if err != nil {
+		return models.Article{}, err
 	}
 
 	authors, err := a.articles.GetAuthors(articleID)
@@ -123,13 +128,23 @@ func (a App) UpdateArticleContent(ctx context.Context, articleID uuid.UUID, inde
 }
 
 func (a App) DeleteArticle(ctx context.Context, articleID uuid.UUID) error {
-	return a.articles.Delete(articleID)
+	_, err := a.articles.GetByID(articleID)
+	if err != nil {
+		return ape.ErrArticleNotFound
+	}
+
+	err = a.articles.Delete(articleID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (a App) GetArticleByID(ctx context.Context, articleID uuid.UUID) (models.Article, error) {
 	article, err := a.articles.GetByID(articleID)
 	if err != nil {
-		return models.Article{}, err
+		return models.Article{}, ape.ErrArticleNotFound
 	}
 
 	authors, err := a.articles.GetAuthors(articleID)

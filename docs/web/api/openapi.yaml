@@ -76,10 +76,7 @@ components:
           format: date-time
           type: string
       required:
-      - content
       - created_at
-      - desc
-      - icon
       - status
       - title
       type: object

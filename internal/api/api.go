@@ -53,10 +53,11 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/articles", func(r chi.Router) {
-				r.Post("/", a.handlers.CreateArticle)
+				r.With(admin).Post("/", a.handlers.CreateArticle)
 
 				r.Route("/{article_id}", func(r chi.Router) {
 					r.Get("/", a.handlers.GetArticle)
+					r.With(admin).Get("/inactive", a.handlers.GetArticleInactive)
 					r.With(admin).Delete("/", a.handlers.DeleteArticle)
 					r.With(admin).Put("/", a.handlers.UpdateArticle)
 

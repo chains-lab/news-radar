@@ -73,5 +73,5 @@ func (h *Handler) SetAuthorship(w http.ResponseWriter, r *http.Request) {
 
 	h.log.Infof("Created authorship: %s for article: %s, by user: %s", req.Data.Attributes.AuthorID, req.Data.Attributes.ArticleID, user.AccountID.String())
 
-	httpkit.Render(w, responses.Article(article))
+	httpkit.Render(w, responses.Article(article, nil, nil))
 }

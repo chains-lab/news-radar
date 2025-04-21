@@ -62,5 +62,5 @@ func (h *Handler) SetHashTags(w http.ResponseWriter, r *http.Request) {
 
 	h.log.Infof("Created tags: %s for article: %s, by user: %s", req.Data.Attributes.Tags, req.Data.Attributes.ArticleID, user.AccountID.String())
 
-	httpkit.Render(w, responses.Article(article))
+	httpkit.Render(w, responses.Article(article, nil, nil))
 }

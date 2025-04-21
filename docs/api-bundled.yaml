@@ -46,9 +46,6 @@ components:
       required:
         - title
         - status
-        - icon
-        - desc
-        - content
         - created_at
       properties:
         title:

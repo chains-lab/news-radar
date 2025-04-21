@@ -75,15 +75,16 @@ func (a *ArticlesQ) New() *ArticlesQ {
 }
 
 type ArticleInsertInput struct {
-	ID        uuid.UUID `json:"__id" bson:"_id"`
-	Title     string    `json:"title" bson:"title"`
-	CreatedAt time.Time `json:"created_at" bson:"created_at"`
+	ID        uuid.UUID           `json:"__id" bson:"_id"`
+	Title     string              `json:"title" bson:"title"`
+	Status    enums.ArticleStatus `json:"status" bson:"status"`
+	CreatedAt time.Time           `json:"created_at" bson:"created_at"`
 }
 
 func (a *ArticlesQ) Insert(ctx context.Context, input ArticleInsertInput) (ArticleModel, error) {
 	article := ArticleModel{
 		ID:        input.ID,
-		Status:    enums.ArticleStatusActive,
+		Status:    input.Status,
 		Title:     input.Title,
 		Icon:      nil,
 		Desc:      nil,

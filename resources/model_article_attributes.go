@@ -27,10 +27,10 @@ type ArticleAttributes struct {
 	// Article status
 	Status string `json:"status"`
 	// Article link
-	Icon string `json:"icon"`
+	Icon *string `json:"icon,omitempty"`
 	// Article description
-	Desc string `json:"desc"`
-	Content []Content `json:"content"`
+	Desc *string `json:"desc,omitempty"`
+	Content []Content `json:"content,omitempty"`
 	// Updated at
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	// Created at
@@ -43,13 +43,10 @@ type _ArticleAttributes ArticleAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewArticleAttributes(title string, status string, icon string, desc string, content []Content, createdAt time.Time) *ArticleAttributes {
+func NewArticleAttributes(title string, status string, createdAt time.Time) *ArticleAttributes {
 	this := ArticleAttributes{}
 	this.Title = title
 	this.Status = status
-	this.Icon = icon
-	this.Desc = desc
-	this.Content = content
 	this.CreatedAt = createdAt
 	return &this
 }
@@ -110,74 +107,98 @@ func (o *ArticleAttributes) SetStatus(v string) {
 	o.Status = v
 }
 
-// GetIcon returns the Icon field value
+// GetIcon returns the Icon field value if set, zero value otherwise.
 func (o *ArticleAttributes) GetIcon() string {
-	if o == nil {
+	if o == nil || IsNil(o.Icon) {
 		var ret string
 		return ret
 	}
-
-	return o.Icon
+	return *o.Icon
 }
 
-// GetIconOk returns a tuple with the Icon field value
+// GetIconOk returns a tuple with the Icon field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *ArticleAttributes) GetIconOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.Icon) {
 		return nil, false
 	}
-	return &o.Icon, true
+	return o.Icon, true
 }
 
-// SetIcon sets field value
+// HasIcon returns a boolean if a field has been set.
+func (o *ArticleAttributes) HasIcon() bool {
+	if o != nil && !IsNil(o.Icon) {
+		return true
+	}
+
+	return false
+}
+
+// SetIcon gets a reference to the given string and assigns it to the Icon field.
 func (o *ArticleAttributes) SetIcon(v string) {
-	o.Icon = v
+	o.Icon = &v
 }
 
-// GetDesc returns the Desc field value
+// GetDesc returns the Desc field value if set, zero value otherwise.
 func (o *ArticleAttributes) GetDesc() string {
-	if o == nil {
+	if o == nil || IsNil(o.Desc) {
 		var ret string
 		return ret
 	}
-
-	return o.Desc
+	return *o.Desc
 }
 
-// GetDescOk returns a tuple with the Desc field value
+// GetDescOk returns a tuple with the Desc field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *ArticleAttributes) GetDescOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.Desc) {
 		return nil, false
 	}
-	return &o.Desc, true
+	return o.Desc, true
 }
 
-// SetDesc sets field value
+// HasDesc returns a boolean if a field has been set.
+func (o *ArticleAttributes) HasDesc() bool {
+	if o != nil && !IsNil(o.Desc) {
+		return true
+	}
+
+	return false
+}
+
+// SetDesc gets a reference to the given string and assigns it to the Desc field.
 func (o *ArticleAttributes) SetDesc(v string) {
-	o.Desc = v
+	o.Desc = &v
 }
 
-// GetContent returns the Content field value
+// GetContent returns the Content field value if set, zero value otherwise.
 func (o *ArticleAttributes) GetContent() []Content {
-	if o == nil {
+	if o == nil || IsNil(o.Content) {
 		var ret []Content
 		return ret
 	}
-
 	return o.Content
 }
 
-// GetContentOk returns a tuple with the Content field value
+// GetContentOk returns a tuple with the Content field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *ArticleAttributes) GetContentOk() ([]Content, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.Content) {
 		return nil, false
 	}
 	return o.Content, true
 }
 
-// SetContent sets field value
+// HasContent returns a boolean if a field has been set.
+func (o *ArticleAttributes) HasContent() bool {
+	if o != nil && !IsNil(o.Content) {
+		return true
+	}
+
+	return false
+}
+
+// SetContent gets a reference to the given []Content and assigns it to the Content field.
 func (o *ArticleAttributes) SetContent(v []Content) {
 	o.Content = v
 }
@@ -250,9 +271,15 @@ func (o ArticleAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["title"] = o.Title
 	toSerialize["status"] = o.Status
-	toSerialize["icon"] = o.Icon
-	toSerialize["desc"] = o.Desc
-	toSerialize["content"] = o.Content
+	if !IsNil(o.Icon) {
+		toSerialize["icon"] = o.Icon
+	}
+	if !IsNil(o.Desc) {
+		toSerialize["desc"] = o.Desc
+	}
+	if !IsNil(o.Content) {
+		toSerialize["content"] = o.Content
+	}
 	if !IsNil(o.UpdatedAt) {
 		toSerialize["updated_at"] = o.UpdatedAt
 	}
@@ -267,9 +294,6 @@ func (o *ArticleAttributes) UnmarshalJSON(data []byte) (err error) {
 	requiredProperties := []string{
 		"title",
 		"status",
-		"icon",
-		"desc",
-		"content",
 		"created_at",
 	}
 

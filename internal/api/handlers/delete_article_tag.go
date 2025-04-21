@@ -35,5 +35,5 @@ func (h *Handler) DeleteArticleTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpkit.Render(w, responses.Article(article))
+	httpkit.Render(w, responses.Article(article, nil, nil))
 }

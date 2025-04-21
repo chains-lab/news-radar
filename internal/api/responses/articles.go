@@ -5,7 +5,7 @@ import (
 	"github.com/hs-zavet/news-radar/resources"
 )
 
-func Article(article models.Article) resources.Article {
+func Article(article models.Article, tags []models.Tag, authors []models.Author) resources.Article {
 	content := make([]resources.Content, 0)
 	if article.Content != nil {
 		for _, c := range article.Content {
@@ -19,7 +19,6 @@ func Article(article models.Article) resources.Article {
 		Attributes: resources.ArticleAttributes{
 			Title:     article.Title,
 			Status:    string(article.Status),
-			Desc:      *article.Desc,
 			CreatedAt: article.CreatedAt,
 		},
 	}
@@ -32,27 +31,33 @@ func Article(article models.Article) resources.Article {
 		data.Attributes.UpdatedAt = article.UpdatedAt
 	}
 
-	if article.Authors != nil {
-		var authors []resources.Relationships
-		for _, author := range article.Authors {
-			authors = append(authors, resources.Relationships{
-				Id:   author.String(),
-				Type: resources.AuthorType,
-			})
+	if article.Desc != nil {
+		data.Attributes.Desc = article.Desc
+	}
+
+	if article.Icon != nil {
+		data.Attributes.Icon = article.Icon
+	}
+
+	authorsResp := make([]resources.AuthorData, 0, len(article.Authors))
+	if authors != nil {
+		for _, author := range authors {
+			authorsResp = append(authorsResp, Author(author).Data)
 		}
 	}
 
-	if article.Tags != nil {
-		var tags []resources.Relationships
-		for _, tag := range article.Tags {
-			tags = append(tags, resources.Relationships{
-				Id:   tag,
-				Type: resources.TagType,
-			})
+	tagsResp := make([]resources.TagData, 0, len(tags))
+	if tags != nil {
+		for _, tag := range tags {
+			tagsResp = append(tagsResp, Tag(tag).Data)
 		}
 	}
 
 	return resources.Article{
 		Data: data,
+		Included: resources.ArticleInclude{
+			Authors: authorsResp,
+			Tags:    tagsResp,
+		},
 	}
 }

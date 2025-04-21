@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -10,10 +11,19 @@ import (
 	"github.com/hs-zavet/news-radar/internal/api/requests"
 	"github.com/hs-zavet/news-radar/internal/api/responses"
 	"github.com/hs-zavet/news-radar/internal/app"
+	"github.com/hs-zavet/news-radar/internal/app/ape"
 	"github.com/hs-zavet/news-radar/internal/enums"
+	"github.com/hs-zavet/tokens"
 )
 
 func (h *Handler) UpdateArticle(w http.ResponseWriter, r *http.Request) {
+	user, err := tokens.GetAccountTokenData(r.Context())
+	if err != nil {
+		h.log.WithError(err).Error("Failed to retrieve account data")
+		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
+		return
+	}
+
 	articleID, err := uuid.Parse(chi.URLParam(r, "article_id"))
 	if err != nil {
 		h.log.WithError(err).Warn("Error parsing request")
@@ -50,10 +60,17 @@ func (h *Handler) UpdateArticle(w http.ResponseWriter, r *http.Request) {
 
 	article, err := h.app.UpdateArticle(r.Context(), articleID, update)
 	if err != nil {
-		h.log.WithError(err).Warn("Error updating article")
-		httpkit.RenderErr(w, problems.InternalError())
+		switch {
+		case errors.Is(err, ape.ErrArticleNotFound):
+			httpkit.RenderErr(w, problems.NotFound())
+		default:
+			httpkit.RenderErr(w, problems.InternalError())
+		}
+		h.log.WithError(err).Error("Failed to delete article")
 		return
 	}
 
-	httpkit.Render(w, responses.Article(article))
+	h.log.Info("Article %s updated by user %s", article.ID.String(), user.AccountID.String())
+
+	httpkit.Render(w, responses.Article(article, nil, nil))
 }

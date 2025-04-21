@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/hs-zavet/comtools/httpkit"
@@ -27,26 +26,19 @@ func (h *Handler) CreateArticle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.app.CreateArticle(r.Context(), app.CreateArticleRequest{
+	article, err := h.app.CreateArticle(r.Context(), app.CreateArticleRequest{
 		Title: req.Data.Attributes.Title,
 	})
 	if err != nil {
 		switch {
-		case errors.Is(err, nil):
-			h.log.WithError(err).Error("Error creating article")
 		default:
 			httpkit.RenderErr(w, problems.InternalError())
 		}
-	}
-
-	resp := responses.Article(res)
-	if err != nil {
 		h.log.WithError(err).Error("Failed to create article")
-		httpkit.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	h.log.Infof("Created article: %s by user: %s", res.ID.String(), user.AccountID.String())
+	h.log.Infof("Created article: %s by user: %s", article.ID.String(), user.AccountID.String())
 
-	httpkit.Render(w, resp)
+	httpkit.Render(w, responses.Article(article, nil, nil))
 }
