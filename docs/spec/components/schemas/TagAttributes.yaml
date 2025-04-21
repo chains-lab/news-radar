@@ -21,6 +21,9 @@ properties:
     type: string
     description: "Tag icon"
     example: "https://example.com/icon.png"
+  updated_at:
+    type: string
+    format: date-time
   created_at:
     type: string
     format: date-time

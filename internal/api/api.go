@@ -69,7 +69,7 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 						r.With(auth).Put("/", a.handlers.SetHashTags)
 						r.With(auth).Delete("/", a.handlers.CleanArticleTags)
 						r.With(auth).Patch("/{tag}", a.handlers.AddTag)
-						//r.With(auth).Delete("/{tag}", a.handlers.DeleteATag)
+						r.With(auth).Delete("/{tag}", a.handlers.DeleteArticleTag)
 					})
 
 					r.Route("/authors", func(r chi.Router) {
@@ -77,7 +77,7 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 						r.With(auth).Put("/", a.handlers.SetAuthorship)
 						r.With(auth).Delete("/", a.handlers.CleanArticleAuthors)
 						r.With(auth).Patch("/{author_id}", a.handlers.AddAuthor)
-						r.With(auth).Delete("/{author_id}", a.handlers.DeleteAuthor)
+						r.With(auth).Delete("/{author_id}", a.handlers.DeleteArticleAuthor)
 					})
 				})
 			})

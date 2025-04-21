@@ -5,9 +5,12 @@ properties:
   data:
     type: object
     required:
+      - id
       - type
       - attributes
     properties:
+      id:
+        type: string
       type:
         type: string
         enum: [ author_update]

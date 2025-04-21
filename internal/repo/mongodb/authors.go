@@ -3,6 +3,7 @@ package mongodb
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -176,46 +177,58 @@ type AuthorUpdateInput struct {
 }
 
 func (a *AuthorsQ) Update(ctx context.Context, input AuthorUpdateInput) (AuthorModel, error) {
-	updateFields := bson.M{}
+	setFields := bson.M{"updated_at": input.UpdatedAt}
+	unsetFields := bson.M{}
 
-	if input.Name != nil {
-		updateFields["name"] = *input.Name
+	// helper: decide to set or unset
+	try := func(key string, ptr *string) {
+		if ptr == nil {
+			return
+		}
+		if s := strings.TrimSpace(*ptr); s == "" {
+			unsetFields[key] = "" // удаляем поле
+		} else {
+			setFields[key] = s // обновляем
+		}
 	}
+
+	try("name", input.Name)
+	try("desc", input.Desc)
+	try("avatar", input.Avatar)
+	try("email", input.Email)
+	try("telegram", input.Telegram)
+	try("twitter", input.Twitter)
+
 	if input.Status != nil {
-		updateFields["status"] = *input.Status
+		setFields["status"] = *input.Status
 	}
-	if input.Desc != nil {
-		updateFields["desc"] = *input.Desc
-	}
-	if input.Avatar != nil {
-		updateFields["avatar"] = *input.Avatar
-	}
-	if input.Email != nil {
-		updateFields["email"] = *input.Email
-	}
-	if input.Telegram != nil {
-		updateFields["telegram"] = *input.Telegram
-	}
-	if input.Twitter != nil {
-		updateFields["twitter"] = *input.Twitter
-	}
-	if len(updateFields) == 0 {
+
+	if len(setFields) == 1 && len(unsetFields) == 0 {
 		return AuthorModel{}, fmt.Errorf("nothing to update")
 	}
-	updateFields["updated_at"] = input.UpdatedAt
+
+	update := bson.M{}
+	if len(setFields) > 0 {
+		update["$set"] = setFields
+	}
+	if len(unsetFields) > 0 {
+		update["$unset"] = unsetFields
+	}
 
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 	var updated AuthorModel
-
-	err := a.collection.FindOneAndUpdate(ctx, a.filters, bson.M{"$set": updateFields}, opts).Decode(&updated)
-	if err != nil {
-		return AuthorModel{}, fmt.Errorf("failed to find author: %w", err)
+	if err := a.collection.FindOneAndUpdate(ctx, a.filters, update, opts).Decode(&updated); err != nil {
+		return AuthorModel{}, fmt.Errorf("failed to update author: %w", err)
 	}
 
-	for key, value := range updateFields {
-		if _, exists := a.filters[key]; exists {
-			a.filters[key] = value
+	// опционально обновляем filters для цепочек
+	for k, v := range setFields {
+		if _, ok := a.filters[k]; ok {
+			a.filters[k] = v
 		}
+	}
+	for k := range unsetFields {
+		delete(a.filters, k)
 	}
 
 	return updated, nil

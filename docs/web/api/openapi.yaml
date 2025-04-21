@@ -279,6 +279,9 @@ components:
           description: Tag icon
           example: https://example.com/icon.png
           type: string
+        updated_at:
+          format: date-time
+          type: string
         created_at:
           format: date-time
           type: string
@@ -507,16 +510,6 @@ components:
       properties:
         name:
           type: string
-        desc:
-          type: string
-        avatar:
-          type: string
-        email:
-          type: string
-        telegram:
-          type: string
-        twitter:
-          type: string
       required:
       - name
       type: object
@@ -551,6 +544,8 @@ components:
       type: object
     UpdateAuthor_data:
       properties:
+        id:
+          type: string
         type:
           enum:
           - author_update
@@ -559,6 +554,7 @@ components:
           $ref: '#/components/schemas/UpdateAuthor_data_attributes'
       required:
       - attributes
+      - id
       - type
       type: object
     AuthorsCollection_data_attributes:

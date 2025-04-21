@@ -21,6 +21,7 @@ var _ MappedNullable = &UpdateAuthorData{}
 
 // UpdateAuthorData struct for UpdateAuthorData
 type UpdateAuthorData struct {
+	Id string `json:"id"`
 	Type string `json:"type"`
 	Attributes UpdateAuthorDataAttributes `json:"attributes"`
 }
@@ -31,8 +32,9 @@ type _UpdateAuthorData UpdateAuthorData
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewUpdateAuthorData(type_ string, attributes UpdateAuthorDataAttributes) *UpdateAuthorData {
+func NewUpdateAuthorData(id string, type_ string, attributes UpdateAuthorDataAttributes) *UpdateAuthorData {
 	this := UpdateAuthorData{}
+	this.Id = id
 	this.Type = type_
 	this.Attributes = attributes
 	return &this
@@ -44,6 +46,30 @@ func NewUpdateAuthorData(type_ string, attributes UpdateAuthorDataAttributes) *U
 func NewUpdateAuthorDataWithDefaults() *UpdateAuthorData {
 	this := UpdateAuthorData{}
 	return &this
+}
+
+// GetId returns the Id field value
+func (o *UpdateAuthorData) GetId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Id
+}
+
+// GetIdOk returns a tuple with the Id field value
+// and a boolean to check if the value has been set.
+func (o *UpdateAuthorData) GetIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Id, true
+}
+
+// SetId sets field value
+func (o *UpdateAuthorData) SetId(v string) {
+	o.Id = v
 }
 
 // GetType returns the Type field value
@@ -104,6 +130,7 @@ func (o UpdateAuthorData) MarshalJSON() ([]byte, error) {
 
 func (o UpdateAuthorData) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["id"] = o.Id
 	toSerialize["type"] = o.Type
 	toSerialize["attributes"] = o.Attributes
 	return toSerialize, nil
@@ -114,6 +141,7 @@ func (o *UpdateAuthorData) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
+		"id",
 		"type",
 		"attributes",
 	}

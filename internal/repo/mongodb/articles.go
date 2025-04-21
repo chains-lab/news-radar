@@ -3,6 +3,7 @@ package mongodb
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -223,28 +224,43 @@ type ArticleUpdateInput struct {
 }
 
 func (a *ArticlesQ) Update(ctx context.Context, input ArticleUpdateInput) (ArticleModel, error) {
-	updateFields := bson.M{}
+	setFields := bson.M{"updated_at": input.UpdatedAt}
+	unsetFields := bson.M{}
 
-	if input.Title != nil {
-		updateFields["title"] = *input.Title
-	}
-	if input.Icon != nil {
-		updateFields["icon"] = *input.Icon
-	}
-	if input.Desc != nil {
-		updateFields["desc"] = *input.Desc
+	try := func(key string, ptr *string) {
+		if ptr == nil {
+			return
+		}
+		if s := strings.TrimSpace(*ptr); s == "" {
+			unsetFields[key] = ""
+		} else {
+			setFields[key] = s
+		}
 	}
 
-	if len(updateFields) == 0 {
+	try("title", input.Title)
+	try("icon", input.Icon)
+	try("desc", input.Desc)
+
+	if input.Status != nil {
+		setFields["status"] = *input.Status
+	}
+
+	if len(setFields) == 1 && len(unsetFields) == 0 {
 		return ArticleModel{}, fmt.Errorf("nothing to update")
 	}
-	updateFields["updated_at"] = input.UpdatedAt
+
+	update := bson.M{}
+	if len(setFields) > 0 {
+		update["$set"] = setFields
+	}
+	if len(unsetFields) > 0 {
+		update["$unset"] = unsetFields
+	}
 
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 	var updated ArticleModel
-
-	err := a.collection.FindOneAndUpdate(ctx, a.filters, bson.M{"$set": updateFields}, opts).Decode(&updated)
-	if err != nil {
+	if err := a.collection.FindOneAndUpdate(ctx, a.filters, update, opts).Decode(&updated); err != nil {
 		return ArticleModel{}, fmt.Errorf("failed to update article: %w", err)
 	}
 

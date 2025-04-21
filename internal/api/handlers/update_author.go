@@ -1,23 +1,36 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/google/uuid"
 	"github.com/hs-zavet/comtools/httpkit"
 	"github.com/hs-zavet/comtools/httpkit/problems"
 	"github.com/hs-zavet/news-radar/internal/api/requests"
 	"github.com/hs-zavet/news-radar/internal/api/responses"
 	"github.com/hs-zavet/news-radar/internal/app"
+	"github.com/hs-zavet/news-radar/internal/app/ape"
 	"github.com/hs-zavet/news-radar/internal/enums"
+	"github.com/hs-zavet/tokens"
 )
 
 func (h *Handler) UpdateAuthor(w http.ResponseWriter, r *http.Request) {
-	authorID, err := uuid.Parse(chi.URLParam(r, "author_id"))
+	user, err := tokens.GetAccountTokenData(r.Context())
 	if err != nil {
 		h.log.WithError(err).Warn("Error parsing request")
 		httpkit.RenderErr(w, problems.BadRequest(err)...)
+		return
+	}
+
+	authorID, err := uuid.Parse(chi.URLParam(r, "author_id"))
+	if err != nil {
+		h.log.WithError(err).Warn("Error parsing request")
+		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
+			"author_id": validation.NewError("author_id", "invalid author id"),
+		})...)
 		return
 	}
 
@@ -25,6 +38,23 @@ func (h *Handler) UpdateAuthor(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.log.WithError(err).Warn("Error parsing request")
 		httpkit.RenderErr(w, problems.BadRequest(err)...)
+		return
+	}
+
+	authorIdReq, err := uuid.Parse(req.Data.Id)
+	if err != nil {
+		h.log.WithError(err).Warn("Error parsing request")
+		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
+			"author_id": validation.NewError("author_id", "invalid author id"),
+		})...)
+		return
+	}
+
+	if authorID != authorIdReq {
+		h.log.WithError(err).Warn("Error parsing request")
+		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
+			"author_id": validation.NewError("author_id", "author id mismatch"),
+		})...)
 		return
 	}
 
@@ -67,16 +97,16 @@ func (h *Handler) UpdateAuthor(w http.ResponseWriter, r *http.Request) {
 	author, err := h.app.UpdateAuthor(r.Context(), authorID, update)
 	if err != nil {
 		switch {
-		case err == nil:
-			h.log.WithError(err).Errorf("author id: %s", authorID)
-			httpkit.RenderErr(w, problems.NotFound("author not found"))
-			return
+		case errors.Is(err, ape.ErrAuthorNotFound):
+			httpkit.RenderErr(w, problems.NotFound())
 		default:
-			h.log.WithError(err).Errorf("error updating author id: %s", authorID)
 			httpkit.RenderErr(w, problems.InternalError())
-			return
 		}
+		h.log.WithError(err).Error("Error updating author")
+		return
 	}
+
+	h.log.Infof("Author %s successfully updated by user: %s", authorID, user.AccountID)
 
 	httpkit.Render(w, responses.Author(author))
 }

@@ -126,6 +126,8 @@ func (a *Authors) Update(ID uuid.UUID, input AuthorUpdateInput) (AuthorModel, er
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
+	updatedAt := time.Now().UTC()
+
 	var mongoInput mongodb.AuthorUpdateInput
 
 	if input.Name != nil {
@@ -157,12 +159,13 @@ func (a *Authors) Update(ID uuid.UUID, input AuthorUpdateInput) (AuthorModel, er
 	}
 
 	mongo, err := a.mongo.New().FilterID(ID).Update(ctxSync, mongodb.AuthorUpdateInput{
-		Name:     input.Name,
-		Desc:     input.Desc,
-		Avatar:   input.Avatar,
-		Email:    input.Email,
-		Telegram: input.Telegram,
-		Twitter:  input.Twitter,
+		Name:      input.Name,
+		Desc:      input.Desc,
+		Avatar:    input.Avatar,
+		Email:     input.Email,
+		Telegram:  input.Telegram,
+		Twitter:   input.Twitter,
+		UpdatedAt: updatedAt,
 	})
 	if err != nil {
 		return AuthorModel{}, err

@@ -35,7 +35,7 @@ func (a App) CreateTag(ctx context.Context, request CreateTagRequest) (models.Ta
 		return models.Tag{}, ape.ErrorTagNameAlreadyTaken
 	}
 
-	return models.Tag{
+	res := models.Tag{
 		ID:        tag.ID,
 		Name:      tag.Name,
 		Status:    tag.Status,
@@ -43,7 +43,12 @@ func (a App) CreateTag(ctx context.Context, request CreateTagRequest) (models.Ta
 		Color:     tag.Color,
 		Icon:      tag.Icon,
 		CreatedAt: tag.CreatedAt,
-	}, nil
+	}
+	if tag.UpdatedAt != nil {
+		res.UpdatedAt = tag.UpdatedAt
+	}
+
+	return res, nil
 }
 
 func (a App) DeleteTag(ctx context.Context, id string) error {
@@ -71,17 +76,23 @@ type UpdateTagRequest struct {
 func (a App) UpdateTag(ctx context.Context, id string, request UpdateTagRequest) (models.Tag, error) {
 	input := repo.TagUpdateInput{}
 
+	updated := false
+
 	if request.Status != nil {
 		input.Status = request.Status
+		updated = true
 	}
 	if request.Type != nil {
 		input.Type = request.Type
+		updated = true
 	}
 	if request.Color != nil {
 		input.Color = request.Color
+		updated = true
 	}
 	if request.Icon != nil {
 		input.Icon = request.Icon
+		updated = true
 	}
 	if request.Name != nil {
 		_, err := a.tags.Get(*request.Name)
@@ -89,37 +100,57 @@ func (a App) UpdateTag(ctx context.Context, id string, request UpdateTagRequest)
 			return models.Tag{}, fmt.Errorf("tag with id %s already exists", *request.Name)
 		}
 		input.Name = request.Name
+		updated = true
 	}
 
-	res, err := a.tags.Update(strings.ToLower(id), input)
-	if err != nil {
-		return models.Tag{}, err
+	if !updated {
+		return a.GetTag(ctx, id)
 	}
 
-	return models.Tag{
-		ID:        res.ID,
-		Name:      res.Name,
-		Status:    res.Status,
-		Type:      res.Type,
-		Color:     res.Color,
-		Icon:      res.Icon,
-		CreatedAt: res.CreatedAt,
-	}, nil
-}
-
-func (a App) GetTag(ctx context.Context, id string) (models.Tag, error) {
-	res, err := a.tags.Get(strings.ToLower(id))
+	_, err := a.tags.Get(strings.ToLower(id))
 	if err != nil {
 		return models.Tag{}, ape.ErrTagNotFound
 	}
 
-	return models.Tag{
-		ID:        res.ID,
-		Name:      res.Name,
-		Status:    res.Status,
-		Type:      res.Type,
-		Color:     res.Color,
-		Icon:      res.Icon,
-		CreatedAt: res.CreatedAt,
-	}, nil
+	tag, err := a.tags.Update(strings.ToLower(id), input)
+	if err != nil {
+		return models.Tag{}, err
+	}
+
+	res := models.Tag{
+		ID:        tag.ID,
+		Name:      tag.Name,
+		Status:    tag.Status,
+		Type:      tag.Type,
+		Color:     tag.Color,
+		Icon:      tag.Icon,
+		CreatedAt: tag.CreatedAt,
+	}
+	if tag.UpdatedAt != nil {
+		res.UpdatedAt = tag.UpdatedAt
+	}
+
+	return res, nil
+}
+
+func (a App) GetTag(ctx context.Context, id string) (models.Tag, error) {
+	tag, err := a.tags.Get(strings.ToLower(id))
+	if err != nil {
+		return models.Tag{}, ape.ErrTagNotFound
+	}
+
+	res := models.Tag{
+		ID:        tag.ID,
+		Name:      tag.Name,
+		Status:    tag.Status,
+		Type:      tag.Type,
+		Color:     tag.Color,
+		Icon:      tag.Icon,
+		CreatedAt: tag.CreatedAt,
+	}
+	if tag.UpdatedAt != nil {
+		res.UpdatedAt = tag.UpdatedAt
+	}
+
+	return res, nil
 }

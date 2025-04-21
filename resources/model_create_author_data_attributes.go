@@ -22,11 +22,6 @@ var _ MappedNullable = &CreateAuthorDataAttributes{}
 // CreateAuthorDataAttributes struct for CreateAuthorDataAttributes
 type CreateAuthorDataAttributes struct {
 	Name string `json:"name"`
-	Desc *string `json:"desc,omitempty"`
-	Avatar *string `json:"avatar,omitempty"`
-	Email *string `json:"email,omitempty"`
-	Telegram *string `json:"telegram,omitempty"`
-	Twitter *string `json:"twitter,omitempty"`
 }
 
 type _CreateAuthorDataAttributes CreateAuthorDataAttributes
@@ -73,166 +68,6 @@ func (o *CreateAuthorDataAttributes) SetName(v string) {
 	o.Name = v
 }
 
-// GetDesc returns the Desc field value if set, zero value otherwise.
-func (o *CreateAuthorDataAttributes) GetDesc() string {
-	if o == nil || IsNil(o.Desc) {
-		var ret string
-		return ret
-	}
-	return *o.Desc
-}
-
-// GetDescOk returns a tuple with the Desc field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *CreateAuthorDataAttributes) GetDescOk() (*string, bool) {
-	if o == nil || IsNil(o.Desc) {
-		return nil, false
-	}
-	return o.Desc, true
-}
-
-// HasDesc returns a boolean if a field has been set.
-func (o *CreateAuthorDataAttributes) HasDesc() bool {
-	if o != nil && !IsNil(o.Desc) {
-		return true
-	}
-
-	return false
-}
-
-// SetDesc gets a reference to the given string and assigns it to the Desc field.
-func (o *CreateAuthorDataAttributes) SetDesc(v string) {
-	o.Desc = &v
-}
-
-// GetAvatar returns the Avatar field value if set, zero value otherwise.
-func (o *CreateAuthorDataAttributes) GetAvatar() string {
-	if o == nil || IsNil(o.Avatar) {
-		var ret string
-		return ret
-	}
-	return *o.Avatar
-}
-
-// GetAvatarOk returns a tuple with the Avatar field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *CreateAuthorDataAttributes) GetAvatarOk() (*string, bool) {
-	if o == nil || IsNil(o.Avatar) {
-		return nil, false
-	}
-	return o.Avatar, true
-}
-
-// HasAvatar returns a boolean if a field has been set.
-func (o *CreateAuthorDataAttributes) HasAvatar() bool {
-	if o != nil && !IsNil(o.Avatar) {
-		return true
-	}
-
-	return false
-}
-
-// SetAvatar gets a reference to the given string and assigns it to the Avatar field.
-func (o *CreateAuthorDataAttributes) SetAvatar(v string) {
-	o.Avatar = &v
-}
-
-// GetEmail returns the Email field value if set, zero value otherwise.
-func (o *CreateAuthorDataAttributes) GetEmail() string {
-	if o == nil || IsNil(o.Email) {
-		var ret string
-		return ret
-	}
-	return *o.Email
-}
-
-// GetEmailOk returns a tuple with the Email field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *CreateAuthorDataAttributes) GetEmailOk() (*string, bool) {
-	if o == nil || IsNil(o.Email) {
-		return nil, false
-	}
-	return o.Email, true
-}
-
-// HasEmail returns a boolean if a field has been set.
-func (o *CreateAuthorDataAttributes) HasEmail() bool {
-	if o != nil && !IsNil(o.Email) {
-		return true
-	}
-
-	return false
-}
-
-// SetEmail gets a reference to the given string and assigns it to the Email field.
-func (o *CreateAuthorDataAttributes) SetEmail(v string) {
-	o.Email = &v
-}
-
-// GetTelegram returns the Telegram field value if set, zero value otherwise.
-func (o *CreateAuthorDataAttributes) GetTelegram() string {
-	if o == nil || IsNil(o.Telegram) {
-		var ret string
-		return ret
-	}
-	return *o.Telegram
-}
-
-// GetTelegramOk returns a tuple with the Telegram field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *CreateAuthorDataAttributes) GetTelegramOk() (*string, bool) {
-	if o == nil || IsNil(o.Telegram) {
-		return nil, false
-	}
-	return o.Telegram, true
-}
-
-// HasTelegram returns a boolean if a field has been set.
-func (o *CreateAuthorDataAttributes) HasTelegram() bool {
-	if o != nil && !IsNil(o.Telegram) {
-		return true
-	}
-
-	return false
-}
-
-// SetTelegram gets a reference to the given string and assigns it to the Telegram field.
-func (o *CreateAuthorDataAttributes) SetTelegram(v string) {
-	o.Telegram = &v
-}
-
-// GetTwitter returns the Twitter field value if set, zero value otherwise.
-func (o *CreateAuthorDataAttributes) GetTwitter() string {
-	if o == nil || IsNil(o.Twitter) {
-		var ret string
-		return ret
-	}
-	return *o.Twitter
-}
-
-// GetTwitterOk returns a tuple with the Twitter field value if set, nil otherwise
-// and a boolean to check if the value has been set.
-func (o *CreateAuthorDataAttributes) GetTwitterOk() (*string, bool) {
-	if o == nil || IsNil(o.Twitter) {
-		return nil, false
-	}
-	return o.Twitter, true
-}
-
-// HasTwitter returns a boolean if a field has been set.
-func (o *CreateAuthorDataAttributes) HasTwitter() bool {
-	if o != nil && !IsNil(o.Twitter) {
-		return true
-	}
-
-	return false
-}
-
-// SetTwitter gets a reference to the given string and assigns it to the Twitter field.
-func (o *CreateAuthorDataAttributes) SetTwitter(v string) {
-	o.Twitter = &v
-}
-
 func (o CreateAuthorDataAttributes) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -244,21 +79,6 @@ func (o CreateAuthorDataAttributes) MarshalJSON() ([]byte, error) {
 func (o CreateAuthorDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["name"] = o.Name
-	if !IsNil(o.Desc) {
-		toSerialize["desc"] = o.Desc
-	}
-	if !IsNil(o.Avatar) {
-		toSerialize["avatar"] = o.Avatar
-	}
-	if !IsNil(o.Email) {
-		toSerialize["email"] = o.Email
-	}
-	if !IsNil(o.Telegram) {
-		toSerialize["telegram"] = o.Telegram
-	}
-	if !IsNil(o.Twitter) {
-		toSerialize["twitter"] = o.Twitter
-	}
 	return toSerialize, nil
 }
 

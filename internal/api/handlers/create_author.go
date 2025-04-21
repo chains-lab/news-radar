@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/hs-zavet/comtools/httpkit"
@@ -32,8 +31,6 @@ func (h *Handler) CreateAuthor(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		switch {
-		case errors.Is(err, nil):
-			h.log.WithError(err).Error("Error creating author")
 		default:
 			httpkit.RenderErr(w, problems.InternalError())
 		}

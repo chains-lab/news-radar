@@ -191,7 +191,9 @@ func (a *ArticlesRepo) UpdateContent(ID uuid.UUID, index int, section content.Se
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	res, err := a.mongo.FilterID(ID).UpdateContent(ctxSync, index, section, time.Now().UTC())
+	updatedAt := time.Now().UTC()
+
+	res, err := a.mongo.FilterID(ID).UpdateContent(ctxSync, index, section, updatedAt)
 	if err != nil {
 		return ArticleModel{}, err
 	}

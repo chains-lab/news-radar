@@ -29,6 +29,7 @@ type TagAttributes struct {
 	Color string `json:"color"`
 	// Tag icon
 	Icon string `json:"icon"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -177,6 +178,38 @@ func (o *TagAttributes) SetIcon(v string) {
 	o.Icon = v
 }
 
+// GetUpdatedAt returns the UpdatedAt field value if set, zero value otherwise.
+func (o *TagAttributes) GetUpdatedAt() time.Time {
+	if o == nil || IsNil(o.UpdatedAt) {
+		var ret time.Time
+		return ret
+	}
+	return *o.UpdatedAt
+}
+
+// GetUpdatedAtOk returns a tuple with the UpdatedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *TagAttributes) GetUpdatedAtOk() (*time.Time, bool) {
+	if o == nil || IsNil(o.UpdatedAt) {
+		return nil, false
+	}
+	return o.UpdatedAt, true
+}
+
+// HasUpdatedAt returns a boolean if a field has been set.
+func (o *TagAttributes) HasUpdatedAt() bool {
+	if o != nil && !IsNil(o.UpdatedAt) {
+		return true
+	}
+
+	return false
+}
+
+// SetUpdatedAt gets a reference to the given time.Time and assigns it to the UpdatedAt field.
+func (o *TagAttributes) SetUpdatedAt(v time.Time) {
+	o.UpdatedAt = &v
+}
+
 // GetCreatedAt returns the CreatedAt field value
 func (o *TagAttributes) GetCreatedAt() time.Time {
 	if o == nil {
@@ -216,6 +249,9 @@ func (o TagAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize["type"] = o.Type
 	toSerialize["color"] = o.Color
 	toSerialize["icon"] = o.Icon
+	if !IsNil(o.UpdatedAt) {
+		toSerialize["updated_at"] = o.UpdatedAt
+	}
 	toSerialize["created_at"] = o.CreatedAt
 	return toSerialize, nil
 }

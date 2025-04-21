@@ -13,5 +13,6 @@ type Tag struct {
 	Type      enums.TagType   `json:"type"`
 	Color     string          `json:"color"`
 	Icon      string          `json:"icon"`
+	UpdatedAt *time.Time      `json:"updated_at"`
 	CreatedAt time.Time       `json:"created_at"`
 }

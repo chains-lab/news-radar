@@ -4,6 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**Id** | **string** |  | 
 **Type** | **string** |  | 
 **Attributes** | [**UpdateAuthorDataAttributes**](UpdateAuthorDataAttributes.md) |  | 
 
@@ -11,7 +12,7 @@ Name | Type | Description | Notes
 
 ### NewUpdateAuthorData
 
-`func NewUpdateAuthorData(type_ string, attributes UpdateAuthorDataAttributes, ) *UpdateAuthorData`
+`func NewUpdateAuthorData(id string, type_ string, attributes UpdateAuthorDataAttributes, ) *UpdateAuthorData`
 
 NewUpdateAuthorData instantiates a new UpdateAuthorData object
 This constructor will assign default values to properties that have it defined,
@@ -25,6 +26,26 @@ will change when the set of required properties is changed
 NewUpdateAuthorDataWithDefaults instantiates a new UpdateAuthorData object
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
+
+### GetId
+
+`func (o *UpdateAuthorData) GetId() string`
+
+GetId returns the Id field if non-nil, zero value otherwise.
+
+### GetIdOk
+
+`func (o *UpdateAuthorData) GetIdOk() (*string, bool)`
+
+GetIdOk returns a tuple with the Id field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetId
+
+`func (o *UpdateAuthorData) SetId(v string)`
+
+SetId sets Id field to given value.
+
 
 ### GetType
 

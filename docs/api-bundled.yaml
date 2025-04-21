@@ -321,16 +321,6 @@ components:
               properties:
                 name:
                   type: string
-                desc:
-                  type: string
-                avatar:
-                  type: string
-                email:
-                  type: string
-                telegram:
-                  type: string
-                twitter:
-                  type: string
     UpdateAuthor:
       type: object
       required:
@@ -339,9 +329,12 @@ components:
         data:
           type: object
           required:
+            - id
             - type
             - attributes
           properties:
+            id:
+              type: string
             type:
               type: string
               enum:
@@ -598,6 +591,9 @@ components:
           type: string
           description: Tag icon
           example: 'https://example.com/icon.png'
+        updated_at:
+          type: string
+          format: date-time
         created_at:
           type: string
           format: date-time

@@ -9,6 +9,7 @@ Name | Type | Description | Notes
 **Type** | **string** |  | 
 **Color** | **string** | Tag color | 
 **Icon** | **string** | Tag icon | 
+**UpdatedAt** | Pointer to **time.Time** |  | [optional] 
 **CreatedAt** | **time.Time** |  | 
 
 ## Methods
@@ -129,6 +130,31 @@ and a boolean to check if the value has been set.
 
 SetIcon sets Icon field to given value.
 
+
+### GetUpdatedAt
+
+`func (o *TagAttributes) GetUpdatedAt() time.Time`
+
+GetUpdatedAt returns the UpdatedAt field if non-nil, zero value otherwise.
+
+### GetUpdatedAtOk
+
+`func (o *TagAttributes) GetUpdatedAtOk() (*time.Time, bool)`
+
+GetUpdatedAtOk returns a tuple with the UpdatedAt field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetUpdatedAt
+
+`func (o *TagAttributes) SetUpdatedAt(v time.Time)`
+
+SetUpdatedAt sets UpdatedAt field to given value.
+
+### HasUpdatedAt
+
+`func (o *TagAttributes) HasUpdatedAt() bool`
+
+HasUpdatedAt returns a boolean if a field has been set.
 
 ### GetCreatedAt
 

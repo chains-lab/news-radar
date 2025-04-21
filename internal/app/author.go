@@ -2,12 +2,15 @@ package app
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hs-zavet/news-radar/internal/app/ape"
 	"github.com/hs-zavet/news-radar/internal/app/models"
 	"github.com/hs-zavet/news-radar/internal/enums"
 	"github.com/hs-zavet/news-radar/internal/repo"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type CreateAuthorRequest struct {
@@ -47,8 +50,6 @@ type UpdateAuthorRequest struct {
 }
 
 func (a App) UpdateAuthor(ctx context.Context, authorID uuid.UUID, request UpdateAuthorRequest) (models.Author, error) {
-	var author repo.AuthorModel
-
 	input := repo.AuthorUpdateInput{}
 	updated := false
 
@@ -72,13 +73,37 @@ func (a App) UpdateAuthor(ctx context.Context, authorID uuid.UUID, request Updat
 		updated = true
 	}
 
-	if request.Email != nil || request.Telegram != nil || request.Twitter != nil {
+	if request.Email != nil {
 		input.Email = request.Email
+		updated = true
+	}
+
+	if request.Telegram != nil {
+		input.Telegram = request.Telegram
+		updated = true
+	}
+
+	if request.Twitter != nil {
+		input.Twitter = request.Twitter
 		updated = true
 	}
 
 	if !updated {
 		return a.GetAuthorByID(ctx, authorID)
+	}
+
+	_, err := a.authors.GetByID(authorID)
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return models.Author{}, ape.ErrAuthorNotFound
+		}
+		return models.Author{}, err
+	}
+
+	author, err := a.authors.Update(authorID, input)
+	if err != nil {
+		return models.Author{}, err
 	}
 
 	return models.Author{
@@ -96,12 +121,26 @@ func (a App) UpdateAuthor(ctx context.Context, authorID uuid.UUID, request Updat
 }
 
 func (a App) DeleteAuthor(ctx context.Context, authorID uuid.UUID) error {
-	return a.authors.Delete(authorID)
+	_, err := a.authors.GetByID(authorID)
+	if err != nil {
+		return ape.ErrAuthorNotFound
+	}
+
+	err = a.authors.Delete(authorID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (a App) GetAuthorByID(ctx context.Context, authorID uuid.UUID) (models.Author, error) {
 	res, err := a.authors.GetByID(authorID)
 	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return models.Author{}, ape.ErrAuthorNotFound
+		}
 		return models.Author{}, err
 	}
 

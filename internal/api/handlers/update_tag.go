@@ -11,18 +11,20 @@ import (
 	"github.com/hs-zavet/news-radar/internal/api/requests"
 	"github.com/hs-zavet/news-radar/internal/api/responses"
 	"github.com/hs-zavet/news-radar/internal/app"
+	"github.com/hs-zavet/news-radar/internal/app/ape"
 	"github.com/hs-zavet/news-radar/internal/enums"
+	"github.com/hs-zavet/tokens"
 )
 
 func (h *Handler) UpdateTag(w http.ResponseWriter, r *http.Request) {
-	tagID := chi.URLParam(r, "tag")
-	if tagID == "" {
-		h.log.Warn("Error parsing request")
-		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
-			"tagID": errors.New("tagID not found"),
-		})...)
+	user, err := tokens.GetAccountTokenData(r.Context())
+	if err != nil {
+		h.log.WithError(err).Warn("Error parsing request")
+		httpkit.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
+
+	tagID := chi.URLParam(r, "tag")
 
 	req, err := requests.UpdateTag(r)
 	if err != nil {
@@ -78,8 +80,8 @@ func (h *Handler) UpdateTag(w http.ResponseWriter, r *http.Request) {
 	tag, err := h.app.UpdateTag(r.Context(), tagID, update)
 	if err != nil {
 		switch {
-		case errors.Is(err, nil):
-			http.Error(w, "tagID not found", http.StatusNotFound)
+		case errors.Is(err, ape.ErrTagNotFound):
+			httpkit.RenderErr(w, problems.NotFound())
 		default:
 			httpkit.RenderErr(w, problems.InternalError())
 		}
@@ -87,6 +89,8 @@ func (h *Handler) UpdateTag(w http.ResponseWriter, r *http.Request) {
 		h.log.WithError(err).Error("Error updating tagID")
 		return
 	}
+
+	h.log.Infof("Tag %s successfully updated, by user: %s", tag, user.AccountID)
 
 	httpkit.Render(w, responses.Tag(tag))
 }

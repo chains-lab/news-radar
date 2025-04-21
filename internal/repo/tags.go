@@ -141,6 +141,7 @@ func (t *Tags) Update(id string, input TagUpdateInput) (TagModel, error) {
 		Color:     neoTag.Color,
 		Icon:      neoTag.Icon,
 		CreatedAt: neoTag.CreatedAt,
+		UpdatedAt: neoTag.UpdatedAt,
 	}, nil
 }
 

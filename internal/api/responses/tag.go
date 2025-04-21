@@ -6,7 +6,7 @@ import (
 )
 
 func Tag(tag models.Tag) resources.Tag {
-	return resources.Tag{
+	res := resources.Tag{
 		Data: resources.TagData{
 			Id:   tag.ID,
 			Type: resources.TagType,
@@ -20,6 +20,11 @@ func Tag(tag models.Tag) resources.Tag {
 			},
 		},
 	}
+	if tag.UpdatedAt != nil {
+		res.Data.Attributes.UpdatedAt = tag.UpdatedAt
+	}
+
+	return res
 }
 
 func TagsCollection(tags []models.Tag) resources.TagCollection {
@@ -37,6 +42,10 @@ func TagsCollection(tags []models.Tag) resources.TagCollection {
 				Color:     tag.Color,
 				CreatedAt: tag.CreatedAt,
 			},
+		}
+
+		if tag.UpdatedAt != nil {
+			element.Attributes.UpdatedAt = tag.UpdatedAt
 		}
 
 		data = append(data, element)
