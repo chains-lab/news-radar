@@ -43,8 +43,8 @@ func NewAPI(cfg config.Config, log *logrus.Logger, app *app.App) Api {
 }
 
 func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
-	auth := tokens.AuthMdl(a.cfg.JWT.AccessToken.SecretKey)
-	admin := tokens.AccessGrant(a.cfg.JWT.AccessToken.SecretKey, roles.Admin, roles.SuperUser)
+	auth := tokens.AuthMdl(a.cfg.JWT.AccessToken.SecretKey, a.cfg.JWT.ServiceToken.SecretKey)
+	admin := tokens.AccessGrant(a.cfg.JWT.AccessToken.SecretKey, a.cfg.JWT.ServiceToken.SecretKey, roles.Admin, roles.SuperUser)
 
 	a.router.Route("/hs/news-radar", func(r chi.Router) {
 		r.Route("/ws", func(r chi.Router) {
@@ -69,7 +69,7 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 						r.With(auth).Put("/", a.handlers.SetHashTags)
 						r.With(auth).Delete("/", a.handlers.CleanArticleTags)
 						r.With(auth).Patch("/{tag}", a.handlers.AddTag)
-						r.With(auth).Delete("/{tag}", a.handlers.DeleteTag)
+						//r.With(auth).Delete("/{tag}", a.handlers.DeleteATag)
 					})
 
 					r.Route("/authors", func(r chi.Router) {
@@ -83,7 +83,7 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 			})
 
 			r.Route("/authors", func(r chi.Router) {
-				r.With(admin).Post("/create", a.handlers.CreateAuthor)
+				r.With(admin).Post("/", a.handlers.CreateAuthor)
 
 				r.Route("/{author_id}", func(r chi.Router) {
 					r.Get("/", a.handlers.GetAuthor)
@@ -93,13 +93,13 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 				})
 			})
 
-			r.With(auth).Route("/tags", func(r chi.Router) {
-				r.Post("/create", a.handlers.CreateTag)
+			r.Route("/tags", func(r chi.Router) {
+				r.With(admin).Post("/", a.handlers.CreateTag)
 
 				r.Route("/{tag}", func(r chi.Router) {
 					r.Get("/", a.handlers.GetTag)
-					r.Put("/", a.handlers.UpdateTag)
-					r.Delete("/", a.handlers.DeleteTag)
+					r.With(admin).Put("/", a.handlers.UpdateTag)
+					r.With(admin).Delete("/", a.handlers.DeleteTag)
 				})
 			})
 		})

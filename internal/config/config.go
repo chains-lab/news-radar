@@ -26,6 +26,9 @@ type JWTConfig struct {
 		SecretKey     string        `mapstructure:"secret_key"`
 		TokenLifetime time.Duration `mapstructure:"token_lifetime"`
 	} `mapstructure:"access_token"`
+	ServiceToken struct {
+		SecretKey string `mapstructure:"secret_key"`
+	} `mapstructure:"service_token"`
 }
 
 type KafkaConfig struct {

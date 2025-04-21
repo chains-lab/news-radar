@@ -81,26 +81,26 @@ type AuthorInsertInput struct {
 	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
 }
 
-func (a *AuthorsQ) Insert(ctx context.Context, input AuthorInsertInput) error {
-	stmt := AuthorModel{
+func (a *AuthorsQ) Insert(ctx context.Context, input AuthorInsertInput) (AuthorModel, error) {
+	author := AuthorModel{
 		ID:        input.ID,
 		Name:      input.Name,
 		CreatedAt: input.CreatedAt,
 	}
-	stmt.Status = input.Status
+	author.Status = input.Status
 
-	_, err := a.collection.InsertOne(ctx, stmt)
+	_, err := a.collection.InsertOne(ctx, author)
 	if err != nil {
-		return err
+		return AuthorModel{}, fmt.Errorf("failed to insert author: %w", err)
 	}
 
-	return nil
+	return author, nil
 }
 
 func (a *AuthorsQ) Delete(ctx context.Context) error {
 	_, err := a.collection.DeleteOne(ctx, a.filters)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to delete author: %w", err)
 	}
 
 	return nil
@@ -124,7 +124,7 @@ func (a *AuthorsQ) Select(ctx context.Context) ([]AuthorModel, error) {
 
 	cursor, err := a.collection.Find(ctx, a.filters, findOptions)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to find author: %w", err)
 	}
 
 	defer cursor.Close(ctx)
@@ -132,7 +132,7 @@ func (a *AuthorsQ) Select(ctx context.Context) ([]AuthorModel, error) {
 	var aths []AuthorModel
 
 	if err = cursor.All(ctx, &aths); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode author: %w", err)
 	}
 
 	return aths, nil
@@ -143,7 +143,7 @@ func (a *AuthorsQ) Get(ctx context.Context) (AuthorModel, error) {
 
 	err := a.collection.FindOne(ctx, a.filters).Decode(&ath)
 	if err != nil {
-		return AuthorModel{}, err
+		return AuthorModel{}, fmt.Errorf("failed to find author: %w", err)
 	}
 
 	return ath, nil
@@ -209,7 +209,7 @@ func (a *AuthorsQ) Update(ctx context.Context, input AuthorUpdateInput) (AuthorM
 
 	err := a.collection.FindOneAndUpdate(ctx, a.filters, bson.M{"$set": updateFields}, opts).Decode(&updated)
 	if err != nil {
-		return AuthorModel{}, err
+		return AuthorModel{}, fmt.Errorf("failed to find author: %w", err)
 	}
 
 	for key, value := range updateFields {

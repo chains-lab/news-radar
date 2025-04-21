@@ -4,6 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**Name** | **string** |  | 
 **Status** | **string** |  | 
 **Type** | **string** |  | 
 **Color** | **string** | Tag color | 
@@ -14,7 +15,7 @@ Name | Type | Description | Notes
 
 ### NewTagAttributes
 
-`func NewTagAttributes(status string, type_ string, color string, icon string, createdAt time.Time, ) *TagAttributes`
+`func NewTagAttributes(name string, status string, type_ string, color string, icon string, createdAt time.Time, ) *TagAttributes`
 
 NewTagAttributes instantiates a new TagAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -28,6 +29,26 @@ will change when the set of required properties is changed
 NewTagAttributesWithDefaults instantiates a new TagAttributes object
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
+
+### GetName
+
+`func (o *TagAttributes) GetName() string`
+
+GetName returns the Name field if non-nil, zero value otherwise.
+
+### GetNameOk
+
+`func (o *TagAttributes) GetNameOk() (*string, bool)`
+
+GetNameOk returns a tuple with the Name field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetName
+
+`func (o *TagAttributes) SetName(v string)`
+
+SetName sets Name field to given value.
+
 
 ### GetStatus
 

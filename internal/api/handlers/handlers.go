@@ -34,12 +34,12 @@ type App interface {
 
 	UpdateArticleContent(ctx context.Context, articleID uuid.UUID, index int, section content.Section) (models.Article, error)
 
-	CreateTag(ctx context.Context, request app.CreateTagRequest) error
-	DeleteTag(ctx context.Context, name string) error
-	UpdateTag(ctx context.Context, name string, request app.UpdateTagRequest) (models.Tag, error)
-	GetTag(ctx context.Context, name string) (models.Tag, error)
+	CreateTag(ctx context.Context, request app.CreateTagRequest) (models.Tag, error)
+	DeleteTag(ctx context.Context, id string) error
+	UpdateTag(ctx context.Context, id string, request app.UpdateTagRequest) (models.Tag, error)
+	GetTag(ctx context.Context, id string) (models.Tag, error)
 
-	CreateAuthor(ctx context.Context, request app.CreateAuthorRequest) error
+	CreateAuthor(ctx context.Context, request app.CreateAuthorRequest) (models.Author, error)
 	UpdateAuthor(ctx context.Context, authorID uuid.UUID, request app.UpdateAuthorRequest) (models.Author, error)
 	DeleteAuthor(ctx context.Context, authorID uuid.UUID) error
 	GetAuthorByID(ctx context.Context, authorID uuid.UUID) (models.Author, error)

@@ -28,7 +28,7 @@ type AuthorModel struct {
 type authorsMongo interface {
 	New() *mongodb.AuthorsQ
 
-	Insert(ctx context.Context, input mongodb.AuthorInsertInput) error
+	Insert(ctx context.Context, input mongodb.AuthorInsertInput) (mongodb.AuthorModel, error)
 	Delete(ctx context.Context) error
 	Count(ctx context.Context) (int64, error)
 	Select(ctx context.Context) ([]mongodb.AuthorModel, error)
@@ -45,12 +45,12 @@ type authorsMongo interface {
 }
 
 type authorsNeo interface {
-	Create(ctx context.Context, input neodb.AuthorCreateInput) error
+	Create(ctx context.Context, input neodb.AuthorCreateInput) (neodb.AuthorModel, error)
 	Delete(ctx context.Context, ID uuid.UUID) error
 
 	GetByID(ctx context.Context, ID uuid.UUID) (neodb.AuthorModel, error)
 
-	UpdateStatus(ctx context.Context, ID uuid.UUID, status enums.AuthorStatus) error
+	Update(ctx context.Context, id uuid.UUID, input neodb.AuthorUpdateInput) (neodb.AuthorModel, error)
 }
 
 type Authors struct {
@@ -82,35 +82,44 @@ type AuthorCreateInput struct {
 	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
 }
 
-func (a *Authors) Create(input AuthorCreateInput) error {
+func (a *Authors) Create(input AuthorCreateInput) (AuthorModel, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	err := a.mongo.New().Insert(ctxSync, mongodb.AuthorInsertInput{
+	mongo, err := a.mongo.New().Insert(ctxSync, mongodb.AuthorInsertInput{
 		ID:        input.ID,
 		Name:      input.Name,
 		Status:    input.Status,
 		CreatedAt: input.CreatedAt,
 	})
-
-	if err = a.neo.Create(ctxSync, neodb.AuthorCreateInput{
-		ID:     input.ID,
-		Status: input.Status,
-	}); err != nil {
-		return err
+	if err != nil {
+		return AuthorModel{}, err
 	}
 
-	return nil
+	_, err = a.neo.Create(ctxSync, neodb.AuthorCreateInput{
+		ID:     input.ID,
+		Status: input.Status,
+	})
+	if err != nil {
+		return AuthorModel{}, err
+	}
+
+	return AuthorModel{
+		ID:        mongo.ID,
+		Name:      mongo.Name,
+		Status:    mongo.Status,
+		CreatedAt: mongo.CreatedAt,
+	}, nil
 }
 
 type AuthorUpdateInput struct {
-	Name     *string             `json:"name" bson:"name"`
-	Status   *enums.AuthorStatus `json:"status" bson:"status"`
-	Desc     *string             `json:"desc" bson:"desc"`
-	Avatar   *string             `json:"avatar,omitempty" bson:"avatar,omitempty"`
-	Email    *string             `json:"email,omitempty" bson:"email,omitempty"`
-	Telegram *string             `json:"telegram,omitempty" bson:"telegram,omitempty"`
-	Twitter  *string             `json:"twitter,omitempty" bson:"twitter,omitempty"`
+	Name     *string
+	Status   *enums.AuthorStatus
+	Desc     *string
+	Avatar   *string
+	Email    *string
+	Telegram *string
+	Twitter  *string
 }
 
 func (a *Authors) Update(ID uuid.UUID, input AuthorUpdateInput) (AuthorModel, error) {
@@ -138,7 +147,10 @@ func (a *Authors) Update(ID uuid.UUID, input AuthorUpdateInput) (AuthorModel, er
 		mongoInput.Twitter = input.Twitter
 	}
 	if input.Status != nil {
-		if err := a.neo.UpdateStatus(ctxSync, ID, *input.Status); err != nil {
+		_, err := a.neo.Update(ctxSync, ID, neodb.AuthorUpdateInput{
+			Status: input.Status,
+		})
+		if err != nil {
 			return AuthorModel{}, err
 		}
 		mongoInput.Status = input.Status

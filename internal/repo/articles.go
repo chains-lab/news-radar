@@ -31,7 +31,7 @@ type ArticleModel struct {
 type articlesMongoQ interface {
 	New() *mongodb.ArticlesQ
 
-	Insert(ctx context.Context, input mongodb.ArticleInsertInput) error
+	Insert(ctx context.Context, input mongodb.ArticleInsertInput) (mongodb.ArticleModel, error)
 	Delete(ctx context.Context) error
 	Count(ctx context.Context) (int64, error)
 	Select(ctx context.Context) ([]mongodb.ArticleModel, error)
@@ -51,12 +51,12 @@ type articlesMongoQ interface {
 }
 
 type articlesNeoQ interface {
-	Create(ctx context.Context, input neodb.ArticleInsertInput) error
+	Create(ctx context.Context, input neodb.ArticleInsertInput) (neodb.ArticleModel, error)
 	Delete(ctx context.Context, ID uuid.UUID) error
 
 	GetByID(ctx context.Context, ID uuid.UUID) (neodb.ArticleModel, error)
 
-	UpdateStatus(ctx context.Context, ID uuid.UUID, status enums.ArticleStatus) error
+	Update(ctx context.Context, ID uuid.UUID, input neodb.ArticleUpdateInput) (neodb.ArticleModel, error)
 }
 
 type ArticlesRepo struct {
@@ -100,28 +100,36 @@ type ArticleCreateInput struct {
 	CreatedAt time.Time           `json:"created_at" bson:"created_at"`
 }
 
-func (a *ArticlesRepo) Create(input ArticleCreateInput) error {
+func (a *ArticlesRepo) Create(input ArticleCreateInput) (ArticleModel, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	err := a.mongo.New().Insert(ctxSync, mongodb.ArticleInsertInput{
+	mongoTag, err := a.mongo.New().Insert(ctxSync, mongodb.ArticleInsertInput{
 		ID:        input.ID,
 		Title:     input.Title,
 		CreatedAt: input.CreatedAt,
 	})
 	if err != nil {
-		return err
+		return ArticleModel{}, err
 	}
 
-	err = a.neo.Create(ctxSync, neodb.ArticleInsertInput{
+	_, err = a.neo.Create(ctxSync, neodb.ArticleInsertInput{
 		ID:     input.ID,
 		Status: input.Status,
 	})
 	if err != nil {
-		return err
+		return ArticleModel{}, err
 	}
 
-	return nil
+	return ArticleModel{
+		ID:        mongoTag.ID,
+		Status:    mongoTag.Status,
+		Title:     mongoTag.Title,
+		Icon:      mongoTag.Icon,
+		Desc:      mongoTag.Desc,
+		Content:   mongoTag.Content,
+		CreatedAt: mongoTag.CreatedAt,
+	}, nil
 }
 
 type ArticleUpdateInput struct {
@@ -138,7 +146,10 @@ func (a *ArticlesRepo) Update(ID uuid.UUID, input ArticleUpdateInput) (ArticleMo
 	updatedAt := time.Now().UTC()
 
 	if status := input.Status; status != nil {
-		if err := a.neo.UpdateStatus(ctxSync, ID, *status); err != nil {
+		_, err := a.neo.Update(ctxSync, ID, neodb.ArticleUpdateInput{
+			Status: status,
+		})
+		if err != nil {
 			return ArticleModel{}, err
 		}
 	}

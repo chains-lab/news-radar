@@ -14,21 +14,26 @@ type CreateAuthorRequest struct {
 	Name string `json:"name" bson:"name"`
 }
 
-func (a App) CreateAuthor(ctx context.Context, request CreateAuthorRequest) error {
+func (a App) CreateAuthor(ctx context.Context, request CreateAuthorRequest) (models.Author, error) {
 	AuthorID := uuid.New()
 	CreatedAt := time.Now().UTC()
 
-	err := a.authors.Create(repo.AuthorCreateInput{
+	author, err := a.authors.Create(repo.AuthorCreateInput{
 		ID:        AuthorID,
 		Name:      request.Name,
 		Status:    enums.AuthorStatusActive,
 		CreatedAt: CreatedAt,
 	})
 	if err != nil {
-		return err
+		return models.Author{}, err
 	}
 
-	return nil
+	return models.Author{
+		ID:        author.ID,
+		Name:      author.Name,
+		Status:    author.Status,
+		CreatedAt: author.CreatedAt,
+	}, nil
 }
 
 type UpdateAuthorRequest struct {

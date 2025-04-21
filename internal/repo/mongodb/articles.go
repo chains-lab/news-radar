@@ -2,7 +2,6 @@ package mongodb
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -80,8 +79,8 @@ type ArticleInsertInput struct {
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 }
 
-func (a *ArticlesQ) Insert(ctx context.Context, input ArticleInsertInput) error {
-	_, err := a.collection.InsertOne(ctx, ArticleModel{
+func (a *ArticlesQ) Insert(ctx context.Context, input ArticleInsertInput) (ArticleModel, error) {
+	article := ArticleModel{
 		ID:        input.ID,
 		Status:    enums.ArticleStatusActive,
 		Title:     input.Title,
@@ -90,18 +89,20 @@ func (a *ArticlesQ) Insert(ctx context.Context, input ArticleInsertInput) error 
 		Content:   nil,
 		UpdatedAt: nil,
 		CreatedAt: input.CreatedAt,
-	})
-	if err != nil {
-		return err
 	}
 
-	return nil
+	_, err := a.collection.InsertOne(ctx, article)
+	if err != nil {
+		return ArticleModel{}, fmt.Errorf("failed to insert article: %w", err)
+	}
+
+	return article, nil
 }
 
 func (a *ArticlesQ) Delete(ctx context.Context) error {
 	_, err := a.collection.DeleteOne(ctx, a.filters)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to delete article: %w", err)
 	}
 
 	return nil
@@ -125,14 +126,14 @@ func (a *ArticlesQ) Select(ctx context.Context) ([]ArticleModel, error) {
 
 	cursor, err := a.collection.Find(ctx, a.filters, findOptions)
 	if err != nil {
-		return nil, fmt.Errorf("failed to select ArticlesQ: %w", err)
+		return nil, fmt.Errorf("failed to select article: %w", err)
 	}
 
 	defer cursor.Close(ctx)
 
 	var arts []ArticleModel
 	if err = cursor.All(ctx, &arts); err != nil {
-		return nil, fmt.Errorf("failed to decode ArticlesQ: %w", err)
+		return nil, fmt.Errorf("failed to convert article to models: %w", err)
 	}
 
 	return arts, nil
@@ -143,7 +144,7 @@ func (a *ArticlesQ) Get(ctx context.Context) (ArticleModel, error) {
 
 	err := a.collection.FindOne(ctx, a.filters).Decode(&art)
 	if err != nil {
-		return ArticleModel{}, err
+		return ArticleModel{}, fmt.Errorf("failed to get article: %w", err)
 	}
 
 	return art, nil
@@ -259,10 +260,7 @@ func (a *ArticlesQ) UpdateContent(
 	// 1. Считали статью
 	var article ArticleModel
 	if err := a.collection.FindOne(ctx, a.filters).Decode(&article); err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return ArticleModel{}, fmt.Errorf("article not found")
-		}
-		return ArticleModel{}, fmt.Errorf("failed to load article: %w", err)
+		return ArticleModel{}, fmt.Errorf("failed to find article: %w", err)
 	}
 
 	// 2. Определяем, пустая ли секция

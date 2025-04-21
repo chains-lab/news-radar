@@ -29,85 +29,71 @@ func NewHashtag(uri, username, password string) (*Hashtag, error) {
 	}, nil
 }
 
-func (h *Hashtag) Create(ctx context.Context, articleID uuid.UUID, tag string) error {
+func (h *Hashtag) Create(ctx context.Context, articleID uuid.UUID, tagID string) error {
 	session, err := h.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
 	}
-
 	defer session.Close()
 
-	resultChan := make(chan error, 1)
+	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+		cypher := `
+			MATCH (art:Article { id: $articleID })
+			MATCH (t:Tag { id: $tag_id })
+			MERGE (art)-[r:HAS_TAG]->(t)
+		`
 
-	go func() {
-		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-			cypher := `
-				MATCH (art:Article { id: $articleID })
-				MATCH (t:Tag { name: $tagName })
-				MERGE (art)-[r:HAS_TAG]->(t)
-			`
+		params := map[string]any{
+			"articleID": articleID.String(),
+			"tag_id":    tagID,
+		}
 
-			params := map[string]any{
-				"articleID": articleID.String(),
-				"tagName":   tag,
-			}
+		_, err := tx.Run(cypher, params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create HAS_TAG relationship: %w", err)
+		}
 
-			_, err := tx.Run(cypher, params)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create HAS_TAG relationship: %w", err)
-			}
+		return nil, nil
+	})
 
-			return nil, nil
-		})
-		resultChan <- err
-	}()
-
-	select {
-	case err := <-resultChan:
-		return err
-	case <-ctx.Done():
-		return ctx.Err()
+	if err != nil {
+		return fmt.Errorf("failed to create HAS_TAG relationship: %w", err)
 	}
+
+	return nil
 }
 
-func (h *Hashtag) Delete(ctx context.Context, articleID uuid.UUID, tag string) error {
+func (h *Hashtag) Delete(ctx context.Context, articleID uuid.UUID, tagID string) error {
 	session, err := h.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
 	}
-
 	defer session.Close()
 
-	resultChan := make(chan error, 1)
+	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+		cypher := `
+			MATCH (art:Article { id: $articleID })-[r:HAS_TAG]->(t:Tag { id: $tagId })
+			DELETE r
+		`
 
-	go func() {
-		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-			cypher := `
-				MATCH (art:Article { id: $articleID })-[r:HAS_TAG]->(t:Tag { name: $tagName })
-				DELETE r
-			`
+		params := map[string]any{
+			"articleID": articleID.String(),
+			"tagId":     tagID,
+		}
 
-			params := map[string]any{
-				"articleID": articleID.String(),
-				"tagName":   tag,
-			}
+		_, err := tx.Run(cypher, params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to delete HAS_TAG relationship: %w", err)
+		}
 
-			_, err := tx.Run(cypher, params)
-			if err != nil {
-				return nil, fmt.Errorf("failed to delete HAS_TAG relationship: %w", err)
-			}
+		return nil, nil
+	})
 
-			return nil, nil
-		})
-		resultChan <- err
-	}()
-
-	select {
-	case err := <-resultChan:
-		return err
-	case <-ctx.Done():
-		return ctx.Err()
+	if err != nil {
+		return fmt.Errorf("failed to delete HAS_TAG relationship: %w", err)
 	}
+
+	return nil
 }
 
 func (h *Hashtag) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]string, error) {
@@ -117,72 +103,56 @@ func (h *Hashtag) GetForArticle(ctx context.Context, articleID uuid.UUID) ([]str
 	}
 	defer session.Close()
 
-	type resultWrapper struct {
-		tags []string
-		err  error
-	}
-	resultChan := make(chan resultWrapper, 1)
+	res, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
+		cypher := `
+			MATCH (a:Article { id: $id })-[:HAS_TAG]->(t:Tag)
+			RETURN t
+		`
 
-	go func() {
-		res, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
-			cypher := `
-				MATCH (a:Article { id: $id })-[:HAS_TAG]->(t:Tag)
-				RETURN t
-			`
+		params := map[string]any{
+			"id": articleID.String(),
+		}
 
-			params := map[string]any{
-				"id": articleID.String(),
-			}
-
-			records, err := tx.Run(cypher, params)
-			if err != nil {
-				return nil, err
-			}
-
-			var tagsList []string
-			for records.Next() {
-				record := records.Record()
-				node, ok := record.Get("t")
-				if !ok {
-					continue
-				}
-
-				n, ok := node.(neo4j.Node)
-				if !ok {
-					continue
-				}
-
-				props := n.Props()
-
-				tag, ok := props["name"].(string)
-				if !ok {
-					continue
-				}
-
-				tagsList = append(tagsList, tag)
-			}
-			return tagsList, nil
-		})
+		records, err := tx.Run(cypher, params)
 		if err != nil {
-			resultChan <- resultWrapper{nil, err}
-			return
+			return nil, err
 		}
 
-		tagsList, ok := res.([]string)
-		if !ok {
-			resultChan <- resultWrapper{nil, fmt.Errorf("unexpected result type")}
-			return
+		var tagsList []string
+		for records.Next() {
+			record := records.Record()
+			node, ok := record.Get("t")
+			if !ok {
+				continue
+			}
+
+			n, ok := node.(neo4j.Node)
+			if !ok {
+				continue
+			}
+
+			props := n.Props()
+
+			tag, ok := props["id"].(string)
+			if !ok {
+				continue
+			}
+
+			tagsList = append(tagsList, tag)
 		}
+		return tagsList, nil
+	})
 
-		resultChan <- resultWrapper{tagsList, nil}
-	}()
-
-	select {
-	case res := <-resultChan:
-		return res.tags, res.err
-	case <-ctx.Done():
-		return nil, ctx.Err()
+	if err != nil {
+		return nil, err
 	}
+
+	tags, ok := res.([]string)
+	if !ok {
+		return nil, fmt.Errorf("unexpected result type")
+	}
+
+	return tags, nil
 }
 
 func (h *Hashtag) GetArticlesForTag(ctx context.Context, tag string) ([]uuid.UUID, error) {
@@ -192,121 +162,100 @@ func (h *Hashtag) GetArticlesForTag(ctx context.Context, tag string) ([]uuid.UUI
 	}
 	defer session.Close()
 
-	type resultWrapper struct {
-		ids []uuid.UUID
-		err error
-	}
-	resultChan := make(chan resultWrapper, 1)
-
-	go func() {
-		res, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
-			cypher := `
+	res, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
+		cypher := `
                 MATCH (t:Tag { name: $name })<-[:HAS_TAG]-(a:Article)
                 RETURN a.id AS articleID
             `
-			params := map[string]any{
-				"name": tag,
-			}
+		params := map[string]any{
+			"name": tag,
+		}
 
-			records, err := tx.Run(cypher, params)
-			if err != nil {
-				return nil, err
-			}
-
-			var articleIDs []uuid.UUID
-			for records.Next() {
-				rec := records.Record()
-				raw, ok := rec.Get("articleID")
-				if !ok {
-					continue
-				}
-				strID, ok := raw.(string)
-				if !ok {
-					continue
-				}
-				parsed, err := uuid.Parse(strID)
-				if err != nil {
-					continue
-				}
-				articleIDs = append(articleIDs, parsed)
-			}
-			if err = records.Err(); err != nil {
-				return nil, err
-			}
-			return articleIDs, nil
-		})
+		records, err := tx.Run(cypher, params)
 		if err != nil {
-			resultChan <- resultWrapper{nil, err}
-			return
+			return nil, err
 		}
 
-		ids, ok := res.([]uuid.UUID)
-		if !ok {
-			resultChan <- resultWrapper{nil, fmt.Errorf("unexpected result type")}
-			return
+		var articleIDs []uuid.UUID
+		for records.Next() {
+			rec := records.Record()
+			raw, ok := rec.Get("articleID")
+			if !ok {
+				continue
+			}
+			strID, ok := raw.(string)
+			if !ok {
+				continue
+			}
+			parsed, err := uuid.Parse(strID)
+			if err != nil {
+				continue
+			}
+			articleIDs = append(articleIDs, parsed)
 		}
-		resultChan <- resultWrapper{ids, nil}
-	}()
+		if err = records.Err(); err != nil {
+			return nil, err
+		}
+		return articleIDs, nil
+	})
 
-	select {
-	case r := <-resultChan:
-		return r.ids, r.err
-	case <-ctx.Done():
-		return nil, ctx.Err()
+	if err != nil {
+		return nil, err
 	}
+
+	articleIDs, ok := res.([]uuid.UUID)
+	if !ok {
+		return nil, fmt.Errorf("unexpected result type")
+	}
+
+	return articleIDs, nil
 }
 
-func (h *Hashtag) SetForArticle(ctx context.Context, articleID uuid.UUID, tags []string) error {
+func (h *Hashtag) SetForArticle(ctx context.Context, articleID uuid.UUID, tagIDs []string) error {
 	session, err := h.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
 	}
 	defer session.Close()
 
-	errChan := make(chan error, 1)
-
-	go func() {
-		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-			// 1) delete all old HAS_TAG relationships
-			deleteCypher := `
+	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+		// 1) delete all old HAS_TAG relationships
+		deleteCypher := `
             MATCH (a:Article { id: $id })-[r:HAS_TAG]->()
             DELETE r
         `
-			params := map[string]any{"id": articleID.String()}
-			res, err := tx.Run(deleteCypher, params)
-			if err != nil {
-				return nil, fmt.Errorf("failed to delete existing HAS_TAG relationships: %w", err)
-			}
-			// drain the result so driver can run next query
-			if _, err = res.Consume(); err != nil {
-				return nil, err
-			}
+		params := map[string]any{"id": articleID.String()}
+		res, err := tx.Run(deleteCypher, params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to delete existing HAS_TAG relationships: %w", err)
+		}
+		// drain the result so driver can run next query
+		if _, err = res.Consume(); err != nil {
+			return nil, err
+		}
 
-			// 2) create new HAS_TAG via UNWIND
-			params["tags"] = tags
-			createCypher := `
+		// 2) create new HAS_TAG via UNWIND
+		params["tags"] = tagIDs
+		createCypher := `
             MATCH (a:Article { id: $id })
-            UNWIND $tags AS tagName
-            MATCH (t:Tag { name: tagName })
+            UNWIND $tags AS TagId
+            MATCH (t:Tag { id: TagId })
             MERGE (a)-[:HAS_TAG]->(t)
         `
-			res2, err := tx.Run(createCypher, params)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create new HAS_TAG relationships: %w", err)
-			}
-			if _, err = res2.Consume(); err != nil {
-				return nil, err
-			}
+		res2, err := tx.Run(createCypher, params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create new HAS_TAG relationships: %w", err)
+		}
+		if _, err = res2.Consume(); err != nil {
+			return nil, err
+		}
 
-			return nil, nil
-		})
-		errChan <- err
-	}()
+		return nil, nil
+	})
 
-	select {
-	case err := <-errChan:
-		return err
-	case <-ctx.Done():
-		return ctx.Err()
+	if err != nil {
+		return fmt.Errorf("failed to set HAS_TAG relationships: %w", err)
 	}
+
+	return nil
 }

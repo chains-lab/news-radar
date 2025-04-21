@@ -7,7 +7,6 @@ Name | Type | Description | Notes
 **Name** | **string** | tag name | 
 **Status** | **string** | tag status | 
 **Type** | **string** | tag type | 
-**Description** | **string** | tag description | 
 **Color** | **string** | tag color | 
 **Icon** | **string** | tag icon | 
 
@@ -15,7 +14,7 @@ Name | Type | Description | Notes
 
 ### NewCreateTagDataAttributes
 
-`func NewCreateTagDataAttributes(name string, status string, type_ string, description string, color string, icon string, ) *CreateTagDataAttributes`
+`func NewCreateTagDataAttributes(name string, status string, type_ string, color string, icon string, ) *CreateTagDataAttributes`
 
 NewCreateTagDataAttributes instantiates a new CreateTagDataAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -88,26 +87,6 @@ and a boolean to check if the value has been set.
 `func (o *CreateTagDataAttributes) SetType(v string)`
 
 SetType sets Type field to given value.
-
-
-### GetDescription
-
-`func (o *CreateTagDataAttributes) GetDescription() string`
-
-GetDescription returns the Description field if non-nil, zero value otherwise.
-
-### GetDescriptionOk
-
-`func (o *CreateTagDataAttributes) GetDescriptionOk() (*string, bool)`
-
-GetDescriptionOk returns a tuple with the Description field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetDescription
-
-`func (o *CreateTagDataAttributes) SetDescription(v string)`
-
-SetDescription sets Description field to given value.
 
 
 ### GetColor

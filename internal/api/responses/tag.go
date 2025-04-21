@@ -8,9 +8,10 @@ import (
 func Tag(tag models.Tag) resources.Tag {
 	return resources.Tag{
 		Data: resources.TagData{
-			Id:   tag.Name,
+			Id:   tag.ID,
 			Type: resources.TagType,
 			Attributes: resources.TagAttributes{
+				Name:      tag.Name,
 				Status:    string(tag.Status),
 				Type:      string(tag.Type),
 				Icon:      tag.Icon,
@@ -26,9 +27,10 @@ func TagsCollection(tags []models.Tag) resources.TagCollection {
 
 	for _, tag := range tags {
 		element := resources.TagData{
-			Id:   tag.Name,
+			Id:   tag.ID,
 			Type: resources.TagCreateType,
 			Attributes: resources.TagAttributes{
+				Name:      tag.Name,
 				Status:    string(tag.Status),
 				Type:      string(tag.Type),
 				Icon:      tag.Icon,

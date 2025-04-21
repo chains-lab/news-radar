@@ -27,8 +27,6 @@ type CreateTagDataAttributes struct {
 	Status string `json:"status"`
 	// tag type
 	Type string `json:"type"`
-	// tag description
-	Description string `json:"description"`
 	// tag color
 	Color string `json:"color"`
 	// tag icon
@@ -41,12 +39,11 @@ type _CreateTagDataAttributes CreateTagDataAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCreateTagDataAttributes(name string, status string, type_ string, description string, color string, icon string) *CreateTagDataAttributes {
+func NewCreateTagDataAttributes(name string, status string, type_ string, color string, icon string) *CreateTagDataAttributes {
 	this := CreateTagDataAttributes{}
 	this.Name = name
 	this.Status = status
 	this.Type = type_
-	this.Description = description
 	this.Color = color
 	this.Icon = icon
 	return &this
@@ -132,30 +129,6 @@ func (o *CreateTagDataAttributes) SetType(v string) {
 	o.Type = v
 }
 
-// GetDescription returns the Description field value
-func (o *CreateTagDataAttributes) GetDescription() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Description
-}
-
-// GetDescriptionOk returns a tuple with the Description field value
-// and a boolean to check if the value has been set.
-func (o *CreateTagDataAttributes) GetDescriptionOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Description, true
-}
-
-// SetDescription sets field value
-func (o *CreateTagDataAttributes) SetDescription(v string) {
-	o.Description = v
-}
-
 // GetColor returns the Color field value
 func (o *CreateTagDataAttributes) GetColor() string {
 	if o == nil {
@@ -217,7 +190,6 @@ func (o CreateTagDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize["name"] = o.Name
 	toSerialize["status"] = o.Status
 	toSerialize["type"] = o.Type
-	toSerialize["description"] = o.Description
 	toSerialize["color"] = o.Color
 	toSerialize["icon"] = o.Icon
 	return toSerialize, nil
@@ -231,7 +203,6 @@ func (o *CreateTagDataAttributes) UnmarshalJSON(data []byte) (err error) {
 		"name",
 		"status",
 		"type",
-		"description",
 		"color",
 		"icon",
 	}

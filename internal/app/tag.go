@@ -3,8 +3,10 @@ package app
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/hs-zavet/news-radar/internal/app/ape"
 	"github.com/hs-zavet/news-radar/internal/app/models"
 	"github.com/hs-zavet/news-radar/internal/enums"
 	"github.com/hs-zavet/news-radar/internal/repo"
@@ -18,10 +20,10 @@ type CreateTagRequest struct {
 	Icon   string          `json:"icon"`
 }
 
-func (a App) CreateTag(ctx context.Context, request CreateTagRequest) error {
+func (a App) CreateTag(ctx context.Context, request CreateTagRequest) (models.Tag, error) {
 	CreatedAt := time.Now().UTC()
 
-	return a.tags.Create(repo.TagCreateInput{
+	tag, err := a.tags.Create(repo.TagCreateInput{
 		Name:      request.Name,
 		Status:    request.Status,
 		Type:      request.Type,
@@ -29,10 +31,33 @@ func (a App) CreateTag(ctx context.Context, request CreateTagRequest) error {
 		Icon:      request.Icon,
 		CreatedAt: CreatedAt,
 	})
+	if err != nil {
+		return models.Tag{}, ape.ErrorTagNameAlreadyTaken
+	}
+
+	return models.Tag{
+		ID:        tag.ID,
+		Name:      tag.Name,
+		Status:    tag.Status,
+		Type:      tag.Type,
+		Color:     tag.Color,
+		Icon:      tag.Icon,
+		CreatedAt: tag.CreatedAt,
+	}, nil
 }
 
-func (a App) DeleteTag(ctx context.Context, name string) error {
-	return a.tags.Delete(name)
+func (a App) DeleteTag(ctx context.Context, id string) error {
+	_, err := a.tags.Get(strings.ToLower(id))
+	if err != nil {
+		return ape.ErrTagNotFound
+	}
+
+	err = a.tags.Delete(strings.ToLower(strings.ToLower(id)))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type UpdateTagRequest struct {
@@ -43,13 +68,12 @@ type UpdateTagRequest struct {
 	Icon   *string          `json:"icon"`
 }
 
-func (a App) UpdateTag(ctx context.Context, name string, request UpdateTagRequest) (models.Tag, error) {
+func (a App) UpdateTag(ctx context.Context, id string, request UpdateTagRequest) (models.Tag, error) {
 	input := repo.TagUpdateInput{}
 
 	if request.Status != nil {
 		input.Status = request.Status
 	}
-
 	if request.Type != nil {
 		input.Type = request.Type
 	}
@@ -61,18 +85,19 @@ func (a App) UpdateTag(ctx context.Context, name string, request UpdateTagReques
 	}
 	if request.Name != nil {
 		_, err := a.tags.Get(*request.Name)
-		if err != nil {
-			return models.Tag{}, fmt.Errorf("tag with name %s already exists", *request.Name)
+		if err == nil {
+			return models.Tag{}, fmt.Errorf("tag with id %s already exists", *request.Name)
 		}
 		input.Name = request.Name
 	}
 
-	res, err := a.tags.Update(name, input)
+	res, err := a.tags.Update(strings.ToLower(id), input)
 	if err != nil {
-		return models.Tag{}, fmt.Errorf("tag with name %s not found", name)
+		return models.Tag{}, err
 	}
 
 	return models.Tag{
+		ID:        res.ID,
 		Name:      res.Name,
 		Status:    res.Status,
 		Type:      res.Type,
@@ -82,13 +107,14 @@ func (a App) UpdateTag(ctx context.Context, name string, request UpdateTagReques
 	}, nil
 }
 
-func (a App) GetTag(ctx context.Context, name string) (models.Tag, error) {
-	res, err := a.tags.Get(name)
+func (a App) GetTag(ctx context.Context, id string) (models.Tag, error) {
+	res, err := a.tags.Get(strings.ToLower(id))
 	if err != nil {
-		return models.Tag{}, fmt.Errorf("tag with name %s not found", name)
+		return models.Tag{}, ape.ErrTagNotFound
 	}
 
 	return models.Tag{
+		ID:        res.ID,
 		Name:      res.Name,
 		Status:    res.Status,
 		Type:      res.Type,

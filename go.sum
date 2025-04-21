@@ -49,6 +49,8 @@ github.com/hs-zavet/comtools v0.1.21 h1:0FdzuY2twaywKNJrK9Ovdt9u25GCnvlu7nAGTr3h
 github.com/hs-zavet/comtools v0.1.21/go.mod h1:3xo3vukJi8MT1ELjCp7Ypo/r0zZzr9L48+XrvjLQjMI=
 github.com/hs-zavet/tokens v0.5.11 h1:cSpIDpF8usL7vutfmtE+hPzK9ZseOkfk1KR4Zdef4nk=
 github.com/hs-zavet/tokens v0.5.11/go.mod h1:Dq9gKiGnnWLUJX5bektMVK534I/g9GWB2NJ52b1qpec=
+github.com/hs-zavet/tokens v0.7.2 h1:g4PR0zfzn9Ww3JPalY6pYJ0kWv2XFYPM+bKqiV4zEaM=
+github.com/hs-zavet/tokens v0.7.2/go.mod h1:Dq9gKiGnnWLUJX5bektMVK534I/g9GWB2NJ52b1qpec=
 github.com/hs-zavet/tokens v0.7.14 h1:g97navcC2mwFBfWASOVhSPbAk0jDW3DeN+Hi+5Ovb/8=
 github.com/hs-zavet/tokens v0.7.14/go.mod h1:Dq9gKiGnnWLUJX5bektMVK534I/g9GWB2NJ52b1qpec=
 github.com/klauspost/compress v1.15.9/go.mod h1:PhcZ0MbTNciWF3rruxRgKxI5NkcHHrHUDtV4Yw2GlzU=

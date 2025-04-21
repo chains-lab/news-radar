@@ -16,6 +16,7 @@ func (h *Handler) AddAuthor(w http.ResponseWriter, r *http.Request) {
 		httpkit.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
+
 	authorID, err := uuid.Parse(chi.URLParam(r, "author_id"))
 	if err != nil {
 		h.log.WithError(err).Warn("Error parsing request")
@@ -29,5 +30,5 @@ func (h *Handler) AddAuthor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpkit.Render(w, http.StatusAccepted)
+	httpkit.Render(w, http.StatusNoContent)
 }

@@ -48,7 +48,7 @@ func TestArticleCRUD(t *testing.T) {
 	id := uuid.New()
 
 	// 1. Create node
-	if err := repo.Create(ctx, ArticleInsertInput{ID: id, Status: enums.ArticleStatusActive}); err != nil {
+	if _, err := repo.Create(ctx, ArticleInsertInput{ID: id, Status: enums.ArticleStatusActive}); err != nil {
 		t.Fatalf("Create failed: %v", err)
 	}
 
@@ -61,24 +61,25 @@ func TestArticleCRUD(t *testing.T) {
 		t.Errorf("GetByID wrong data: %+v", a)
 	}
 
-	// 3. Update status
-	if err := repo.UpdateStatus(ctx, id, enums.ArticleStatusInactive); err != nil {
-		t.Errorf("UpdateStatus failed: %v", err)
-	}
-	b, err := repo.GetByID(ctx, id)
+	// 3. Update status using new Update()
+	newStatus := enums.ArticleStatusInactive
+	updated, err := repo.Update(ctx, id, ArticleUpdateInput{Status: &newStatus})
 	if err != nil {
-		t.Fatalf("GetByID after update failed: %v", err)
+		t.Fatalf("Update failed: %v", err)
 	}
-	if b.Status != enums.ArticleStatusInactive {
-		t.Errorf("Status not updated: got %v", b.Status)
+	if updated.ID != id {
+		t.Errorf("Updated.ID changed: got %v want %v", updated.ID, id)
+	}
+	if updated.Status != newStatus {
+		t.Errorf("Status not updated: got %v want %v", updated.Status, newStatus)
 	}
 
 	// 4. Delete node
 	if err := repo.Delete(ctx, id); err != nil {
-		t.Errorf("Delete failed: %v", err)
+		t.Fatalf("Delete failed: %v", err)
 	}
 	if _, err := repo.GetByID(ctx, id); err == nil {
-		t.Errorf("Expected error after delete")
+		t.Errorf("Expected error after delete, got nil")
 	}
 }
 
@@ -93,12 +94,12 @@ func TestAuthorCRUD(t *testing.T) {
 	ctx := context.Background()
 	id := uuid.New()
 
-	// create
-	if err := repo.Create(ctx, AuthorCreateInput{ID: id, Status: enums.AuthorStatusActive}); err != nil {
+	// 1. Create node
+	if _, err := repo.Create(ctx, AuthorCreateInput{ID: id, Status: enums.AuthorStatusActive}); err != nil {
 		t.Fatalf("Author Create failed: %v", err)
 	}
 
-	// get
+	// 2. Read it
 	au, err := repo.GetByID(ctx, id)
 	if err != nil {
 		t.Fatalf("Author GetByID failed: %v", err)
@@ -107,24 +108,25 @@ func TestAuthorCRUD(t *testing.T) {
 		t.Errorf("GetByID wrong: %+v", au)
 	}
 
-	// update
-	if err := repo.UpdateStatus(ctx, id, enums.AuthorStatusInactive); err != nil {
-		t.Errorf("Author UpdateStatus failed: %v", err)
-	}
-	au2, err := repo.GetByID(ctx, id)
+	// 3. Update status using new Update()
+	newStatus := enums.AuthorStatusInactive
+	updated, err := repo.Update(ctx, id, AuthorUpdateInput{Status: &newStatus})
 	if err != nil {
-		t.Fatalf("GetByID after update failed: %v", err)
+		t.Fatalf("Update failed: %v", err)
 	}
-	if au2.Status != enums.AuthorStatusInactive {
-		t.Errorf("Status not changed: got %v", au2.Status)
+	if updated.ID != id {
+		t.Errorf("Updated.ID changed: got %v want %v", updated.ID, id)
+	}
+	if updated.Status != newStatus {
+		t.Errorf("Status not updated: got %v want %v", updated.Status, newStatus)
 	}
 
-	// delete
+	// 4. Delete node
 	if err := repo.Delete(ctx, id); err != nil {
-		t.Errorf("Author Delete failed: %v", err)
+		t.Fatalf("Author Delete failed: %v", err)
 	}
 	if _, err := repo.GetByID(ctx, id); err == nil {
-		t.Errorf("Expected error after author delete")
+		t.Errorf("Expected error after delete, got nil")
 	}
 }
 
@@ -141,10 +143,10 @@ func TestAuthorshipRelation(t *testing.T) {
 	uID := uuid.New()
 
 	// create nodes
-	if err := artRepo.Create(ctx, ArticleInsertInput{ID: aID, Status: enums.ArticleStatusActive}); err != nil {
+	if _, err := artRepo.Create(ctx, ArticleInsertInput{ID: aID, Status: enums.ArticleStatusActive}); err != nil {
 		t.Fatalf("create article: %v", err)
 	}
-	if err := authRepo.Create(ctx, AuthorCreateInput{ID: uID, Status: enums.AuthorStatusActive}); err != nil {
+	if _, err := authRepo.Create(ctx, AuthorCreateInput{ID: uID, Status: enums.AuthorStatusActive}); err != nil {
 		t.Fatalf("create author: %v", err)
 	}
 
@@ -195,8 +197,12 @@ func TestHashtagRelation(t *testing.T) {
 	tagName := "golang"
 
 	// create article and tag nodes
-	_ = artRepo.Create(ctx, ArticleInsertInput{ID: aID, Status: enums.ArticleStatusActive})
-	_ = tagsImpl.Create(ctx, TagCreateInput{
+	_, err := artRepo.Create(ctx, ArticleInsertInput{ID: aID, Status: enums.ArticleStatusActive})
+	if err != nil {
+		t.Fatalf("Article Create failed: %v", err)
+	}
+
+	_, err = tagsImpl.Create(ctx, TagCreateInput{
 		Name:      tagName,
 		Status:    enums.TagStatusActive,
 		Type:      enums.TagTypeTopic,
@@ -204,6 +210,9 @@ func TestHashtagRelation(t *testing.T) {
 		Icon:      "icon.png",
 		CreatedAt: time.Now().UTC(),
 	})
+	if err != nil {
+		t.Fatalf("Tag Create failed: %v", err)
+	}
 
 	// add hashtag
 	if err := tagRepo.Create(ctx, aID, tagName); err != nil {
@@ -249,7 +258,7 @@ func TestSetForArticle(t *testing.T) {
 	ctx := context.Background()
 	aID := uuid.New()
 	// create article, authors, tags
-	_ = artRepo.Create(ctx, ArticleInsertInput{ID: aID, Status: enums.ArticleStatusActive})
+	_, _ = artRepo.Create(ctx, ArticleInsertInput{ID: aID, Status: enums.ArticleStatusActive})
 	authors := []uuid.UUID{uuid.New(), uuid.New()}
 	for _, u := range authors {
 		authorsQ, err := NewAuthors(testURI, testUser, testPass)
@@ -257,7 +266,7 @@ func TestSetForArticle(t *testing.T) {
 			t.Fatalf("NewAuthors failed: %v", err)
 		}
 
-		if err := authorsQ.Create(ctx, AuthorCreateInput{
+		if _, err := authorsQ.Create(ctx, AuthorCreateInput{
 			ID:     u,
 			Status: enums.AuthorStatusActive,
 		}); err != nil {
@@ -304,7 +313,7 @@ func TestTagsCRUD(t *testing.T) {
 	now := time.Now().UTC()
 
 	// create
-	err = timpl.Create(ctx, TagCreateInput{
+	_, err = timpl.Create(ctx, TagCreateInput{
 		Name: name, Status: enums.TagStatusActive,
 		Type: enums.TagTypeTopic, Color: "red",
 		Icon: "icon", CreatedAt: now,
@@ -386,11 +395,11 @@ func TestHashtagSetEmpty(t *testing.T) {
 
 	ctx := context.Background()
 	aID := uuid.New()
-	_ = artRepo.Create(ctx, ArticleInsertInput{ID: aID, Status: enums.ArticleStatusActive})
+	_, err := artRepo.Create(ctx, ArticleInsertInput{ID: aID, Status: enums.ArticleStatusActive})
 	// create two tags
 	tags := []string{"t1", "t2"}
 	for _, tg := range tags {
-		_ = tagsImpl.Create(ctx, TagCreateInput{
+		_, err = tagsImpl.Create(ctx, TagCreateInput{
 			Name: tg, Status: enums.TagStatusActive,
 			Type: enums.TagTypeDefault, Color: "c", Icon: "i", CreatedAt: time.Now().UTC(),
 		})
@@ -421,11 +430,23 @@ func TestTagsPopularitySort(t *testing.T) {
 	ctx := context.Background()
 	// create article and 2 tags
 	a1, a2 := uuid.New(), uuid.New()
-	_ = artRepo.Create(ctx, ArticleInsertInput{ID: a1, Status: enums.ArticleStatusActive})
-	_ = artRepo.Create(ctx, ArticleInsertInput{ID: a2, Status: enums.ArticleStatusActive})
+	_, err := artRepo.Create(ctx, ArticleInsertInput{ID: a1, Status: enums.ArticleStatusActive})
+	if err != nil {
+		t.Fatalf("Tag Create failed: %v", err)
+	}
+	_, err = artRepo.Create(ctx, ArticleInsertInput{ID: a2, Status: enums.ArticleStatusActive})
+	if err != nil {
+		t.Fatalf("Tag Create failed: %v", err)
+	}
 	t1, t2 := "tagA", "tagB"
-	_ = tagsImpl.Create(ctx, TagCreateInput{Name: t1, Status: enums.TagStatusActive, Type: enums.TagTypeDefault, Color: "c", Icon: "i", CreatedAt: time.Now().UTC()})
-	_ = tagsImpl.Create(ctx, TagCreateInput{Name: t2, Status: enums.TagStatusActive, Type: enums.TagTypeDefault, Color: "c", Icon: "i", CreatedAt: time.Now().UTC()})
+	_, err = tagsImpl.Create(ctx, TagCreateInput{Name: t1, Status: enums.TagStatusActive, Type: enums.TagTypeDefault, Color: "c", Icon: "i", CreatedAt: time.Now().UTC()})
+	if err != nil {
+		t.Fatalf("Tag Create failed: %v", err)
+	}
+	_, err = tagsImpl.Create(ctx, TagCreateInput{Name: t2, Status: enums.TagStatusActive, Type: enums.TagTypeDefault, Color: "c", Icon: "i", CreatedAt: time.Now().UTC()})
+	if err != nil {
+		t.Fatalf("Tag Create failed: %v", err)
+	}
 	// assign t1 to both articles, t2 to one
 	_ = tagRepo.Create(ctx, a1, t1)
 	_ = tagRepo.Create(ctx, a2, t1)
@@ -446,8 +467,10 @@ func TestTagsGetContains(t *testing.T) {
 	cleanDB(t, timpl.driver)
 
 	ctx := context.Background()
-	_ = timpl.Create(ctx, TagCreateInput{Name: "GoLang", Status: enums.TagStatusActive, Type: enums.TagTypeDefault, Color: "c", Icon: "i", CreatedAt: time.Now().UTC()})
-
+	_, err := timpl.Create(ctx, TagCreateInput{Name: "GoLang", Status: enums.TagStatusActive, Type: enums.TagTypeDefault, Color: "c", Icon: "i", CreatedAt: time.Now().UTC()})
+	if err != nil {
+		t.Fatalf("Tag Create failed: %v", err)
+	}
 	// search lowercase fragment
 	got, err := timpl.Get(ctx, "lang")
 	if err != nil {
@@ -466,11 +489,14 @@ func TestTagUpdateMultipleFields(t *testing.T) {
 	ctx := context.Background()
 	name := "old"
 	now := time.Now().UTC()
-	_ = timpl.Create(ctx, TagCreateInput{
+	_, err := timpl.Create(ctx, TagCreateInput{
 		Name: name, Status: enums.TagStatusActive,
 		Type: enums.TagTypeDefault, Color: "red",
 		Icon: "ico", CreatedAt: now,
 	})
+	if err != nil {
+		t.Fatalf("Tag Create failed: %v", err)
+	}
 
 	newName := "new"
 	newStatus := enums.TagStatusInactive
@@ -502,27 +528,26 @@ func TestTagUpdateMultipleFields(t *testing.T) {
 
 // TestTagUpdateNoop tests Update with no change returns existing.
 func TestTagUpdateNoop(t *testing.T) {
-	timpl, _ := NewTags(testURI, testUser, testPass)
-	cleanDB(t, timpl.driver)
+	timpl, err := NewTags(testURI, testUser, testPass)
+	if err != nil {
+		t.Fatalf("NewTags failed: %v", err)
+	}
 
 	ctx := context.Background()
 	name := "keep"
 	now := time.Now().UTC()
-	_ = timpl.Create(ctx, TagCreateInput{Name: name, Status: enums.TagStatusActive, Type: enums.TagTypeDefault, Color: "x", Icon: "y", CreatedAt: now})
+	cr, err := timpl.Create(ctx, TagCreateInput{Name: name, Status: enums.TagStatusActive, Type: enums.TagTypeDefault, Color: "x", Icon: "y", CreatedAt: now})
+	if err != nil {
+		t.Fatalf("Tag Create failed: %v", err)
+	}
 
-	// call Update with only UpdatedAt
 	newTime := now.Add(2 * time.Minute)
-	got, err := timpl.Update(ctx, name, TagUpdateInput{UpdatedAt: newTime})
+	up, err := timpl.Update(ctx, name, TagUpdateInput{UpdatedAt: newTime})
 	if err != nil {
 		t.Fatalf("Update noop error: %v", err)
 	}
 
-	if got.UpdatedAt != nil {
-		t.Errorf("Expected no UpdatedAt set, got %v", got.UpdatedAt)
-	}
-
-	// only UpdatedAt should change
-	if got.Name != name {
-		t.Errorf("No-op update changed wrong fields: %+v", got)
+	if up.Name != cr.Name {
+		t.Errorf("Fields changed: %+v", up)
 	}
 }

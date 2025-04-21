@@ -5,7 +5,6 @@ properties:
   data:
     type: object
     required:
-      - id
       - type
       - attributes
     properties:
@@ -18,7 +17,6 @@ properties:
           - name
           - status
           - type
-          - description
           - color
           - icon
         properties:
@@ -33,9 +31,6 @@ properties:
             type: string
             enum: [ tag ]
             description: "tag type"
-          description:
-            type: string
-            description: "tag description"
           color:
             type: string
             description: "tag color"

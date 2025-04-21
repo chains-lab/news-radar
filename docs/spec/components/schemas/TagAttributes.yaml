@@ -1,11 +1,14 @@
 type: object
 required:
+  - name
   - status
   - type
   - color
   - icon
   - created_at
 properties:
+  name:
+    type: string
   status:
     type: string
   type:

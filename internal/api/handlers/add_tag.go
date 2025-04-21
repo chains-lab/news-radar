@@ -25,5 +25,5 @@ func (h *Handler) AddTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpkit.Render(w, http.StatusAccepted)
+	httpkit.Render(w, http.StatusNoContent)
 }

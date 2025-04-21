@@ -38,7 +38,7 @@ func NewApp(cfg config.Config, log *logrus.Logger) (App, error) {
 }
 
 type articlesRepo interface {
-	Create(input repo.ArticleCreateInput) error
+	Create(input repo.ArticleCreateInput) (repo.ArticleModel, error)
 	Delete(ID uuid.UUID) error
 
 	Update(ID uuid.UUID, input repo.ArticleUpdateInput) (repo.ArticleModel, error)
@@ -69,7 +69,8 @@ func newArticles(cfg config.Config) (articlesRepo, error) {
 }
 
 type authorsRepo interface {
-	Create(author repo.AuthorCreateInput) error
+	Create(author repo.AuthorCreateInput) (repo.AuthorModel, error)
+
 	Delete(ID uuid.UUID) error
 
 	Update(ID uuid.UUID, input repo.AuthorUpdateInput) (repo.AuthorModel, error)
@@ -86,12 +87,12 @@ func newAuthors(cfg config.Config) (authorsRepo, error) {
 }
 
 type tagsRepo interface {
-	Create(input repo.TagCreateInput) error
-	Delete(name string) error
+	Create(input repo.TagCreateInput) (repo.TagModel, error)
+	Delete(id string) error
 
-	Update(name string, input repo.TagUpdateInput) (repo.TagModel, error)
+	Update(id string, input repo.TagUpdateInput) (repo.TagModel, error)
 
-	Get(name string) (repo.TagModel, error)
+	Get(id string) (repo.TagModel, error)
 }
 
 func newTags(cfg config.Config) (tagsRepo, error) {

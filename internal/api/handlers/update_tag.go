@@ -1,10 +1,13 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/hs-zavet/comtools/httpkit"
+	"github.com/hs-zavet/comtools/httpkit/problems"
 	"github.com/hs-zavet/news-radar/internal/api/requests"
 	"github.com/hs-zavet/news-radar/internal/api/responses"
 	"github.com/hs-zavet/news-radar/internal/app"
@@ -12,17 +15,27 @@ import (
 )
 
 func (h *Handler) UpdateTag(w http.ResponseWriter, r *http.Request) {
-	tagName := chi.URLParam(r, "tag")
-	if tagName == "" {
+	tagID := chi.URLParam(r, "tag")
+	if tagID == "" {
 		h.log.Warn("Error parsing request")
-		http.Error(w, "tagName not found", http.StatusBadRequest)
+		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
+			"tagID": errors.New("tagID not found"),
+		})...)
 		return
 	}
 
 	req, err := requests.UpdateTag(r)
 	if err != nil {
 		h.log.WithError(err).Warn("Error parsing request")
-		http.Error(w, "bad request", http.StatusBadRequest)
+		httpkit.RenderErr(w, problems.BadRequest(err)...)
+		return
+	}
+
+	if tagID != req.Data.Id {
+		h.log.Warn("Error parsing request")
+		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
+			"Id": errors.New("id and tagID do not match"),
+		})...)
 		return
 	}
 
@@ -36,7 +49,7 @@ func (h *Handler) UpdateTag(w http.ResponseWriter, r *http.Request) {
 		status, ok := enums.ParseTagStatus(*req.Data.Attributes.Status)
 		if !ok {
 			h.log.Warn("Error parsing request")
-			http.Error(w, "tagName status not found", http.StatusBadRequest)
+			http.Error(w, "tagID status not found", http.StatusBadRequest)
 			return
 		}
 
@@ -47,7 +60,7 @@ func (h *Handler) UpdateTag(w http.ResponseWriter, r *http.Request) {
 		tagType, ok := enums.ParseTagType(*req.Data.Attributes.Type)
 		if !ok {
 			h.log.Warn("Error parsing request")
-			http.Error(w, "tagName type not found", http.StatusBadRequest)
+			http.Error(w, "tagID type not found", http.StatusBadRequest)
 			return
 		}
 
@@ -62,17 +75,16 @@ func (h *Handler) UpdateTag(w http.ResponseWriter, r *http.Request) {
 		update.Icon = req.Data.Attributes.Icon
 	}
 
-	tag, err := h.app.UpdateTag(r.Context(), tagName, update)
+	tag, err := h.app.UpdateTag(r.Context(), tagID, update)
 	if err != nil {
 		switch {
-		case err == nil:
-			http.Error(w, "tagName not found", http.StatusNotFound)
-		case err == nil:
-			http.Error(w, "tagName already exists", http.StatusConflict)
+		case errors.Is(err, nil):
+			http.Error(w, "tagID not found", http.StatusNotFound)
 		default:
-			h.log.WithError(err).Error("Error updating tagName")
-			http.Error(w, "internal server error", http.StatusInternalServerError)
+			httpkit.RenderErr(w, problems.InternalError())
 		}
+
+		h.log.WithError(err).Error("Error updating tagID")
 		return
 	}
 

@@ -20,7 +20,7 @@ func (a App) CreateArticle(ctx context.Context, request CreateArticleRequest) (m
 	ArticleID := uuid.New()
 	CreatedAt := time.Now().UTC()
 
-	err := a.articles.Create(repo.ArticleCreateInput{
+	article, err := a.articles.Create(repo.ArticleCreateInput{
 		ID:        ArticleID,
 		Title:     request.Title,
 		Status:    enums.ArticleStatusInactive,
@@ -30,19 +30,15 @@ func (a App) CreateArticle(ctx context.Context, request CreateArticleRequest) (m
 		return models.Article{}, err
 	}
 
-	res, err := a.articles.GetByID(ArticleID)
-	if err != nil {
-		return models.Article{}, err
-	}
 	return models.Article{
-		ID:        res.ID,
-		Title:     res.Title,
+		ID:        article.ID,
+		Title:     article.Title,
 		Icon:      nil,
 		Desc:      nil,
 		Content:   nil,
-		Status:    enums.ArticleStatusInactive,
+		Status:    article.Status,
 		UpdatedAt: nil,
-		CreatedAt: res.CreatedAt,
+		CreatedAt: article.CreatedAt,
 
 		Authors: nil,
 		Tags:    nil,
@@ -97,21 +93,15 @@ func (a App) UpdateArticle(ctx context.Context, articleID uuid.UUID, request Upd
 		return models.Article{}, err
 	}
 
-	return models.Article{
-		ID:        article.ID,
-		Title:     article.Title,
-		Icon:      article.Icon,
-		Desc:      article.Desc,
-		Content:   article.Content,
-		UpdatedAt: article.UpdatedAt,
-		CreatedAt: article.CreatedAt,
-		Authors:   authors,
-		Tags:      tags,
-	}, nil
+	res := ArticleRepoToModels(article)
+	res.Tags = tags
+	res.Authors = authors
+
+	return res, nil
 }
 
 func (a App) UpdateArticleContent(ctx context.Context, articleID uuid.UUID, index int, section content.Section) (models.Article, error) {
-	res, err := a.articles.UpdateContent(articleID, index, section)
+	article, err := a.articles.UpdateContent(articleID, index, section)
 	if err != nil {
 		return models.Article{}, err
 	}
@@ -125,17 +115,11 @@ func (a App) UpdateArticleContent(ctx context.Context, articleID uuid.UUID, inde
 		return models.Article{}, err
 	}
 
-	return models.Article{
-		ID:        res.ID,
-		Title:     res.Title,
-		Icon:      res.Icon,
-		Desc:      res.Desc,
-		Content:   res.Content,
-		UpdatedAt: res.UpdatedAt,
-		CreatedAt: res.CreatedAt,
-		Authors:   authors,
-		Tags:      tags,
-	}, nil
+	res := ArticleRepoToModels(article)
+	res.Tags = tags
+	res.Authors = authors
+
+	return res, nil
 }
 
 func (a App) DeleteArticle(ctx context.Context, articleID uuid.UUID) error {
@@ -148,16 +132,6 @@ func (a App) GetArticleByID(ctx context.Context, articleID uuid.UUID) (models.Ar
 		return models.Article{}, err
 	}
 
-	res := models.Article{
-		ID:        article.ID,
-		Title:     article.Title,
-		Icon:      article.Icon,
-		Desc:      article.Desc,
-		Content:   article.Content,
-		UpdatedAt: article.UpdatedAt,
-		CreatedAt: article.CreatedAt,
-	}
-
 	authors, err := a.articles.GetAuthors(articleID)
 	if err != nil {
 		return models.Article{}, err
@@ -168,6 +142,7 @@ func (a App) GetArticleByID(ctx context.Context, articleID uuid.UUID) (models.Ar
 		return models.Article{}, err
 	}
 
+	res := ArticleRepoToModels(article)
 	res.Authors = authors
 	res.Tags = tags
 
@@ -424,4 +399,27 @@ func (a App) CleanArticleAuthors(ctx context.Context, articleID uuid.UUID) error
 	}
 
 	return nil
+}
+
+func ArticleRepoToModels(article repo.ArticleModel) models.Article {
+	res := models.Article{
+		ID:        article.ID,
+		Title:     article.Title,
+		Status:    article.Status,
+		CreatedAt: article.CreatedAt,
+	}
+	if article.Desc != nil {
+		res.Desc = article.Desc
+	}
+	if article.Icon != nil {
+		res.Icon = article.Icon
+	}
+	if article.Content != nil {
+		res.Content = article.Content
+	}
+	if article.UpdatedAt != nil {
+		res.UpdatedAt = article.UpdatedAt
+	}
+
+	return res
 }

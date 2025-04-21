@@ -24,11 +24,13 @@ func (h *Handler) GetArticle(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, nil):
 			h.log.WithError(err).Error("Error getting article")
+			httpkit.RenderErr(w, problems.InternalError())
+			return
 		default:
 			httpkit.RenderErr(w, problems.InternalError())
+			return
 		}
 	}
 
-	resp := responses.Article(article)
-	httpkit.Render(w, resp)
+	httpkit.Render(w, responses.Article(article))
 }

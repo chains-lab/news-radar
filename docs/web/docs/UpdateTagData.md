@@ -4,7 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Id** | **string** | tag name | 
+**Id** | **string** | tag id | 
 **Type** | **string** |  | 
 **Attributes** | [**UpdateTagDataAttributes**](UpdateTagDataAttributes.md) |  | 
 

@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hs-zavet/comtools/httpkit"
 	"github.com/hs-zavet/comtools/httpkit/problems"
+	"github.com/hs-zavet/news-radar/internal/api/responses"
 )
 
 func (h *Handler) CleanArticleTags(w http.ResponseWriter, r *http.Request) {
@@ -24,5 +25,12 @@ func (h *Handler) CleanArticleTags(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpkit.Render(w, http.StatusAccepted)
+	article, err := h.app.GetArticleByID(r.Context(), articleID)
+	if err != nil {
+		h.log.WithError(err).Errorf("error getting article %s", articleID)
+		httpkit.RenderErr(w, problems.InternalError())
+		return
+	}
+
+	httpkit.Render(w, responses.Article(article))
 }

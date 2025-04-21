@@ -7,6 +7,7 @@ import (
 	"github.com/hs-zavet/comtools/httpkit"
 	"github.com/hs-zavet/comtools/httpkit/problems"
 	"github.com/hs-zavet/news-radar/internal/api/requests"
+	"github.com/hs-zavet/news-radar/internal/api/responses"
 	"github.com/hs-zavet/news-radar/internal/app"
 	"github.com/hs-zavet/tokens"
 )
@@ -26,7 +27,7 @@ func (h *Handler) CreateAuthor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.app.CreateAuthor(r.Context(), app.CreateAuthorRequest{
+	author, err := h.app.CreateAuthor(r.Context(), app.CreateAuthorRequest{
 		Name: req.Data.Attributes.Name,
 	})
 	if err != nil {
@@ -39,4 +40,5 @@ func (h *Handler) CreateAuthor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.log.Infof("Created author: %s by user: %s", req.Data.Attributes.Name, user.AccountID.String())
+	httpkit.Render(w, responses.Author(author))
 }

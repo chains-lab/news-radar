@@ -250,7 +250,7 @@ components:
     TagData:
       properties:
         id:
-          description: tag name
+          description: tag id
           type: string
         type:
           enum:
@@ -265,6 +265,8 @@ components:
       type: object
     TagAttributes:
       properties:
+        name:
+          type: string
         status:
           type: string
         type:
@@ -284,6 +286,7 @@ components:
       - color
       - created_at
       - icon
+      - name
       - status
       - type
       type: object
@@ -737,9 +740,6 @@ components:
           enum:
           - tag
           type: string
-        description:
-          description: tag description
-          type: string
         color:
           description: tag color
           type: string
@@ -748,7 +748,6 @@ components:
           type: string
       required:
       - color
-      - description
       - icon
       - name
       - status
@@ -764,7 +763,6 @@ components:
           $ref: '#/components/schemas/CreateTag_data_attributes'
       required:
       - attributes
-      - id
       - type
       type: object
     UpdateTag_data_attributes:
@@ -796,7 +794,7 @@ components:
     UpdateTag_data:
       properties:
         id:
-          description: tag name
+          description: tag id
           type: string
         type:
           enum:

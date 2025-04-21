@@ -21,7 +21,7 @@ var _ MappedNullable = &TagData{}
 
 // TagData struct for TagData
 type TagData struct {
-	// tag name
+	// tag id
 	Id string `json:"id"`
 	Type string `json:"type"`
 	Attributes TagAttributes `json:"attributes"`

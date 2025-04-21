@@ -30,5 +30,5 @@ func (h *Handler) DeleteAuthor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpkit.Render(w, http.StatusAccepted)
+	httpkit.Render(w, http.StatusNoContent)
 }

@@ -21,7 +21,7 @@ var _ MappedNullable = &UpdateTagData{}
 
 // UpdateTagData struct for UpdateTagData
 type UpdateTagData struct {
-	// tag name
+	// tag id
 	Id string `json:"id"`
 	Type string `json:"type"`
 	Attributes UpdateTagDataAttributes `json:"attributes"`

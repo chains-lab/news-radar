@@ -6,7 +6,7 @@ required:
 properties:
   id:
     type: string
-    description: "tag name"
+    description: "tag id"
   type:
     type: string
     enum: [ tag ]

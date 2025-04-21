@@ -10,7 +10,16 @@ import (
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
 
+//CREATE CONSTRAINT unique_tag_name IF NOT EXISTS
+//FOR (t:Tag)
+//REQUIRE t.name IS UNIQUE;
+
+//CREATE CONSTRAINT unique_tag_id IF NOT EXISTS
+//FOR (t:Tag)
+//REQUIRE t.id IS UNIQUE;
+
 type TagModel struct {
+	ID        string          `json:"id"`
 	Name      string          `json:"name"`
 	Status    enums.TagStatus `json:"status"`
 	Type      enums.TagType   `json:"type"`
@@ -50,161 +59,163 @@ type TagCreateInput struct {
 	CreatedAt time.Time       `json:"created_at"`
 }
 
-func (t *TagsImpl) Create(ctx context.Context, input TagCreateInput) error {
+func (t *TagsImpl) Create(ctx context.Context, input TagCreateInput) (TagModel, error) {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
-		return err
+		return TagModel{}, err
 	}
 
 	defer session.Close()
 
-	resultChan := make(chan error, 1)
+	result, err := session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+		cypher := `
+			CREATE (t:Tag {
+				id: $id,
+				name: $name,
+				status: $status,
+				type: $type,
+				color: $color,
+				icon: $icon,
+				created_at: $created
+			})
+			RETURN t
+		`
 
-	go func() {
-		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-			cypher := `
-				CREATE (t:Tag {
-					name: $name,
-					status: $status,
-					type: $type,
-					color: $color,
-					icon: $icon,
-					created_at: $created
-				})
-				RETURN t
-			`
+		params := map[string]any{
+			"id":      input.Name,
+			"name":    input.Name,
+			"status":  input.Status,
+			"type":    input.Type,
+			"color":   input.Color,
+			"icon":    input.Icon,
+			"created": input.CreatedAt,
+		}
 
-			params := map[string]any{
-				"name":    input.Name,
-				"status":  input.Status,
-				"type":    input.Type,
-				"color":   input.Color,
-				"icon":    input.Icon,
-				"created": input.CreatedAt,
-			}
+		cursor, err := tx.Run(cypher, params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to run update: %w", err)
+		}
+		if !cursor.Next() {
+			return nil, fmt.Errorf("tag not found")
+		}
 
-			_, err := tx.Run(cypher, params)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create tag: %w", err)
-			}
+		nodeVal, ok := cursor.Record().Get("t")
+		if !ok {
+			return nil, fmt.Errorf("failed to find tag")
+		}
 
-			return nil, nil
-		})
-		resultChan <- err
-	}()
+		node, ok := nodeVal.(neo4j.Node)
+		if !ok {
+			return nil, fmt.Errorf("unexpected type for tag node")
+		}
 
-	select {
-	case err := <-resultChan:
-		return err
-	case <-ctx.Done():
-		return ctx.Err()
+		props := node.Props()
+
+		tag, err := parseTagFromProps(props)
+		if err != nil {
+			return nil, err
+		}
+
+		return tag, nil
+	})
+
+	if err != nil {
+		return TagModel{}, err
 	}
+
+	tag, ok := result.(TagModel)
+	if !ok {
+		return TagModel{}, fmt.Errorf("unexpected result type")
+	}
+
+	return tag, nil
 }
 
-func (t *TagsImpl) Delete(ctx context.Context, name string) error {
+func (t *TagsImpl) Delete(ctx context.Context, id string) error {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		return err
 	}
-
 	defer session.Close()
 
-	resultChan := make(chan error, 1)
+	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+		cypher := `
+			MATCH (t:Tag { id: $id })
+			DETACH DELETE t
+		`
 
-	go func() {
-		_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-			cypher := `
-				MATCH (t:Tag { name: $name })
-				DETACH DELETE t
-			`
+		params := map[string]any{
+			"id": id,
+		}
+		_, err := tx.Run(cypher, params)
+		if err != nil {
+			return nil, fmt.Errorf("failed to delete tag: %w", err)
+		}
 
-			params := map[string]any{
-				"name": name,
-			}
-			_, err := tx.Run(cypher, params)
-			if err != nil {
-				return nil, fmt.Errorf("failed to delete tag: %w", err)
-			}
+		return nil, nil
+	})
 
-			return nil, nil
-		})
-		resultChan <- err
-	}()
-
-	select {
-	case err := <-resultChan:
-		return err
-	case <-ctx.Done():
-		return ctx.Err()
+	if err != nil {
+		return fmt.Errorf("failed to delete tag: %w", err)
 	}
+
+	return nil
 }
 
-func (t *TagsImpl) Get(ctx context.Context, name string) (TagModel, error) {
+func (t *TagsImpl) Get(ctx context.Context, id string) (TagModel, error) {
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
 	if err != nil {
 		return TagModel{}, err
 	}
 	defer session.Close()
 
-	type resultWrapper struct {
-		tag TagModel
-		err error
-	}
-	resultChan := make(chan resultWrapper, 1)
+	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
+		cypher := `
+			MATCH (t:Tag)
+			WHERE t.id CONTAINS $id
+			RETURN t
+		`
 
-	go func() {
-		result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
-			cypher := `
-				MATCH (t:Tag)
-				WHERE toLower(t.name) CONTAINS toLower($name)
-				RETURN t
-			`
+		params := map[string]any{
+			"id": id,
+		}
 
-			params := map[string]any{
-				"name": name,
-			}
-
-			cursor, err := tx.Run(cypher, params)
-			if err != nil {
-				return nil, err
-			}
-			if cursor.Next() {
-				nodeVal, ok := cursor.Record().Get("t")
-				if !ok {
-					return nil, fmt.Errorf("failed to find tag")
-				}
-				node, ok := nodeVal.(neo4j.Node)
-				if !ok {
-					return nil, fmt.Errorf("unexpected type for tag node")
-				}
-
-				props := node.Props()
-				tag, err := parseTagFromProps(props)
-				if err != nil {
-					return nil, err
-				}
-				return tag, nil
-			}
-			return TagModel{}, fmt.Errorf("failed to find tag")
-		})
+		cursor, err := tx.Run(cypher, params)
 		if err != nil {
-			resultChan <- resultWrapper{TagModel{}, err}
-			return
+			return nil, err
 		}
-		tag, ok := result.(TagModel)
-		if !ok {
-			resultChan <- resultWrapper{TagModel{}, fmt.Errorf("unexpected result type")}
-			return
-		}
-		resultChan <- resultWrapper{tag, nil}
-	}()
+		if cursor.Next() {
+			nodeVal, ok := cursor.Record().Get("t")
+			if !ok {
+				return TagModel{}, fmt.Errorf("failed to find tag %q", id)
+			}
 
-	select {
-	case res := <-resultChan:
-		return res.tag, res.err
-	case <-ctx.Done():
-		return TagModel{}, ctx.Err()
+			node, ok := nodeVal.(neo4j.Node)
+			if !ok {
+				return TagModel{}, fmt.Errorf("unexpected type for tag node")
+			}
+
+			props := node.Props()
+
+			tag, err := parseTagFromProps(props)
+			if err != nil {
+				return TagModel{}, err
+			}
+			return tag, nil
+		}
+		return TagModel{}, fmt.Errorf("failed to find tag")
+	})
+
+	if err != nil {
+		return TagModel{}, err
 	}
+
+	tag, ok := result.(TagModel)
+	if !ok {
+		return TagModel{}, fmt.Errorf("unexpected result type")
+	}
+
+	return tag, nil
 }
 
 func (t *TagsImpl) GetAll(ctx context.Context) ([]TagModel, error) {
@@ -214,65 +225,51 @@ func (t *TagsImpl) GetAll(ctx context.Context) ([]TagModel, error) {
 	}
 	defer session.Close()
 
-	type resultWrapper struct {
-		tags []TagModel
-		err  error
-	}
-	resultChan := make(chan resultWrapper, 1)
+	result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
+		cypher := `
+            MATCH (t:Tag)
+            OPTIONAL MATCH (t)<-[r:HAS_TAG]-(:Article)
+            WITH t, count(r) AS popularity
+            RETURN t ORDER BY popularity DESC
+        `
 
-	go func() {
-		result, err := session.ReadTransaction(func(tx neo4j.Transaction) (any, error) {
-			cypher := `
-				MATCH (t:Tag)
-				OPTIONAL MATCH (t)<-[r:ABOUT]-(:Article)
-				WITH t, count(r) as popularity
-				RETURN t ORDER BY popularity DESC
-			`
-
-			cursor, err := tx.Run(cypher, nil)
-			if err != nil {
-				return nil, err
-			}
-
-			var tagsList []TagModel
-			for cursor.Next() {
-				record := cursor.Record()
-				nodeVal, ok := record.Get("t")
-				if !ok {
-					continue
-				}
-				node, ok := nodeVal.(neo4j.Node)
-				if !ok {
-					continue
-				}
-				props := node.Props()
-				tag, err := parseTagFromProps(props)
-				if err != nil {
-
-					continue
-				}
-				tagsList = append(tagsList, tag)
-			}
-			return tagsList, nil
-		})
+		cursor, err := tx.Run(cypher, nil)
 		if err != nil {
-			resultChan <- resultWrapper{nil, err}
-			return
+			return nil, err
 		}
-		tags, ok := result.([]TagModel)
-		if !ok {
-			resultChan <- resultWrapper{nil, fmt.Errorf("unexpected result type")}
-			return
-		}
-		resultChan <- resultWrapper{tags, nil}
-	}()
 
-	select {
-	case res := <-resultChan:
-		return res.tags, res.err
-	case <-ctx.Done():
-		return nil, ctx.Err()
+		var tagsList []TagModel
+		for cursor.Next() {
+			record := cursor.Record()
+			nodeVal, ok := record.Get("t")
+			if !ok {
+				continue
+			}
+			node, ok := nodeVal.(neo4j.Node)
+			if !ok {
+				continue
+			}
+			props := node.Props()
+			tag, err := parseTagFromProps(props)
+			if err != nil {
+
+				continue
+			}
+			tagsList = append(tagsList, tag)
+		}
+		return tagsList, nil
+	})
+
+	if err != nil {
+		return nil, err
 	}
+
+	tags, ok := result.([]TagModel)
+	if !ok {
+		return nil, fmt.Errorf("unexpected result type")
+	}
+
+	return tags, nil
 }
 
 type TagUpdateInput struct {
@@ -284,17 +281,19 @@ type TagUpdateInput struct {
 	UpdatedAt time.Time        `json:"updated_at,omitempty"`
 }
 
-func (t *TagsImpl) Update(ctx context.Context, name string, input TagUpdateInput) (TagModel, error) {
+func (t *TagsImpl) Update(ctx context.Context, id string, input TagUpdateInput) (TagModel, error) {
 	setClauses := []string{"t.updated_at = $updated_at"}
 	params := map[string]any{
-		"current_name": name,
-		"updated_at":   input.UpdatedAt,
+		"current_id": id,
+		"updated_at": input.UpdatedAt,
 	}
 
 	if input.NewName != nil {
 		if *input.NewName == "" {
 			return TagModel{}, fmt.Errorf("new name cannot be empty")
 		}
+		setClauses = append(setClauses, "t.id = $new_id")
+		params["new_id"] = strings.ToLower(*input.NewName)
 		setClauses = append(setClauses, "t.name = $new_name")
 		params["new_name"] = *input.NewName
 	}
@@ -333,7 +332,7 @@ func (t *TagsImpl) Update(ctx context.Context, name string, input TagUpdateInput
 	}
 
 	if len(setClauses) == 1 {
-		return t.Get(ctx, name)
+		return t.Get(ctx, id)
 	}
 
 	session, err := t.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
@@ -342,64 +341,59 @@ func (t *TagsImpl) Update(ctx context.Context, name string, input TagUpdateInput
 	}
 	defer session.Close()
 
-	type resultWrapper struct {
-		tag TagModel
-		err error
-	}
-	resultChan := make(chan resultWrapper, 1)
-
-	go func() {
-		cypher := fmt.Sprintf(
-			`MATCH (t:Tag { name: $current_name })
+	cypher := fmt.Sprintf(
+		`MATCH (t:Tag { id: $current_id })
 		 SET  %s
 		 RETURN t`, strings.Join(setClauses, ", "))
 
-		result, err := session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
-			cursor, err := tx.Run(cypher, params)
-			if err != nil {
-				return nil, err
-			}
-			if cursor.Next() {
-				nodeVal, ok := cursor.Record().Get("t")
-				if !ok {
-					return nil, fmt.Errorf("failed to find tag")
-				}
-				node, ok := nodeVal.(neo4j.Node)
-				if !ok {
-					return nil, fmt.Errorf("unexpected type for tag node")
-				}
-
-				props := node.Props()
-				tag, err := parseTagFromProps(props)
-				if err != nil {
-					return nil, err
-				}
-				return tag, nil
-			}
-			return TagModel{}, fmt.Errorf("failed to find tag")
-		})
+	result, err := session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
+		cursor, err := tx.Run(cypher, params)
 		if err != nil {
-			resultChan <- resultWrapper{TagModel{}, err}
-			return
+			return TagModel{}, fmt.Errorf("failed to run update: %w", err)
 		}
-		tag, ok := result.(TagModel)
-		if !ok {
-			resultChan <- resultWrapper{TagModel{}, fmt.Errorf("unexpected result type")}
-			return
+		if !cursor.Next() {
+			return TagModel{}, fmt.Errorf("tag not found")
 		}
-		resultChan <- resultWrapper{tag, nil}
-	}()
 
-	select {
-	case res := <-resultChan:
-		return res.tag, res.err
-	case <-ctx.Done():
-		return TagModel{}, ctx.Err()
+		nodeVal, ok := cursor.Record().Get("t")
+		if !ok {
+			return TagModel{}, fmt.Errorf("failed to find tag")
+		}
+
+		node, ok := nodeVal.(neo4j.Node)
+		if !ok {
+			return TagModel{}, fmt.Errorf("unexpected type for tag node")
+		}
+
+		props := node.Props()
+
+		tag, err := parseTagFromProps(props)
+		if err != nil {
+			return TagModel{}, err
+		}
+
+		return tag, nil
+	})
+
+	if err != nil {
+		return TagModel{}, err
 	}
+
+	tag, ok := result.(TagModel)
+	if !ok {
+		return TagModel{}, fmt.Errorf("unexpected result type")
+	}
+
+	return tag, nil
 }
 
 func parseTagFromProps(props map[string]any) (TagModel, error) {
 	var tag TagModel
+
+	id, ok := props["id"].(string)
+	if !ok || id == "" {
+		return tag, fmt.Errorf("invalid or missing tag id")
+	}
 
 	name, ok := props["name"].(string)
 	if !ok || name == "" {
@@ -442,6 +436,7 @@ func parseTagFromProps(props map[string]any) (TagModel, error) {
 	}
 
 	tag = TagModel{
+		ID:        id,
 		Name:      name,
 		Status:    status,
 		Type:      tagType,

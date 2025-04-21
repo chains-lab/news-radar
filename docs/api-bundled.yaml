@@ -567,7 +567,7 @@ components:
       properties:
         id:
           type: string
-          description: tag name
+          description: tag id
         type:
           type: string
           enum:
@@ -577,12 +577,15 @@ components:
     TagAttributes:
       type: object
       required:
+        - name
         - status
         - type
         - color
         - icon
         - created_at
       properties:
+        name:
+          type: string
         status:
           type: string
         type:
@@ -606,7 +609,6 @@ components:
         data:
           type: object
           required:
-            - id
             - type
             - attributes
           properties:
@@ -620,7 +622,6 @@ components:
                 - name
                 - status
                 - type
-                - description
                 - color
                 - icon
               properties:
@@ -638,9 +639,6 @@ components:
                   enum:
                     - tag
                   description: tag type
-                description:
-                  type: string
-                  description: tag description
                 color:
                   type: string
                   description: tag color
@@ -661,7 +659,7 @@ components:
           properties:
             id:
               type: string
-              description: tag name
+              description: tag id
             type:
               type: string
               enum:
