@@ -61,7 +61,9 @@ func (h *Handler) UpdateArticle(w http.ResponseWriter, r *http.Request) {
 		status, ok := enums.ParseArticleStatus(*req.Data.Attributes.Status)
 		if !ok {
 			h.log.Warn("Error parsing status")
-			httpkit.RenderErr(w, problems.BadRequest(err)...)
+			httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
+				"data.attributes.status": validation.NewError("status", "invalid status"),
+			})...)
 			return
 		}
 		update.Status = &status
@@ -79,7 +81,31 @@ func (h *Handler) UpdateArticle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.log.Info("Article %s updated by user %s", article.ID.String(), user.AccountID.String())
+	tags, err := h.app.GetArticleTags(r.Context(), articleID)
+	if err != nil {
+		switch {
+		case errors.Is(err, ape.ErrArticleNotFound):
+			httpkit.RenderErr(w, problems.NotFound("article not found"))
+		default:
+			httpkit.RenderErr(w, problems.InternalError())
+		}
+		h.log.WithError(err).Errorf("error getting article %s", articleID)
+		return
+	}
 
-	httpkit.Render(w, responses.Article(article, nil, nil))
+	authors, err := h.app.GetArticleAuthors(r.Context(), articleID)
+	if err != nil {
+		switch {
+		case errors.Is(err, ape.ErrArticleNotFound):
+			httpkit.RenderErr(w, problems.NotFound("article not found"))
+		default:
+			httpkit.RenderErr(w, problems.InternalError())
+		}
+		h.log.WithError(err).Errorf("error getting article %s", articleID)
+		return
+	}
+
+	h.log.Infof("article %s updated by user %s", article.ID.String(), user.AccountID.String())
+
+	httpkit.Render(w, responses.Article(article, tags, authors))
 }

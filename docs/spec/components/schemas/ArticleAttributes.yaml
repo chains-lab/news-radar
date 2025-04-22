@@ -24,6 +24,11 @@ properties:
     type: array
     items:
       $ref: './Content.yaml'
+  published_at:
+    type: string
+    format: date-time
+    description: "Published at"
+    example: "2020-01-01T00:00:00Z"
   updated_at:
     type: string
     format: date-time

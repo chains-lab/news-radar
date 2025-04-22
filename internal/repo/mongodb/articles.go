@@ -19,14 +19,15 @@ const (
 )
 
 type ArticleModel struct {
-	ID        uuid.UUID           `json:"_id" bson:"_id"`
-	Status    enums.ArticleStatus `json:"status" bson:"status"`
-	Title     string              `json:"title" bson:"title"`
-	Icon      *string             `json:"icon,omitempty" bson:"icon,omitempty"`
-	Desc      *string             `json:"desc,omitempty" bson:"desc,omitempty"`
-	Content   []content.Section   `json:"content,omitempty" bson:"content,omitempty"`
-	UpdatedAt *time.Time          `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
-	CreatedAt time.Time           `json:"created_at" bson:"created_at"`
+	ID          uuid.UUID           `json:"_id" bson:"_id"`
+	Status      enums.ArticleStatus `json:"status" bson:"status"`
+	Title       string              `json:"title" bson:"title"`
+	Icon        *string             `json:"icon,omitempty" bson:"icon,omitempty"`
+	Desc        *string             `json:"desc,omitempty" bson:"desc,omitempty"`
+	Content     []content.Section   `json:"content,omitempty" bson:"content,omitempty"`
+	UpdatedAt   *time.Time          `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	PublishedAt *time.Time          `json:"published_at,omitempty" bson:"published_at,omitempty"`
+	CreatedAt   time.Time           `json:"created_at" bson:"created_at"`
 }
 
 type ArticlesQ struct {
@@ -169,8 +170,9 @@ func (a *ArticlesQ) FilterTitle(title string) *ArticlesQ {
 
 func (a *ArticlesQ) FilterDate(filters map[string]any, after bool) *ArticlesQ {
 	validDateFields := map[string]bool{
-		"updated_at": true,
-		"closed_at":  true,
+		"updated_at":   true,
+		"closed_at":    true,
+		"published_at": true,
 	}
 
 	var op string
@@ -217,11 +219,12 @@ func (a *ArticlesQ) FilterStatus(status enums.ArticleStatus) *ArticlesQ {
 }
 
 type ArticleUpdateInput struct {
-	Status    *enums.ArticleStatus `json:"status" bson:"status"`
-	Title     *string              `json:"title,omitempty" bson:"title,omitempty"`
-	Icon      *string              `json:"icon,omitempty" bson:"icon,omitempty"`
-	Desc      *string              `json:"desc,omitempty" bson:"desc,omitempty"`
-	UpdatedAt time.Time            `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	Status      *enums.ArticleStatus `json:"status" bson:"status"`
+	Title       *string              `json:"title,omitempty" bson:"title,omitempty"`
+	Icon        *string              `json:"icon,omitempty" bson:"icon,omitempty"`
+	Desc        *string              `json:"desc,omitempty" bson:"desc,omitempty"`
+	PublishedAt *time.Time           `json:"published_at,omitempty" bson:"published_at,omitempty"`
+	UpdatedAt   time.Time            `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }
 
 func (a *ArticlesQ) Update(ctx context.Context, input ArticleUpdateInput) (ArticleModel, error) {
@@ -245,6 +248,10 @@ func (a *ArticlesQ) Update(ctx context.Context, input ArticleUpdateInput) (Artic
 
 	if input.Status != nil {
 		setFields["status"] = *input.Status
+	}
+
+	if input.PublishedAt != nil {
+		setFields["published_at"] = *input.PublishedAt
 	}
 
 	if len(setFields) == 1 && len(unsetFields) == 0 {

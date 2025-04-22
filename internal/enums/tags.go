@@ -21,17 +21,14 @@ func ParseTagStatus(s string) (TagStatus, bool) {
 type TagType string
 
 const (
-	TagTypeTopic    TagType = "topic"
-	TagTypeSubTopic TagType = "sub-topic"
-	TagTypeDefault  TagType = "default"
+	TagTypeTopic   TagType = "topic"
+	TagTypeDefault TagType = "default"
 )
 
 func ParseTagType(s string) (TagType, bool) {
 	switch s {
 	case "topic":
 		return TagTypeTopic, true
-	case "sub-topic":
-		return TagTypeSubTopic, true
 	case "default":
 		return TagTypeDefault, true
 	default:

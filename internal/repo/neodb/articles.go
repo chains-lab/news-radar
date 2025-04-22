@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/hs-zavet/news-radar/internal/enums"
@@ -11,8 +12,9 @@ import (
 )
 
 type ArticleModel struct {
-	ID     uuid.UUID
-	Status enums.ArticleStatus
+	ID          uuid.UUID
+	Status      enums.ArticleStatus
+	PublishedAt *time.Time
 }
 
 type ArticlesImpl struct {
@@ -114,7 +116,8 @@ func (a *ArticlesImpl) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 type ArticleUpdateInput struct {
-	Status *enums.ArticleStatus `json:"status,omitempty"`
+	Status      *enums.ArticleStatus `json:"status,omitempty"`
+	PublishedAt *time.Time           `json:"published_at,omitempty"`
 }
 
 // Update patches one or more fields on Article and returns the new node.
@@ -133,6 +136,10 @@ func (a *ArticlesImpl) Update(
 	if input.Status != nil {
 		setParts = append(setParts, "a.status = $status")
 		params["status"] = string(*input.Status)
+	}
+	if input.PublishedAt != nil {
+		setParts = append(setParts, "a.published_at = $published_at")
+		params["published_at"] = input.PublishedAt
 	}
 
 	// if only updated_at, just load current
@@ -185,10 +192,20 @@ func (a *ArticlesImpl) Update(
 			return ArticleModel{}, fmt.Errorf("unknown status: %q", statusStr)
 		}
 
-		return ArticleModel{
+		publishedAt, ok := props["published_at"].(time.Time)
+		if !ok {
+			return ArticleModel{}, fmt.Errorf("invalid published_at type")
+		}
+
+		model := ArticleModel{
 			ID:     id,
 			Status: st,
-		}, nil
+		}
+		if input.PublishedAt != nil {
+			model.PublishedAt = &publishedAt
+		}
+
+		return model, nil
 	})
 
 	if err != nil {

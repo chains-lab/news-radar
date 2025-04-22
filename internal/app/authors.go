@@ -208,19 +208,6 @@ func (a App) GetArticlesForAuthor(ctx context.Context, authorID uuid.UUID) ([]mo
 			elem.UpdatedAt = thisArticle.UpdatedAt
 		}
 
-		authors, err := a.articles.GetAuthors(article)
-		if err != nil {
-			return nil, err
-		}
-
-		tags, err := a.articles.GetTags(article)
-		if err != nil {
-			return nil, err
-		}
-
-		elem.Authors = authors
-		elem.Tags = tags
-
 		res = append(res, elem)
 	}
 

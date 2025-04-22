@@ -31,6 +31,8 @@ type ArticleAttributes struct {
 	// Article description
 	Desc *string `json:"desc,omitempty"`
 	Content []Content `json:"content,omitempty"`
+	// Published at
+	PublishedAt *time.Time `json:"published_at,omitempty"`
 	// Updated at
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	// Created at
@@ -203,6 +205,38 @@ func (o *ArticleAttributes) SetContent(v []Content) {
 	o.Content = v
 }
 
+// GetPublishedAt returns the PublishedAt field value if set, zero value otherwise.
+func (o *ArticleAttributes) GetPublishedAt() time.Time {
+	if o == nil || IsNil(o.PublishedAt) {
+		var ret time.Time
+		return ret
+	}
+	return *o.PublishedAt
+}
+
+// GetPublishedAtOk returns a tuple with the PublishedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ArticleAttributes) GetPublishedAtOk() (*time.Time, bool) {
+	if o == nil || IsNil(o.PublishedAt) {
+		return nil, false
+	}
+	return o.PublishedAt, true
+}
+
+// HasPublishedAt returns a boolean if a field has been set.
+func (o *ArticleAttributes) HasPublishedAt() bool {
+	if o != nil && !IsNil(o.PublishedAt) {
+		return true
+	}
+
+	return false
+}
+
+// SetPublishedAt gets a reference to the given time.Time and assigns it to the PublishedAt field.
+func (o *ArticleAttributes) SetPublishedAt(v time.Time) {
+	o.PublishedAt = &v
+}
+
 // GetUpdatedAt returns the UpdatedAt field value if set, zero value otherwise.
 func (o *ArticleAttributes) GetUpdatedAt() time.Time {
 	if o == nil || IsNil(o.UpdatedAt) {
@@ -279,6 +313,9 @@ func (o ArticleAttributes) ToMap() (map[string]interface{}, error) {
 	}
 	if !IsNil(o.Content) {
 		toSerialize["content"] = o.Content
+	}
+	if !IsNil(o.PublishedAt) {
+		toSerialize["published_at"] = o.PublishedAt
 	}
 	if !IsNil(o.UpdatedAt) {
 		toSerialize["updated_at"] = o.UpdatedAt

@@ -40,7 +40,7 @@ func Author(author models.Author) resources.Author {
 }
 
 func AuthorsCollection(authors []models.Author) resources.AuthorsCollection {
-	data := make([]resources.AuthorData, len(authors))
+	data := make([]resources.AuthorData, 0, len(authors))
 
 	for _, author := range authors {
 		element := resources.AuthorData{

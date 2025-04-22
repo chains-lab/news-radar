@@ -118,7 +118,7 @@ func TestArticlesFilterStatus(t *testing.T) {
 	id := uuid.New()
 	_ = aq.Insert(ctx, ArticleInsertInput{ID: id, Title: "Stat", CreatedAt: time.Now().UTC()})
 	// status is always Active on insert
-	list, err := aq.New().FilterStatus(enums.ArticleStatusActive).Select(ctx)
+	list, err := aq.New().FilterStatus(enums.ArticleStatusPublished).Select(ctx)
 	if err != nil {
 		t.Fatalf("FilterStatus failed: %v", err)
 	}

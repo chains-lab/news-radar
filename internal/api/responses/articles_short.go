@@ -32,7 +32,7 @@ func ArticleShort(article models.Article) resources.ArticleShort {
 }
 
 func ArticleShortsCollection(articles []models.Article) resources.ArticleShortCollection {
-	data := make([]resources.ArticleShortData, len(articles))
+	data := make([]resources.ArticleShortData, 0, len(articles))
 
 	for _, article := range articles {
 		element := resources.ArticleShortData{

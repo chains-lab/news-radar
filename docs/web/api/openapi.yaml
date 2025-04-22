@@ -65,6 +65,11 @@ components:
           items:
             $ref: '#/components/schemas/Content'
           type: array
+        published_at:
+          description: Published at
+          example: 2020-01-01T00:00:00Z
+          format: date-time
+          type: string
         updated_at:
           description: Updated at
           example: 2020-01-01T00:00:00Z

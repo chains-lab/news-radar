@@ -48,7 +48,7 @@ func TestArticleCRUD(t *testing.T) {
 	id := uuid.New()
 
 	// 1. Create node
-	if _, err := repo.Create(ctx, ArticleInsertInput{ID: id, Status: enums.ArticleStatusActive}); err != nil {
+	if _, err := repo.Create(ctx, ArticleInsertInput{ID: id, Status: enums.ArticleStatusPublished}); err != nil {
 		t.Fatalf("Create failed: %v", err)
 	}
 
@@ -57,7 +57,7 @@ func TestArticleCRUD(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetByID failed: %v", err)
 	}
-	if a.ID != id || a.Status != enums.ArticleStatusActive {
+	if a.ID != id || a.Status != enums.ArticleStatusPublished {
 		t.Errorf("GetByID wrong data: %+v", a)
 	}
 
@@ -143,7 +143,7 @@ func TestAuthorshipRelation(t *testing.T) {
 	uID := uuid.New()
 
 	// create nodes
-	if _, err := artRepo.Create(ctx, ArticleInsertInput{ID: aID, Status: enums.ArticleStatusActive}); err != nil {
+	if _, err := artRepo.Create(ctx, ArticleInsertInput{ID: aID, Status: enums.ArticleStatusPublished}); err != nil {
 		t.Fatalf("create article: %v", err)
 	}
 	if _, err := authRepo.Create(ctx, AuthorCreateInput{ID: uID, Status: enums.AuthorStatusActive}); err != nil {
@@ -197,7 +197,7 @@ func TestHashtagRelation(t *testing.T) {
 	tagName := "golang"
 
 	// create article and tag nodes
-	_, err := artRepo.Create(ctx, ArticleInsertInput{ID: aID, Status: enums.ArticleStatusActive})
+	_, err := artRepo.Create(ctx, ArticleInsertInput{ID: aID, Status: enums.ArticleStatusPublished})
 	if err != nil {
 		t.Fatalf("Article Create failed: %v", err)
 	}
@@ -258,7 +258,7 @@ func TestSetForArticle(t *testing.T) {
 	ctx := context.Background()
 	aID := uuid.New()
 	// create article, authors, tags
-	_, _ = artRepo.Create(ctx, ArticleInsertInput{ID: aID, Status: enums.ArticleStatusActive})
+	_, _ = artRepo.Create(ctx, ArticleInsertInput{ID: aID, Status: enums.ArticleStatusPublished})
 	authors := []uuid.UUID{uuid.New(), uuid.New()}
 	for _, u := range authors {
 		authorsQ, err := NewAuthors(testURI, testUser, testPass)
@@ -395,7 +395,7 @@ func TestHashtagSetEmpty(t *testing.T) {
 
 	ctx := context.Background()
 	aID := uuid.New()
-	_, err := artRepo.Create(ctx, ArticleInsertInput{ID: aID, Status: enums.ArticleStatusActive})
+	_, err := artRepo.Create(ctx, ArticleInsertInput{ID: aID, Status: enums.ArticleStatusPublished})
 	// create two tags
 	tags := []string{"t1", "t2"}
 	for _, tg := range tags {
@@ -430,11 +430,11 @@ func TestTagsPopularitySort(t *testing.T) {
 	ctx := context.Background()
 	// create article and 2 tags
 	a1, a2 := uuid.New(), uuid.New()
-	_, err := artRepo.Create(ctx, ArticleInsertInput{ID: a1, Status: enums.ArticleStatusActive})
+	_, err := artRepo.Create(ctx, ArticleInsertInput{ID: a1, Status: enums.ArticleStatusPublished})
 	if err != nil {
 		t.Fatalf("Tag Create failed: %v", err)
 	}
-	_, err = artRepo.Create(ctx, ArticleInsertInput{ID: a2, Status: enums.ArticleStatusActive})
+	_, err = artRepo.Create(ctx, ArticleInsertInput{ID: a2, Status: enums.ArticleStatusPublished})
 	if err != nil {
 		t.Fatalf("Tag Create failed: %v", err)
 	}

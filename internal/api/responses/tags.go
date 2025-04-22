@@ -28,7 +28,7 @@ func Tag(tag models.Tag) resources.Tag {
 }
 
 func TagsCollection(tags []models.Tag) resources.TagCollection {
-	data := make([]resources.TagData, len(tags))
+	data := make([]resources.TagData, 0, len(tags))
 
 	for _, tag := range tags {
 		element := resources.TagData{

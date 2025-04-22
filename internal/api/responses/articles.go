@@ -39,14 +39,18 @@ func Article(article models.Article, tags []models.Tag, authors []models.Author)
 		data.Attributes.Icon = article.Icon
 	}
 
-	authorsResp := make([]resources.AuthorData, 0, len(article.Authors))
+	if article.PublishedAt != nil {
+		data.Attributes.PublishedAt = article.PublishedAt
+	}
+
+	authorsResp := make([]resources.AuthorData, 0)
 	if authors != nil {
 		for _, author := range authors {
 			authorsResp = append(authorsResp, Author(author).Data)
 		}
 	}
 
-	tagsResp := make([]resources.TagData, 0, len(tags))
+	tagsResp := make([]resources.TagData, 0)
 	if tags != nil {
 		for _, tag := range tags {
 			tagsResp = append(tagsResp, Tag(tag).Data)

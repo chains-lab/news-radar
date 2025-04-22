@@ -18,14 +18,15 @@ const (
 )
 
 type ArticleModel struct {
-	ID        uuid.UUID           `json:"id" bson:"_id"`
-	Status    enums.ArticleStatus `json:"status" bson:"status"`
-	Title     string              `json:"title" bson:"title"`
-	Icon      *string             `json:"icon,omitempty" bson:"icon,omitempty"`
-	Desc      *string             `json:"desc,omitempty" bson:"desc,omitempty"`
-	Content   []content.Section   `json:"content,omitempty" bson:"content,omitempty"`
-	UpdatedAt *time.Time          `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
-	CreatedAt time.Time           `json:"created_at" bson:"created_at"`
+	ID          uuid.UUID           `json:"id" bson:"_id"`
+	Status      enums.ArticleStatus `json:"status" bson:"status"`
+	Title       string              `json:"title" bson:"title"`
+	Icon        *string             `json:"icon,omitempty" bson:"icon,omitempty"`
+	Desc        *string             `json:"desc,omitempty" bson:"desc,omitempty"`
+	Content     []content.Section   `json:"content,omitempty" bson:"content,omitempty"`
+	PublishedAt *time.Time          `json:"published_at,omitempty" bson:"published_at,omitempty"`
+	UpdatedAt   *time.Time          `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	CreatedAt   time.Time           `json:"created_at" bson:"created_at"`
 }
 
 type articlesMongoQ interface {
@@ -134,10 +135,11 @@ func (a *ArticlesRepo) Create(input ArticleCreateInput) (ArticleModel, error) {
 }
 
 type ArticleUpdateInput struct {
-	Status *enums.ArticleStatus `json:"status" bson:"status"`
-	Title  *string              `json:"title" bson:"title"`
-	Icon   *string              `json:"icon,omitempty" bson:"icon,omitempty"`
-	Desc   *string              `json:"desc,omitempty" bson:"desc,omitempty"`
+	Status      *enums.ArticleStatus `json:"status" bson:"status"`
+	PublishedAt *time.Time           `json:"published_at,omitempty" bson:"published_at,omitempty"`
+	Title       *string              `json:"title" bson:"title"`
+	Icon        *string              `json:"icon,omitempty" bson:"icon,omitempty"`
+	Desc        *string              `json:"desc,omitempty" bson:"desc,omitempty"`
 }
 
 func (a *ArticlesRepo) Update(ID uuid.UUID, input ArticleUpdateInput) (ArticleModel, error) {
@@ -146,16 +148,18 @@ func (a *ArticlesRepo) Update(ID uuid.UUID, input ArticleUpdateInput) (ArticleMo
 
 	updatedAt := time.Now().UTC()
 
+	var neoInput neodb.ArticleUpdateInput
+	var mongoInput mongodb.ArticleUpdateInput
+
 	if status := input.Status; status != nil {
-		_, err := a.neo.Update(ctxSync, ID, neodb.ArticleUpdateInput{
-			Status: status,
-		})
-		if err != nil {
-			return ArticleModel{}, err
-		}
+		neoInput.Status = status
+		mongoInput.Status = status
 	}
 
-	var mongoInput mongodb.ArticleUpdateInput
+	if input.PublishedAt != nil {
+		neoInput.PublishedAt = input.PublishedAt
+		mongoInput.PublishedAt = input.PublishedAt
+	}
 
 	if input.Title != nil {
 		mongoInput.Title = input.Title
@@ -166,10 +170,13 @@ func (a *ArticlesRepo) Update(ID uuid.UUID, input ArticleUpdateInput) (ArticleMo
 	if input.Desc != nil {
 		mongoInput.Desc = input.Desc
 	}
-	if input.Status != nil {
-		mongoInput.Status = input.Status
-	}
+
 	mongoInput.UpdatedAt = updatedAt
+
+	_, err := a.neo.Update(ctxSync, ID, neoInput)
+	if err != nil {
+		return ArticleModel{}, err
+	}
 
 	mongo, err := a.mongo.New().FilterID(ID).Update(ctxSync, mongoInput)
 	if err != nil {
@@ -177,14 +184,15 @@ func (a *ArticlesRepo) Update(ID uuid.UUID, input ArticleUpdateInput) (ArticleMo
 	}
 
 	return ArticleModel{
-		ID:        mongo.ID,
-		Status:    mongo.Status,
-		Title:     mongo.Title,
-		Icon:      mongo.Icon,
-		Desc:      mongo.Desc,
-		Content:   mongo.Content,
-		UpdatedAt: mongo.UpdatedAt,
-		CreatedAt: mongo.CreatedAt,
+		ID:          mongo.ID,
+		Status:      mongo.Status,
+		Title:       mongo.Title,
+		Icon:        mongo.Icon,
+		Desc:        mongo.Desc,
+		Content:     mongo.Content,
+		PublishedAt: mongo.PublishedAt,
+		UpdatedAt:   mongo.UpdatedAt,
+		CreatedAt:   mongo.CreatedAt,
 	}, nil
 }
 

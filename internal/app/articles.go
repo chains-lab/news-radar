@@ -42,9 +42,6 @@ func (a App) CreateArticle(ctx context.Context, request CreateArticleRequest) (m
 		Status:    article.Status,
 		UpdatedAt: nil,
 		CreatedAt: article.CreatedAt,
-
-		Authors: nil,
-		Tags:    nil,
 	}, nil
 }
 
@@ -61,6 +58,16 @@ func (a App) UpdateArticle(ctx context.Context, articleID uuid.UUID, request Upd
 	input := repo.ArticleUpdateInput{}
 	updated := false
 
+	curArticle, err := a.articles.GetByID(articleID)
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return models.Article{}, ape.ErrArticleNotFound
+		default:
+			return models.Article{}, err
+		}
+	}
+
 	if request.Title != nil {
 		input.Title = request.Title
 		updated = true
@@ -68,6 +75,12 @@ func (a App) UpdateArticle(ctx context.Context, articleID uuid.UUID, request Upd
 
 	if request.Status != nil {
 		input.Status = request.Status
+		if *request.Status == enums.ArticleStatusPublished {
+			if curArticle.PublishedAt != nil {
+				publishedAt := time.Now().UTC()
+				input.PublishedAt = &publishedAt
+			}
+		}
 		updated = true
 	}
 
@@ -91,19 +104,7 @@ func (a App) UpdateArticle(ctx context.Context, articleID uuid.UUID, request Upd
 		return models.Article{}, err
 	}
 
-	authors, err := a.articles.GetAuthors(articleID)
-	if err != nil {
-		return models.Article{}, err
-	}
-	tags, err := a.articles.GetTags(articleID)
-	if err != nil {
-		return models.Article{}, err
-	}
-
 	res := ArticleRepoToModels(article)
-	res.Tags = tags
-	res.Authors = authors
-
 	return res, nil
 }
 
@@ -113,18 +114,7 @@ func (a App) UpdateArticleContent(ctx context.Context, articleID uuid.UUID, inde
 		return models.Article{}, err
 	}
 
-	authors, err := a.articles.GetAuthors(articleID)
-	if err != nil {
-		return models.Article{}, err
-	}
-	tags, err := a.articles.GetTags(articleID)
-	if err != nil {
-		return models.Article{}, err
-	}
-
 	res := ArticleRepoToModels(article)
-	res.Tags = tags
-	res.Authors = authors
 
 	return res, nil
 }
@@ -149,19 +139,7 @@ func (a App) GetArticleByID(ctx context.Context, articleID uuid.UUID) (models.Ar
 		return models.Article{}, ape.ErrArticleNotFound
 	}
 
-	authors, err := a.articles.GetAuthors(articleID)
-	if err != nil {
-		return models.Article{}, err
-	}
-
-	tags, err := a.articles.GetTags(articleID)
-	if err != nil {
-		return models.Article{}, err
-	}
-
 	res := ArticleRepoToModels(article)
-	res.Authors = authors
-	res.Tags = tags
 
 	return res, nil
 }
@@ -250,19 +228,6 @@ func (a App) GetArticleForTags(ctx context.Context, tag string) ([]models.Articl
 		if article.UpdatedAt != nil {
 			elem.UpdatedAt = article.UpdatedAt
 		}
-
-		authors, err := a.articles.GetAuthors(articleID)
-		if err != nil {
-			return nil, err
-		}
-
-		tags, err := a.articles.GetTags(articleID)
-		if err != nil {
-			return nil, err
-		}
-
-		elem.Authors = authors
-		elem.Tags = tags
 
 		res = append(res, elem)
 	}
@@ -515,18 +480,9 @@ func (a App) GetArticleForAuthor(ctx context.Context, authorID uuid.UUID) ([]mod
 			elem.UpdatedAt = article.UpdatedAt
 		}
 
-		authors, err := a.articles.GetAuthors(articleID)
-		if err != nil {
-			return nil, err
+		if article.PublishedAt != nil {
+			elem.PublishedAt = article.PublishedAt
 		}
-
-		tags, err := a.articles.GetTags(articleID)
-		if err != nil {
-			return nil, err
-		}
-
-		elem.Authors = authors
-		elem.Tags = tags
 
 		res = append(res, elem)
 	}
@@ -630,6 +586,9 @@ func ArticleRepoToModels(article repo.ArticleModel) models.Article {
 	}
 	if article.UpdatedAt != nil {
 		res.UpdatedAt = article.UpdatedAt
+	}
+	if article.PublishedAt != nil {
+		res.PublishedAt = article.PublishedAt
 	}
 
 	return res

@@ -9,14 +9,13 @@ import (
 )
 
 type Article struct {
-	ID        uuid.UUID           `json:"id" bson:"_id"`
-	Status    enums.ArticleStatus `json:"status" bson:"status"`
-	Title     string              `json:"title" bson:"title"`
-	Icon      *string             `json:"icon,omitempty" bson:"icon,omitempty"`
-	Desc      *string             `json:"desc,omitempty" bson:"desc,omitempty"`
-	Content   []content.Section   `json:"content,omitempty" bson:"content,omitempty"`
-	Authors   []uuid.UUID         `json:"authors,omitempty" bson:"authors,omitempty"`
-	Tags      []string            `json:"tags,omitempty" bson:"tags,omitempty"`
-	UpdatedAt *time.Time          `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
-	CreatedAt time.Time           `json:"created_at" bson:"created_at"`
+	ID          uuid.UUID           `json:"id" bson:"_id"`
+	Status      enums.ArticleStatus `json:"status" bson:"status"`
+	Title       string              `json:"title" bson:"title"`
+	Icon        *string             `json:"icon,omitempty" bson:"icon,omitempty"`
+	Desc        *string             `json:"desc,omitempty" bson:"desc,omitempty"`
+	Content     []content.Section   `json:"content,omitempty" bson:"content,omitempty"`
+	PublishedAt *time.Time          `json:"published_at,omitempty" bson:"published_at,omitempty"`
+	UpdatedAt   *time.Time          `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	CreatedAt   time.Time           `json:"created_at" bson:"created_at"`
 }

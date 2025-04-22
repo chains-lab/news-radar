@@ -9,6 +9,7 @@ Name | Type | Description | Notes
 **Icon** | Pointer to **string** | Article link | [optional] 
 **Desc** | Pointer to **string** | Article description | [optional] 
 **Content** | Pointer to [**[]Content**](Content.md) |  | [optional] 
+**PublishedAt** | Pointer to **time.Time** | Published at | [optional] 
 **UpdatedAt** | Pointer to **time.Time** | Updated at | [optional] 
 **CreatedAt** | **time.Time** | Created at | 
 
@@ -145,6 +146,31 @@ SetContent sets Content field to given value.
 `func (o *ArticleAttributes) HasContent() bool`
 
 HasContent returns a boolean if a field has been set.
+
+### GetPublishedAt
+
+`func (o *ArticleAttributes) GetPublishedAt() time.Time`
+
+GetPublishedAt returns the PublishedAt field if non-nil, zero value otherwise.
+
+### GetPublishedAtOk
+
+`func (o *ArticleAttributes) GetPublishedAtOk() (*time.Time, bool)`
+
+GetPublishedAtOk returns a tuple with the PublishedAt field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetPublishedAt
+
+`func (o *ArticleAttributes) SetPublishedAt(v time.Time)`
+
+SetPublishedAt sets PublishedAt field to given value.
+
+### HasPublishedAt
+
+`func (o *ArticleAttributes) HasPublishedAt() bool`
+
+HasPublishedAt returns a boolean if a field has been set.
 
 ### GetUpdatedAt
 
