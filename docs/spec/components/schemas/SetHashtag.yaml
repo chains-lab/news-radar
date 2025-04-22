@@ -5,9 +5,13 @@ properties:
   data:
     type: object
     required:
+      - id
       - type
       - attributes
     properties:
+      id:
+        type: string
+        description: The ID of the article set.
       type:
         type: string
         enum: [ hashtag_set ]
@@ -15,15 +19,9 @@ properties:
         type: object
         required:
           - tags
-          - articleID
         properties:
           tags:
             type: array
             items:
               type: string
-              format: uuid
               description: The ID of the author.
-          articleID:
-            type: string
-            format: uuid
-            description: The ID of the article.

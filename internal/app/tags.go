@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -97,7 +96,7 @@ func (a App) UpdateTag(ctx context.Context, id string, request UpdateTagRequest)
 	if request.Name != nil {
 		_, err := a.tags.Get(*request.Name)
 		if err == nil {
-			return models.Tag{}, fmt.Errorf("tag with id %s already exists", *request.Name)
+			return models.Tag{}, ape.ErrorTagNameAlreadyTaken
 		}
 		input.Name = request.Name
 		updated = true

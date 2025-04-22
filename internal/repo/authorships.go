@@ -64,11 +64,11 @@ func (a *ArticlesRepo) GetAuthors(articleID uuid.UUID) ([]uuid.UUID, error) {
 	return authors, nil
 }
 
-func (a *ArticlesRepo) GetArticlesForAuthor(articleID uuid.UUID) ([]uuid.UUID, error) {
+func (a *ArticlesRepo) GetArticlesForAuthor(authorID uuid.UUID) ([]uuid.UUID, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	articles, err := a.authorship.GetForAuthor(ctxSync, articleID)
+	articles, err := a.authorship.GetForAuthor(ctxSync, authorID)
 	if err != nil {
 		return nil, err
 	}

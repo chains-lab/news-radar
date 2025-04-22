@@ -5,9 +5,13 @@ properties:
   data:
     type: object
     required:
+      - id
       - type
       - attributes
     properties:
+      id:
+        type: string
+        description: The ID of the article set.
       type:
         type: string
         enum: [ authorship_set ]
@@ -15,15 +19,10 @@ properties:
         type: object
         required:
           - authors
-          - articleID
         properties:
-          authorID:
+          authors:
             type: array
             items:
               type: string
               format: uuid
               description: The ID of the author.
-          articleID:
-            type: string
-            format: uuid
-            description: The ID of the article.

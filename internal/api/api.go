@@ -47,10 +47,6 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 	admin := tokens.AccessGrant(a.cfg.JWT.AccessToken.SecretKey, a.cfg.JWT.ServiceToken.SecretKey, roles.Admin, roles.SuperUser)
 
 	a.router.Route("/hs/news-radar", func(r chi.Router) {
-		r.Route("/ws", func(r chi.Router) {
-			r.Get("/content", a.handlers.ArticleContentWS)
-		})
-
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/articles", func(r chi.Router) {
 				r.With(admin).Post("/", a.handlers.CreateArticle)
@@ -61,16 +57,17 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 					r.With(admin).Delete("/", a.handlers.DeleteArticle)
 					r.With(admin).Put("/", a.handlers.UpdateArticle)
 
-					r.Route("/ws", func(r chi.Router) {
-						r.Get("/content", a.handlers.ArticleContentWS)
-					})
+					//Todo websocket
+					//r.Route("/ws", func(r chi.Router) {
+					//	r.Get("/content", a.handlers.ArticleContentWS)
+					//})
 
 					r.Route("/tags", func(r chi.Router) {
 						r.Get("/", a.handlers.GetArticleTags)
 						r.With(auth).Put("/", a.handlers.SetHashTags)
 						r.With(auth).Delete("/", a.handlers.CleanArticleTags)
-						r.With(auth).Patch("/{tag}", a.handlers.AddTag)
-						r.With(auth).Delete("/{tag}", a.handlers.DeleteArticleTag)
+						r.With(auth).Patch("/{tag_id}", a.handlers.AddTag)
+						r.With(auth).Delete("/{tag_id}", a.handlers.DeleteArticleTag)
 					})
 
 					r.Route("/authors", func(r chi.Router) {
@@ -90,7 +87,7 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 					r.Get("/", a.handlers.GetAuthor)
 					r.With(admin).Put("/", a.handlers.UpdateAuthor)
 					r.With(admin).Delete("/", a.handlers.DeleteAuthor)
-					r.With(admin).Get("/articles", a.handlers.GetArticlesForAuthor)
+					r.With(admin).Get("/articles", a.handlers.GetArticlesForAuthor) //TODO
 				})
 			})
 

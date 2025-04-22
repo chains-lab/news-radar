@@ -69,7 +69,7 @@ components:
     TagCollection:
       $ref: './spec/components/schemas/TagCollection.yaml'
 
-    CreateHashtag:
+    SetHashtag:
       $ref: './spec/components/schemas/SetHashtag.yaml'
 
     Relationships:

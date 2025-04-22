@@ -82,6 +82,8 @@ func (h *Handler) UpdateTag(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, ape.ErrTagNotFound):
 			httpkit.RenderErr(w, problems.NotFound())
+		case errors.Is(err, ape.ErrorTagNameAlreadyTaken):
+			httpkit.RenderErr(w, problems.Conflict("tag name already taken"))
 		default:
 			httpkit.RenderErr(w, problems.InternalError())
 		}

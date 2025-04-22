@@ -123,7 +123,11 @@ func (a App) UpdateAuthor(ctx context.Context, authorID uuid.UUID, request Updat
 func (a App) DeleteAuthor(ctx context.Context, authorID uuid.UUID) error {
 	_, err := a.authors.GetByID(authorID)
 	if err != nil {
-		return ape.ErrAuthorNotFound
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return ape.ErrAuthorNotFound
+		}
+		return err
 	}
 
 	err = a.authors.Delete(authorID)
@@ -158,8 +162,17 @@ func (a App) GetAuthorByID(ctx context.Context, authorID uuid.UUID) (models.Auth
 	}, nil
 }
 
-func (a App) GetArticlesForAuthor(ctx context.Context, articleID uuid.UUID) ([]models.Article, error) {
-	articles, err := a.articles.GetArticlesForAuthor(articleID)
+func (a App) GetArticlesForAuthor(ctx context.Context, authorID uuid.UUID) ([]models.Article, error) {
+	_, err := a.authors.GetByID(authorID)
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return nil, ape.ErrAuthorNotFound
+		}
+		return nil, err
+	}
+
+	articles, err := a.articles.GetArticlesForAuthor(authorID)
 	if err != nil {
 		return nil, err
 	}

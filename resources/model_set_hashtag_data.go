@@ -16,38 +16,65 @@ import (
 	"fmt"
 )
 
-// checks if the CreateHashtagData type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &CreateHashtagData{}
+// checks if the SetHashtagData type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &SetHashtagData{}
 
-// CreateHashtagData struct for CreateHashtagData
-type CreateHashtagData struct {
+// SetHashtagData struct for SetHashtagData
+type SetHashtagData struct {
+	// The ID of the article set.
+	Id string `json:"id"`
 	Type string `json:"type"`
-	Attributes CreateHashtagDataAttributes `json:"attributes"`
+	Attributes SetHashtagDataAttributes `json:"attributes"`
 }
 
-type _CreateHashtagData CreateHashtagData
+type _SetHashtagData SetHashtagData
 
-// NewCreateHashtagData instantiates a new CreateHashtagData object
+// NewSetHashtagData instantiates a new SetHashtagData object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCreateHashtagData(type_ string, attributes CreateHashtagDataAttributes) *CreateHashtagData {
-	this := CreateHashtagData{}
+func NewSetHashtagData(id string, type_ string, attributes SetHashtagDataAttributes) *SetHashtagData {
+	this := SetHashtagData{}
+	this.Id = id
 	this.Type = type_
 	this.Attributes = attributes
 	return &this
 }
 
-// NewCreateHashtagDataWithDefaults instantiates a new CreateHashtagData object
+// NewSetHashtagDataWithDefaults instantiates a new SetHashtagData object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewCreateHashtagDataWithDefaults() *CreateHashtagData {
-	this := CreateHashtagData{}
+func NewSetHashtagDataWithDefaults() *SetHashtagData {
+	this := SetHashtagData{}
 	return &this
 }
 
+// GetId returns the Id field value
+func (o *SetHashtagData) GetId() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Id
+}
+
+// GetIdOk returns a tuple with the Id field value
+// and a boolean to check if the value has been set.
+func (o *SetHashtagData) GetIdOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Id, true
+}
+
+// SetId sets field value
+func (o *SetHashtagData) SetId(v string) {
+	o.Id = v
+}
+
 // GetType returns the Type field value
-func (o *CreateHashtagData) GetType() string {
+func (o *SetHashtagData) GetType() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -58,7 +85,7 @@ func (o *CreateHashtagData) GetType() string {
 
 // GetTypeOk returns a tuple with the Type field value
 // and a boolean to check if the value has been set.
-func (o *CreateHashtagData) GetTypeOk() (*string, bool) {
+func (o *SetHashtagData) GetTypeOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -66,14 +93,14 @@ func (o *CreateHashtagData) GetTypeOk() (*string, bool) {
 }
 
 // SetType sets field value
-func (o *CreateHashtagData) SetType(v string) {
+func (o *SetHashtagData) SetType(v string) {
 	o.Type = v
 }
 
 // GetAttributes returns the Attributes field value
-func (o *CreateHashtagData) GetAttributes() CreateHashtagDataAttributes {
+func (o *SetHashtagData) GetAttributes() SetHashtagDataAttributes {
 	if o == nil {
-		var ret CreateHashtagDataAttributes
+		var ret SetHashtagDataAttributes
 		return ret
 	}
 
@@ -82,7 +109,7 @@ func (o *CreateHashtagData) GetAttributes() CreateHashtagDataAttributes {
 
 // GetAttributesOk returns a tuple with the Attributes field value
 // and a boolean to check if the value has been set.
-func (o *CreateHashtagData) GetAttributesOk() (*CreateHashtagDataAttributes, bool) {
+func (o *SetHashtagData) GetAttributesOk() (*SetHashtagDataAttributes, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -90,11 +117,11 @@ func (o *CreateHashtagData) GetAttributesOk() (*CreateHashtagDataAttributes, boo
 }
 
 // SetAttributes sets field value
-func (o *CreateHashtagData) SetAttributes(v CreateHashtagDataAttributes) {
+func (o *SetHashtagData) SetAttributes(v SetHashtagDataAttributes) {
 	o.Attributes = v
 }
 
-func (o CreateHashtagData) MarshalJSON() ([]byte, error) {
+func (o SetHashtagData) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -102,18 +129,20 @@ func (o CreateHashtagData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o CreateHashtagData) ToMap() (map[string]interface{}, error) {
+func (o SetHashtagData) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["id"] = o.Id
 	toSerialize["type"] = o.Type
 	toSerialize["attributes"] = o.Attributes
 	return toSerialize, nil
 }
 
-func (o *CreateHashtagData) UnmarshalJSON(data []byte) (err error) {
+func (o *SetHashtagData) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
+		"id",
 		"type",
 		"attributes",
 	}
@@ -132,53 +161,53 @@ func (o *CreateHashtagData) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varCreateHashtagData := _CreateHashtagData{}
+	varSetHashtagData := _SetHashtagData{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varCreateHashtagData)
+	err = decoder.Decode(&varSetHashtagData)
 
 	if err != nil {
 		return err
 	}
 
-	*o = CreateHashtagData(varCreateHashtagData)
+	*o = SetHashtagData(varSetHashtagData)
 
 	return err
 }
 
-type NullableCreateHashtagData struct {
-	value *CreateHashtagData
+type NullableSetHashtagData struct {
+	value *SetHashtagData
 	isSet bool
 }
 
-func (v NullableCreateHashtagData) Get() *CreateHashtagData {
+func (v NullableSetHashtagData) Get() *SetHashtagData {
 	return v.value
 }
 
-func (v *NullableCreateHashtagData) Set(val *CreateHashtagData) {
+func (v *NullableSetHashtagData) Set(val *SetHashtagData) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableCreateHashtagData) IsSet() bool {
+func (v NullableSetHashtagData) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableCreateHashtagData) Unset() {
+func (v *NullableSetHashtagData) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableCreateHashtagData(val *CreateHashtagData) *NullableCreateHashtagData {
-	return &NullableCreateHashtagData{value: val, isSet: true}
+func NewNullableSetHashtagData(val *SetHashtagData) *NullableSetHashtagData {
+	return &NullableSetHashtagData{value: val, isSet: true}
 }
 
-func (v NullableCreateHashtagData) MarshalJSON() ([]byte, error) {
+func (v NullableSetHashtagData) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableCreateHashtagData) UnmarshalJSON(src []byte) error {
+func (v *NullableSetHashtagData) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

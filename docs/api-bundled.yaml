@@ -126,9 +126,14 @@ components:
         data:
           type: object
           required:
+            - id
             - type
             - attributes
           properties:
+            id:
+              type: string
+              description: Article ID uuid
+              example: Article ID uuid
             type:
               type: string
               enum:
@@ -386,9 +391,13 @@ components:
         data:
           type: object
           required:
+            - id
             - type
             - attributes
           properties:
+            id:
+              type: string
+              description: The ID of the article set.
             type:
               type: string
               enum:
@@ -397,18 +406,13 @@ components:
               type: object
               required:
                 - authors
-                - articleID
               properties:
-                authorID:
+                authors:
                   type: array
                   items:
                     type: string
                     format: uuid
                     description: The ID of the author.
-                articleID:
-                  type: string
-                  format: uuid
-                  description: The ID of the article.
     Content:
       type: object
       required:
@@ -708,7 +712,7 @@ components:
                   type: array
                   items:
                     $ref: '#/components/schemas/TagData'
-    CreateHashtag:
+    SetHashtag:
       type: object
       required:
         - data
@@ -716,9 +720,13 @@ components:
         data:
           type: object
           required:
+            - id
             - type
             - attributes
           properties:
+            id:
+              type: string
+              description: The ID of the article set.
             type:
               type: string
               enum:
@@ -727,18 +735,12 @@ components:
               type: object
               required:
                 - tags
-                - articleID
               properties:
                 tags:
                   type: array
                   items:
                     type: string
-                    format: uuid
                     description: The ID of the author.
-                articleID:
-                  type: string
-                  format: uuid
-                  description: The ID of the article.
     Relationships:
       type: object
       required:

@@ -82,7 +82,7 @@ func (t *TagsImpl) Create(ctx context.Context, input TagCreateInput) (TagModel, 
 		`
 
 		params := map[string]any{
-			"id":      input.Name,
+			"id":      strings.ToLower(input.Name),
 			"name":    input.Name,
 			"status":  input.Status,
 			"type":    input.Type,

@@ -72,13 +72,13 @@ func (h *Hashtag) Delete(ctx context.Context, articleID uuid.UUID, tagID string)
 
 	_, err = session.WriteTransaction(func(tx neo4j.Transaction) (any, error) {
 		cypher := `
-			MATCH (art:Article { id: $articleID })-[r:HAS_TAG]->(t:Tag { id: $tagId })
+			MATCH (art:Article { id: $article_id })-[r:HAS_TAG]->(t:Tag { id: $tag_id })
 			DELETE r
 		`
 
 		params := map[string]any{
-			"articleID": articleID.String(),
-			"tagId":     tagID,
+			"article_id": articleID.String(),
+			"tag_id":     tagID,
 		}
 
 		_, err := tx.Run(cypher, params)

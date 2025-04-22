@@ -312,10 +312,10 @@ components:
       - data
       - links
       type: object
-    CreateHashtag:
+    SetHashtag:
       properties:
         data:
-          $ref: '#/components/schemas/CreateHashtag_data'
+          $ref: '#/components/schemas/SetHashtag_data'
       required:
       - data
       type: object
@@ -414,6 +414,10 @@ components:
       type: object
     UpdateArticle_data:
       properties:
+        id:
+          description: Article ID uuid
+          example: Article ID uuid
+          type: string
         type:
           enum:
           - article_updated
@@ -422,6 +426,7 @@ components:
           $ref: '#/components/schemas/UpdateArticle_data_attributes'
       required:
       - attributes
+      - id
       - type
       type: object
     ArticleShort_data_attributes:
@@ -577,22 +582,20 @@ components:
       type: object
     SetAuthorship_data_attributes:
       properties:
-        authorID:
+        authors:
           items:
             description: The ID of the author.
             format: uuid
             type: string
           type: array
-        articleID:
-          description: The ID of the article.
-          format: uuid
-          type: string
       required:
-      - articleID
       - authors
       type: object
     SetAuthorship_data:
       properties:
+        id:
+          description: The ID of the article set.
+          type: string
         type:
           enum:
           - authorship_set
@@ -601,6 +604,7 @@ components:
           $ref: '#/components/schemas/SetAuthorship_data_attributes'
       required:
       - attributes
+      - id
       - type
       type: object
     Content_text_inner:
@@ -821,32 +825,30 @@ components:
       - attributes
       - type
       type: object
-    CreateHashtag_data_attributes:
+    SetHashtag_data_attributes:
       properties:
         tags:
           items:
             description: The ID of the author.
-            format: uuid
             type: string
           type: array
-        articleID:
-          description: The ID of the article.
-          format: uuid
-          type: string
       required:
-      - articleID
       - tags
       type: object
-    CreateHashtag_data:
+    SetHashtag_data:
       properties:
+        id:
+          description: The ID of the article set.
+          type: string
         type:
           enum:
           - hashtag_set
           type: string
         attributes:
-          $ref: '#/components/schemas/CreateHashtag_data_attributes'
+          $ref: '#/components/schemas/SetHashtag_data_attributes'
       required:
       - attributes
+      - id
       - type
       type: object
     LinksDirect_links:

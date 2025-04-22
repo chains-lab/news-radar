@@ -26,11 +26,11 @@ func (h *Handler) GetArticle(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ape.ErrArticleNotFound):
-			httpkit.RenderErr(w, problems.NotFound())
+			httpkit.RenderErr(w, problems.NotFound("article not found"))
 		default:
 			httpkit.RenderErr(w, problems.InternalError())
 		}
-		h.log.WithError(err).Error("Failed to get article")
+		h.log.WithError(err).Errorf("error getting article %s", articleID)
 		return
 	}
 
@@ -40,5 +40,29 @@ func (h *Handler) GetArticle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpkit.Render(w, responses.Article(article, nil, nil))
+	tags, err := h.app.GetArticleTags(r.Context(), articleID)
+	if err != nil {
+		switch {
+		case errors.Is(err, ape.ErrArticleNotFound):
+			httpkit.RenderErr(w, problems.NotFound("article not found"))
+		default:
+			httpkit.RenderErr(w, problems.InternalError())
+		}
+		h.log.WithError(err).Errorf("error getting article %s", articleID)
+		return
+	}
+
+	authors, err := h.app.GetArticleAuthors(r.Context(), articleID)
+	if err != nil {
+		switch {
+		case errors.Is(err, ape.ErrArticleNotFound):
+			httpkit.RenderErr(w, problems.NotFound("article not found"))
+		default:
+			httpkit.RenderErr(w, problems.InternalError())
+		}
+		h.log.WithError(err).Errorf("error getting article %s", articleID)
+		return
+	}
+
+	httpkit.Render(w, responses.Article(article, tags, authors))
 }

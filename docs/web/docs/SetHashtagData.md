@@ -1,88 +1,88 @@
-# UpdateArticleData
+# SetHashtagData
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**Id** | **string** | Article ID uuid | 
+**Id** | **string** | The ID of the article set. | 
 **Type** | **string** |  | 
-**Attributes** | [**UpdateArticleDataAttributes**](UpdateArticleDataAttributes.md) |  | 
+**Attributes** | [**SetHashtagDataAttributes**](SetHashtagDataAttributes.md) |  | 
 
 ## Methods
 
-### NewUpdateArticleData
+### NewSetHashtagData
 
-`func NewUpdateArticleData(id string, type_ string, attributes UpdateArticleDataAttributes, ) *UpdateArticleData`
+`func NewSetHashtagData(id string, type_ string, attributes SetHashtagDataAttributes, ) *SetHashtagData`
 
-NewUpdateArticleData instantiates a new UpdateArticleData object
+NewSetHashtagData instantiates a new SetHashtagData object
 This constructor will assign default values to properties that have it defined,
 and makes sure properties required by API are set, but the set of arguments
 will change when the set of required properties is changed
 
-### NewUpdateArticleDataWithDefaults
+### NewSetHashtagDataWithDefaults
 
-`func NewUpdateArticleDataWithDefaults() *UpdateArticleData`
+`func NewSetHashtagDataWithDefaults() *SetHashtagData`
 
-NewUpdateArticleDataWithDefaults instantiates a new UpdateArticleData object
+NewSetHashtagDataWithDefaults instantiates a new SetHashtagData object
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
 
 ### GetId
 
-`func (o *UpdateArticleData) GetId() string`
+`func (o *SetHashtagData) GetId() string`
 
 GetId returns the Id field if non-nil, zero value otherwise.
 
 ### GetIdOk
 
-`func (o *UpdateArticleData) GetIdOk() (*string, bool)`
+`func (o *SetHashtagData) GetIdOk() (*string, bool)`
 
 GetIdOk returns a tuple with the Id field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetId
 
-`func (o *UpdateArticleData) SetId(v string)`
+`func (o *SetHashtagData) SetId(v string)`
 
 SetId sets Id field to given value.
 
 
 ### GetType
 
-`func (o *UpdateArticleData) GetType() string`
+`func (o *SetHashtagData) GetType() string`
 
 GetType returns the Type field if non-nil, zero value otherwise.
 
 ### GetTypeOk
 
-`func (o *UpdateArticleData) GetTypeOk() (*string, bool)`
+`func (o *SetHashtagData) GetTypeOk() (*string, bool)`
 
 GetTypeOk returns a tuple with the Type field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetType
 
-`func (o *UpdateArticleData) SetType(v string)`
+`func (o *SetHashtagData) SetType(v string)`
 
 SetType sets Type field to given value.
 
 
 ### GetAttributes
 
-`func (o *UpdateArticleData) GetAttributes() UpdateArticleDataAttributes`
+`func (o *SetHashtagData) GetAttributes() SetHashtagDataAttributes`
 
 GetAttributes returns the Attributes field if non-nil, zero value otherwise.
 
 ### GetAttributesOk
 
-`func (o *UpdateArticleData) GetAttributesOk() (*UpdateArticleDataAttributes, bool)`
+`func (o *SetHashtagData) GetAttributesOk() (*SetHashtagDataAttributes, bool)`
 
 GetAttributesOk returns a tuple with the Attributes field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetAttributes
 
-`func (o *UpdateArticleData) SetAttributes(v UpdateArticleDataAttributes)`
+`func (o *SetHashtagData) SetAttributes(v SetHashtagDataAttributes)`
 
 SetAttributes sets Attributes field to given value.
 

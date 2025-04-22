@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/google/uuid"
 	"github.com/hs-zavet/comtools/httpkit"
 	"github.com/hs-zavet/comtools/httpkit/problems"
@@ -35,6 +36,14 @@ func (h *Handler) UpdateArticle(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.log.WithError(err).Warn("Error parsing request")
 		httpkit.RenderErr(w, problems.BadRequest(err)...)
+		return
+	}
+
+	if chi.URLParam(r, "article_id") != req.Data.Id {
+		h.log.Warn("Article ID in URL and body do not match")
+		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
+			"data.id": validation.NewError("id", "article ID in URL and body do not match"),
+		})...)
 		return
 	}
 

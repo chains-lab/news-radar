@@ -21,9 +21,7 @@ var _ MappedNullable = &SetAuthorshipDataAttributes{}
 
 // SetAuthorshipDataAttributes struct for SetAuthorshipDataAttributes
 type SetAuthorshipDataAttributes struct {
-	AuthorID []string `json:"authorID,omitempty"`
-	// The ID of the article.
-	ArticleID string `json:"articleID"`
+	Authors []string `json:"authors"`
 }
 
 type _SetAuthorshipDataAttributes SetAuthorshipDataAttributes
@@ -32,9 +30,9 @@ type _SetAuthorshipDataAttributes SetAuthorshipDataAttributes
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewSetAuthorshipDataAttributes(articleID string) *SetAuthorshipDataAttributes {
+func NewSetAuthorshipDataAttributes(authors []string) *SetAuthorshipDataAttributes {
 	this := SetAuthorshipDataAttributes{}
-	this.ArticleID = articleID
+	this.Authors = authors
 	return &this
 }
 
@@ -46,60 +44,28 @@ func NewSetAuthorshipDataAttributesWithDefaults() *SetAuthorshipDataAttributes {
 	return &this
 }
 
-// GetAuthorID returns the AuthorID field value if set, zero value otherwise.
-func (o *SetAuthorshipDataAttributes) GetAuthorID() []string {
-	if o == nil || IsNil(o.AuthorID) {
+// GetAuthors returns the Authors field value
+func (o *SetAuthorshipDataAttributes) GetAuthors() []string {
+	if o == nil {
 		var ret []string
 		return ret
 	}
-	return o.AuthorID
+
+	return o.Authors
 }
 
-// GetAuthorIDOk returns a tuple with the AuthorID field value if set, nil otherwise
+// GetAuthorsOk returns a tuple with the Authors field value
 // and a boolean to check if the value has been set.
-func (o *SetAuthorshipDataAttributes) GetAuthorIDOk() ([]string, bool) {
-	if o == nil || IsNil(o.AuthorID) {
-		return nil, false
-	}
-	return o.AuthorID, true
-}
-
-// HasAuthorID returns a boolean if a field has been set.
-func (o *SetAuthorshipDataAttributes) HasAuthorID() bool {
-	if o != nil && !IsNil(o.AuthorID) {
-		return true
-	}
-
-	return false
-}
-
-// SetAuthorID gets a reference to the given []string and assigns it to the AuthorID field.
-func (o *SetAuthorshipDataAttributes) SetAuthorID(v []string) {
-	o.AuthorID = v
-}
-
-// GetArticleID returns the ArticleID field value
-func (o *SetAuthorshipDataAttributes) GetArticleID() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.ArticleID
-}
-
-// GetArticleIDOk returns a tuple with the ArticleID field value
-// and a boolean to check if the value has been set.
-func (o *SetAuthorshipDataAttributes) GetArticleIDOk() (*string, bool) {
+func (o *SetAuthorshipDataAttributes) GetAuthorsOk() ([]string, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.ArticleID, true
+	return o.Authors, true
 }
 
-// SetArticleID sets field value
-func (o *SetAuthorshipDataAttributes) SetArticleID(v string) {
-	o.ArticleID = v
+// SetAuthors sets field value
+func (o *SetAuthorshipDataAttributes) SetAuthors(v []string) {
+	o.Authors = v
 }
 
 func (o SetAuthorshipDataAttributes) MarshalJSON() ([]byte, error) {
@@ -112,10 +78,7 @@ func (o SetAuthorshipDataAttributes) MarshalJSON() ([]byte, error) {
 
 func (o SetAuthorshipDataAttributes) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.AuthorID) {
-		toSerialize["authorID"] = o.AuthorID
-	}
-	toSerialize["articleID"] = o.ArticleID
+	toSerialize["authors"] = o.Authors
 	return toSerialize, nil
 }
 
@@ -124,7 +87,7 @@ func (o *SetAuthorshipDataAttributes) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"articleID",
+		"authors",
 	}
 
 	allProperties := make(map[string]interface{})

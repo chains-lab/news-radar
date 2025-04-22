@@ -32,9 +32,6 @@ docs/CreateArticleDataAttributes.md
 docs/CreateAuthor.md
 docs/CreateAuthorData.md
 docs/CreateAuthorDataAttributes.md
-docs/CreateHashtag.md
-docs/CreateHashtagData.md
-docs/CreateHashtagDataAttributes.md
 docs/CreateTag.md
 docs/CreateTagData.md
 docs/CreateTagDataAttributes.md
@@ -47,6 +44,9 @@ docs/Relationships.md
 docs/SetAuthorship.md
 docs/SetAuthorshipData.md
 docs/SetAuthorshipDataAttributes.md
+docs/SetHashtag.md
+docs/SetHashtagData.md
+docs/SetHashtagDataAttributes.md
 docs/Tag.md
 docs/TagAttributes.md
 docs/TagCollection.md
@@ -99,9 +99,6 @@ model_create_article_data_attributes.go
 model_create_author.go
 model_create_author_data.go
 model_create_author_data_attributes.go
-model_create_hashtag.go
-model_create_hashtag_data.go
-model_create_hashtag_data_attributes.go
 model_create_tag.go
 model_create_tag_data.go
 model_create_tag_data_attributes.go
@@ -114,6 +111,9 @@ model_relationships.go
 model_set_authorship.go
 model_set_authorship_data.go
 model_set_authorship_data_attributes.go
+model_set_hashtag.go
+model_set_hashtag_data.go
+model_set_hashtag_data_attributes.go
 model_tag.go
 model_tag_attributes.go
 model_tag_collection.go

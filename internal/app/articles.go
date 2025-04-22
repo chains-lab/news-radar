@@ -2,7 +2,8 @@ package app
 
 import (
 	"context"
-	"fmt"
+	"errors"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,6 +12,7 @@ import (
 	"github.com/hs-zavet/news-radar/internal/content"
 	"github.com/hs-zavet/news-radar/internal/enums"
 	"github.com/hs-zavet/news-radar/internal/repo"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type CreateArticleRequest struct {
@@ -167,10 +169,50 @@ func (a App) GetArticleByID(ctx context.Context, articleID uuid.UUID) (models.Ar
 //HASHTAGS
 
 func (a App) SetArticleTags(ctx context.Context, articleID uuid.UUID, tags []string) error {
-	if len(tags) > 10 {
-		return fmt.Errorf("too many tags")
+	_, err := a.articles.GetByID(articleID)
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return ape.ErrArticleNotFound
+		default:
+			return err
+		}
 	}
-	return a.articles.SetTags(articleID, tags)
+
+	seen := make(map[string]struct{}, len(tags))
+	for _, id := range tags {
+		if _, exists := seen[id]; exists {
+			return ape.ErrTagReplication
+		}
+		seen[id] = struct{}{}
+	}
+
+	if len(tags) > 10 {
+		return ape.ErrTooManyTags
+	}
+
+	for _, tag := range tags {
+		tagModel, err := a.tags.Get(tag)
+		if err != nil {
+			switch {
+			case errors.Is(err, mongo.ErrNoDocuments):
+				return ape.ErrTagNotFound
+			default:
+				return err
+			}
+		}
+
+		if tagModel.Status != enums.TagStatusActive {
+			return ape.ErrTagInactive
+		}
+	}
+
+	err = a.articles.SetTags(articleID, tags)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (a App) GetArticleForTags(ctx context.Context, tag string) ([]models.Article, error) {
@@ -229,6 +271,16 @@ func (a App) GetArticleForTags(ctx context.Context, tag string) ([]models.Articl
 }
 
 func (a App) GetArticleTags(ctx context.Context, articleID uuid.UUID) ([]models.Tag, error) {
+	_, err := a.articles.GetByID(articleID)
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return nil, ape.ErrArticleNotFound
+		default:
+			return nil, err
+		}
+	}
+
 	tags, err := a.articles.GetTags(articleID)
 	if err != nil {
 		return nil, err
@@ -254,8 +306,27 @@ func (a App) GetArticleTags(ctx context.Context, articleID uuid.UUID) ([]models.
 	return res, nil
 }
 
-func (a App) AddArticleTag(ctx context.Context, articleID uuid.UUID, tag string) error {
-	err := a.articles.AddTag(articleID, tag)
+func (a App) AddArticleTag(ctx context.Context, articleID uuid.UUID, tagId string) error {
+	_, err := a.articles.GetByID(articleID)
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return ape.ErrArticleNotFound
+		default:
+			return err
+		}
+	}
+
+	tag, err := a.tags.Get(tagId)
+	if err != nil {
+		return ape.ErrTagNotFound
+	}
+
+	if tag.Status != enums.TagStatusActive {
+		return ape.ErrTagInactive
+	}
+
+	err = a.articles.AddTag(articleID, tagId)
 	if err != nil {
 		return err
 	}
@@ -263,8 +334,23 @@ func (a App) AddArticleTag(ctx context.Context, articleID uuid.UUID, tag string)
 	return nil
 }
 
-func (a App) DeleteArticleTag(ctx context.Context, articleID uuid.UUID, tag string) error {
-	err := a.articles.DeleteTag(articleID, tag)
+func (a App) DeleteArticleTag(ctx context.Context, articleID uuid.UUID, tagId string) error {
+	_, err := a.articles.GetByID(articleID)
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return ape.ErrArticleNotFound
+		default:
+			return err
+		}
+	}
+
+	_, err = a.tags.Get(tagId)
+	if err != nil {
+		return ape.ErrTagNotFound
+	}
+
+	err = a.articles.DeleteTag(articleID, strings.ToLower(tagId))
 	if err != nil {
 		return err
 	}
@@ -273,6 +359,16 @@ func (a App) DeleteArticleTag(ctx context.Context, articleID uuid.UUID, tag stri
 }
 
 func (a App) CleanArticleTags(ctx context.Context, articleID uuid.UUID) error {
+	_, err := a.articles.GetByID(articleID)
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return ape.ErrArticleNotFound
+		default:
+			return err
+		}
+	}
+
 	tags, err := a.articles.GetTags(articleID)
 	if err != nil {
 		return err
@@ -291,13 +387,59 @@ func (a App) CleanArticleTags(ctx context.Context, articleID uuid.UUID) error {
 //AUTHORSHIP
 
 func (a App) SetAuthors(ctx context.Context, articleID uuid.UUID, authors []uuid.UUID) error {
-	if len(authors) > 10 {
-		return fmt.Errorf("too many authors")
+	_, err := a.articles.GetByID(articleID)
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return ape.ErrArticleNotFound
+		default:
+			return err
+		}
 	}
-	return a.articles.SetAuthors(articleID, authors)
+
+	seen := make(map[uuid.UUID]struct{}, len(authors))
+	for _, id := range authors {
+		if _, exists := seen[id]; exists {
+			return ape.ErrAuthorReplication
+		}
+		seen[id] = struct{}{}
+	}
+
+	for _, author := range authors {
+		authorModel, err := a.authors.GetByID(author)
+		if err != nil {
+			switch {
+			case errors.Is(err, mongo.ErrNoDocuments):
+				return ape.ErrAuthorNotFound
+			default:
+				return err
+			}
+		}
+
+		if authorModel.Status != enums.AuthorStatusActive {
+			return ape.ErrAuthorInactive
+		}
+	}
+
+	err = a.articles.SetAuthors(articleID, authors)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (a App) GetArticleAuthors(ctx context.Context, articleID uuid.UUID) ([]models.Author, error) {
+	_, err := a.articles.GetByID(articleID)
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return nil, ape.ErrArticleNotFound
+		default:
+			return nil, err
+		}
+	}
+
 	authors, err := a.articles.GetAuthors(articleID)
 	if err != nil {
 		return nil, err
@@ -328,6 +470,16 @@ func (a App) GetArticleAuthors(ctx context.Context, articleID uuid.UUID) ([]mode
 }
 
 func (a App) GetArticleForAuthor(ctx context.Context, authorID uuid.UUID) ([]models.Article, error) {
+	_, err := a.authors.GetByID(authorID)
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return nil, ape.ErrAuthorNotFound
+		default:
+			return nil, err
+		}
+	}
+
 	articles, err := a.articles.GetArticlesForAuthor(authorID)
 	if err != nil {
 		return nil, err
@@ -383,7 +535,31 @@ func (a App) GetArticleForAuthor(ctx context.Context, authorID uuid.UUID) ([]mod
 }
 
 func (a App) AddArticleAuthor(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error {
-	err := a.articles.AddAuthor(articleID, authorID)
+	_, err := a.articles.GetByID(articleID)
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return ape.ErrArticleNotFound
+		default:
+			return err
+		}
+	}
+
+	author, err := a.authors.GetByID(authorID)
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return ape.ErrAuthorNotFound
+		default:
+			return err
+		}
+	}
+
+	if author.Status != enums.AuthorStatusActive {
+		return ape.ErrAuthorInactive
+	}
+
+	err = a.articles.AddAuthor(articleID, authorID)
 	if err != nil {
 		return err
 	}
@@ -392,7 +568,17 @@ func (a App) AddArticleAuthor(ctx context.Context, articleID uuid.UUID, authorID
 }
 
 func (a App) DeleteArticleAuthor(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error {
-	err := a.articles.DeleteAuthor(articleID, authorID)
+	_, err := a.articles.GetByID(articleID)
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return ape.ErrArticleNotFound
+		default:
+			return err
+		}
+	}
+
+	err = a.articles.DeleteAuthor(articleID, authorID)
 	if err != nil {
 		return err
 	}
@@ -401,7 +587,17 @@ func (a App) DeleteArticleAuthor(ctx context.Context, articleID uuid.UUID, autho
 }
 
 func (a App) CleanArticleAuthors(ctx context.Context, articleID uuid.UUID) error {
-	authors, err := a.articles.GetArticlesForAuthor(articleID)
+	_, err := a.articles.GetByID(articleID)
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			return ape.ErrArticleNotFound
+		default:
+			return err
+		}
+	}
+
+	authors, err := a.articles.GetAuthors(articleID)
 	if err != nil {
 		return err
 	}

@@ -6,9 +6,14 @@ properties:
   data:
     type: object
     required:
+      - id
       - type
       - attributes
     properties:
+      id:
+        type: string
+        description: "Article ID uuid"
+        example: "Article ID uuid"
       type:
         type: string
         enum: [ article_updated ]

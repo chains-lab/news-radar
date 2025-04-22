@@ -4,6 +4,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**Id** | **string** | The ID of the article set. | 
 **Type** | **string** |  | 
 **Attributes** | [**CreateHashtagDataAttributes**](CreateHashtagDataAttributes.md) |  | 
 
@@ -11,7 +12,7 @@ Name | Type | Description | Notes
 
 ### NewCreateHashtagData
 
-`func NewCreateHashtagData(type_ string, attributes CreateHashtagDataAttributes, ) *CreateHashtagData`
+`func NewCreateHashtagData(id string, type_ string, attributes CreateHashtagDataAttributes, ) *CreateHashtagData`
 
 NewCreateHashtagData instantiates a new CreateHashtagData object
 This constructor will assign default values to properties that have it defined,
@@ -25,6 +26,26 @@ will change when the set of required properties is changed
 NewCreateHashtagDataWithDefaults instantiates a new CreateHashtagData object
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
+
+### GetId
+
+`func (o *CreateHashtagData) GetId() string`
+
+GetId returns the Id field if non-nil, zero value otherwise.
+
+### GetIdOk
+
+`func (o *CreateHashtagData) GetIdOk() (*string, bool)`
+
+GetIdOk returns a tuple with the Id field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetId
+
+`func (o *CreateHashtagData) SetId(v string)`
+
+SetId sets Id field to given value.
+
 
 ### GetType
 
