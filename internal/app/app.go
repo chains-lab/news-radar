@@ -1,6 +1,8 @@
 package app
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	"github.com/hs-zavet/news-radar/internal/config"
 	"github.com/hs-zavet/news-radar/internal/content"
@@ -58,6 +60,17 @@ type articlesRepo interface {
 	UpdateContent(ID uuid.UUID, index int, section content.Section) (repo.ArticleModel, error)
 
 	GetByID(ID uuid.UUID) (repo.ArticleModel, error)
+
+	RecommendByTopic(
+		ctx context.Context,
+		articleID uuid.UUID,
+		limit int,
+	) ([]repo.ArticleModel, error)
+	TopicSearch(
+		ctx context.Context,
+		tag string,
+		start, limit int,
+	) ([]repo.ArticleModel, error)
 }
 
 func newArticles(cfg config.Config) (articlesRepo, error) {

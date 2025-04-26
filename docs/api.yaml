@@ -32,6 +32,10 @@ components:
       $ref: './spec/components/schemas/ArticleShort.yaml'
     ArticleShortCollection:
       $ref: './spec/components/schemas/ArticleShortCollection.yaml'
+    ArticleWithRecommends:
+      $ref: './spec/components/schemas/ArticleWithRecommends.yaml'
+    ArticleWithRecommendsInclude:
+      $ref: './spec/components/schemas/ArticleWithRecommendsInclude.yaml'
 
     Author:
       $ref: './spec/components/schemas/Author.yaml'

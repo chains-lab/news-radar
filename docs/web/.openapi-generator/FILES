@@ -16,6 +16,8 @@ docs/ArticleShortCollectionDataAttributes.md
 docs/ArticleShortData.md
 docs/ArticleShortDataAttributes.md
 docs/ArticleShortDataRelationships.md
+docs/ArticleWithRecommends.md
+docs/ArticleWithRecommendsInclude.md
 docs/Author.md
 docs/AuthorAttributes.md
 docs/AuthorData.md
@@ -83,6 +85,8 @@ model_article_short_collection_data_attributes.go
 model_article_short_data.go
 model_article_short_data_attributes.go
 model_article_short_data_relationships.go
+model_article_with_recommends.go
+model_article_with_recommends_include.go
 model_author.go
 model_author_attributes.go
 model_author_data.go

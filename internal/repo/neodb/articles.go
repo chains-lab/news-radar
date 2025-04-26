@@ -192,19 +192,24 @@ func (a *ArticlesImpl) Update(
 			return ArticleModel{}, fmt.Errorf("unknown status: %q", statusStr)
 		}
 
-		publishedAt, ok := props["published_at"].(time.Time)
-		if !ok {
-			return ArticleModel{}, fmt.Errorf("invalid published_at type")
-		}
-
 		model := ArticleModel{
 			ID:     id,
 			Status: st,
 		}
-		if input.PublishedAt != nil {
-			model.PublishedAt = &publishedAt
-		}
 
+		if raw, ok := props["published_at"]; ok {
+			switch v := raw.(type) {
+			case time.Time:
+				model.PublishedAt = &v
+			case *time.Time:
+				model.PublishedAt = v
+			case neo4j.LocalDateTime:
+				t := v.Time()
+				model.PublishedAt = &t
+			default:
+				return nil, fmt.Errorf("invalid published_at type %T", raw)
+			}
+		}
 		return model, nil
 	})
 
@@ -255,9 +260,6 @@ func (a *ArticlesImpl) GetByID(ctx context.Context, ID uuid.UUID) (ArticleModel,
 			}
 
 			props := node.Props()
-			article := ArticleModel{
-				ID: ID,
-			}
 
 			statusStr, ok := props["status"].(string)
 			if !ok {
@@ -269,9 +271,25 @@ func (a *ArticlesImpl) GetByID(ctx context.Context, ID uuid.UUID) (ArticleModel,
 				return ArticleModel{}, fmt.Errorf("unknown status value: %q", statusStr)
 			}
 
-			article.Status = st
+			model := ArticleModel{
+				ID:     ID,
+				Status: st,
+			}
 
-			return article, nil
+			if raw, ok := props["published_at"]; ok {
+				switch v := raw.(type) {
+				case time.Time:
+					model.PublishedAt = &v
+				case *time.Time:
+					model.PublishedAt = v
+				case neo4j.LocalDateTime:
+					t := v.Time()
+					model.PublishedAt = &t
+				default:
+					return nil, fmt.Errorf("invalid published_at type %T", raw)
+				}
+			}
+			return model, nil
 		}
 
 		return nil, fmt.Errorf("article not found")

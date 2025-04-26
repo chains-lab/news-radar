@@ -64,5 +64,17 @@ func (h *Handler) GetArticle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httpkit.Render(w, responses.Article(article, tags, authors))
+	recommends, err := h.app.RecommendByTopic(r.Context(), articleID, 5)
+	if err != nil {
+		switch {
+		case errors.Is(err, ape.ErrArticleNotFound):
+			httpkit.RenderErr(w, problems.NotFound("article not found"))
+		default:
+			httpkit.RenderErr(w, problems.InternalError())
+		}
+		h.log.WithError(err).Errorf("error getting article %s", articleID)
+		return
+	}
+
+	httpkit.Render(w, responses.ArticleRecommends(article, tags, authors, recommends))
 }

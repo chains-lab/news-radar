@@ -58,6 +58,18 @@ type articlesNeoQ interface {
 	GetByID(ctx context.Context, ID uuid.UUID) (neodb.ArticleModel, error)
 
 	Update(ctx context.Context, ID uuid.UUID, input neodb.ArticleUpdateInput) (neodb.ArticleModel, error)
+
+	TopicSearch(
+		ctx context.Context,
+		tag string,
+		start, limit int,
+	) ([]neodb.ArticleModel, error)
+
+	RecommendByTopic(
+		ctx context.Context,
+		articleID uuid.UUID,
+		limit int,
+	) ([]neodb.ArticleModel, error)
 }
 
 type ArticlesRepo struct {
@@ -258,19 +270,82 @@ func (a *ArticlesRepo) GetByID(ID uuid.UUID) (ArticleModel, error) {
 	return res, nil
 }
 
+func (a *ArticlesRepo) RecommendByTopic(
+	ctx context.Context,
+	articleID uuid.UUID,
+	limit int,
+) ([]ArticleModel, error) {
+	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
+	defer cancel()
+
+	res, err := a.neo.RecommendByTopic(ctxSync, articleID, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	var articles []ArticleModel
+	for _, item := range res {
+		mongoRes, err := a.mongo.FilterID(item.ID).Get(ctxSync)
+		if err != nil {
+			return nil, err
+		}
+
+		model, err := CreateArticleModel(mongoRes, item)
+		if err != nil {
+			return nil, err
+		}
+
+		articles = append(articles, model)
+	}
+
+	return articles, nil
+}
+
+func (a *ArticlesRepo) TopicSearch(
+	ctx context.Context,
+	tag string,
+	start, limit int,
+) ([]ArticleModel, error) {
+	ctxSync, cancel := context.WithTimeout(ctx, dataCtxTimeAisle)
+	defer cancel()
+
+	res, err := a.neo.TopicSearch(ctxSync, tag, start, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	var articles []ArticleModel
+	for _, item := range res {
+		mongoRes, err := a.mongo.FilterID(item.ID).Get(ctxSync)
+		if err != nil {
+			return nil, err
+		}
+
+		model, err := CreateArticleModel(mongoRes, item)
+		if err != nil {
+			return nil, err
+		}
+
+		articles = append(articles, model)
+	}
+
+	return articles, nil
+}
+
 func CreateArticleModel(mongo mongodb.ArticleModel, neo neodb.ArticleModel) (ArticleModel, error) {
 	if mongo.ID != neo.ID {
 		return ArticleModel{}, fmt.Errorf("mongo and neo IDs do not match")
 	}
 
 	return ArticleModel{
-		ID:        mongo.ID,
-		Title:     mongo.Title,
-		Icon:      mongo.Icon,
-		Desc:      mongo.Desc,
-		Content:   mongo.Content,
-		Status:    neo.Status,
-		UpdatedAt: mongo.UpdatedAt,
-		CreatedAt: mongo.CreatedAt,
+		ID:          neo.ID,
+		Title:       mongo.Title,
+		Icon:        mongo.Icon,
+		Desc:        mongo.Desc,
+		Content:     mongo.Content,
+		Status:      neo.Status,
+		PublishedAt: neo.PublishedAt,
+		UpdatedAt:   mongo.UpdatedAt,
+		CreatedAt:   mongo.CreatedAt,
 	}, nil
 }

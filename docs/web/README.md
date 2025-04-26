@@ -94,6 +94,8 @@ Class | Method | HTTP request | Description
  - [ArticleShortData](docs/ArticleShortData.md)
  - [ArticleShortDataAttributes](docs/ArticleShortDataAttributes.md)
  - [ArticleShortDataRelationships](docs/ArticleShortDataRelationships.md)
+ - [ArticleWithRecommends](docs/ArticleWithRecommends.md)
+ - [ArticleWithRecommendsInclude](docs/ArticleWithRecommendsInclude.md)
  - [Author](docs/Author.md)
  - [AuthorAttributes](docs/AuthorAttributes.md)
  - [AuthorData](docs/AuthorData.md)

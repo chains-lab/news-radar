@@ -39,7 +39,7 @@ func (h *Handler) SetHashTags(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	articleID, err := uuid.Parse(req.Data.Id)
+	articleID, err := uuid.Parse(chi.URLParam(r, "article_id"))
 	if err != nil {
 		h.log.WithError(err).Warn("error parsing article ID")
 		httpkit.RenderErr(w, problems.BadRequest(err)...)

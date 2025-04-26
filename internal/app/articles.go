@@ -76,7 +76,7 @@ func (a App) UpdateArticle(ctx context.Context, articleID uuid.UUID, request Upd
 	if request.Status != nil {
 		input.Status = request.Status
 		if *request.Status == enums.ArticleStatusPublished {
-			if curArticle.PublishedAt != nil {
+			if curArticle.PublishedAt == nil {
 				publishedAt := time.Now().UTC()
 				input.PublishedAt = &publishedAt
 			}
@@ -566,6 +566,34 @@ func (a App) CleanArticleAuthors(ctx context.Context, articleID uuid.UUID) error
 	}
 
 	return nil
+}
+
+func (a App) RecommendByTopic(ctx context.Context, articleID uuid.UUID, limit int) ([]models.Article, error) {
+	articles, err := a.articles.RecommendByTopic(ctx, articleID, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []models.Article
+	for _, article := range articles {
+		res = append(res, ArticleRepoToModels(article))
+	}
+
+	return res, nil
+}
+
+func (a App) TopicSearch(ctx context.Context, tag string, start, limit int) ([]models.Article, error) {
+	articles, err := a.articles.TopicSearch(ctx, tag, start, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []models.Article
+	for _, article := range articles {
+		res = append(res, ArticleRepoToModels(article))
+	}
+
+	return res, nil
 }
 
 func ArticleRepoToModels(article repo.ArticleModel) models.Article {

@@ -66,6 +66,7 @@ func (h *Handler) UpdateArticle(w http.ResponseWriter, r *http.Request) {
 			})...)
 			return
 		}
+		h.log.Infof("status %s", status)
 		update.Status = &status
 	}
 
@@ -77,7 +78,7 @@ func (h *Handler) UpdateArticle(w http.ResponseWriter, r *http.Request) {
 		default:
 			httpkit.RenderErr(w, problems.InternalError())
 		}
-		h.log.WithError(err).Error("Failed to delete article")
+		h.log.WithError(err).Error("failed to update article")
 		return
 	}
 

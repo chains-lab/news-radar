@@ -43,6 +43,9 @@ type App interface {
 	UpdateAuthor(ctx context.Context, authorID uuid.UUID, request app.UpdateAuthorRequest) (models.Author, error)
 	DeleteAuthor(ctx context.Context, authorID uuid.UUID) error
 	GetAuthorByID(ctx context.Context, authorID uuid.UUID) (models.Author, error)
+
+	RecommendByTopic(ctx context.Context, articleID uuid.UUID, limit int) ([]models.Article, error)
+	TopicSearch(ctx context.Context, tag string, start, limit int) ([]models.Article, error)
 }
 
 type Handler struct {

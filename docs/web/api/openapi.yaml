@@ -131,6 +131,35 @@ components:
       - data
       - links
       type: object
+    ArticleWithRecommends:
+      properties:
+        data:
+          $ref: '#/components/schemas/ArticleData'
+        included:
+          $ref: '#/components/schemas/ArticleWithRecommendsInclude'
+      required:
+      - data
+      - included
+      type: object
+    ArticleWithRecommendsInclude:
+      properties:
+        authors:
+          items:
+            $ref: '#/components/schemas/AuthorData'
+          type: array
+        tags:
+          items:
+            $ref: '#/components/schemas/TagData'
+          type: array
+        recommends:
+          items:
+            $ref: '#/components/schemas/ArticleShort/properties/data'
+          type: array
+      required:
+      - authors
+      - recommends
+      - tags
+      type: object
     Author:
       properties:
         data:

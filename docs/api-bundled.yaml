@@ -256,6 +256,35 @@ components:
                   type: array
                   items:
                     $ref: '#/components/schemas/ArticleShort/properties/data'
+    ArticleWithRecommends:
+      type: object
+      required:
+        - data
+        - included
+      properties:
+        data:
+          $ref: '#/components/schemas/ArticleData'
+        included:
+          $ref: '#/components/schemas/ArticleWithRecommendsInclude'
+    ArticleWithRecommendsInclude:
+      type: object
+      required:
+        - authors
+        - tags
+        - recommends
+      properties:
+        authors:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorData'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagData'
+        recommends:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArticleShort/properties/data'
     Author:
       type: object
       required:
