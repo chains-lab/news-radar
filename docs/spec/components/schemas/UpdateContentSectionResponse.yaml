@@ -1,0 +1,19 @@
+type: object
+required:
+  - status
+  - message
+  - type
+  - section
+properties:
+  status:
+    type: string
+    enum: [ success, error ]
+    description: The status of the content update operation.
+  message:
+    type: string
+    description: A message providing additional information about the operation.
+  type:
+    type: string
+    enum: [ content_update_section ]
+  section:
+    $ref: './Section.yaml'

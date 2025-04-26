@@ -67,7 +67,7 @@ components:
         content:
           type: array
           items:
-            $ref: '#/components/schemas/Content'
+            $ref: '#/components/schemas/Section'
         published_at:
           type: string
           format: date-time
@@ -447,16 +447,15 @@ components:
                     type: string
                     format: uuid
                     description: The ID of the author.
-    Content:
+    Section:
       type: object
       required:
         - id
         - type
       properties:
         id:
-          type: string
-        type:
-          type: string
+          type: integer
+          description: Unique identifier for the content in this content block. (Num in section)
         text:
           type: array
           items:
@@ -464,121 +463,83 @@ components:
             properties:
               text:
                 type: string
-              marks:
-                type: array
-                items:
-                  type: string
-              color:
-                type: string
-              link:
-                type: string
         media:
-          type: object
-          required:
-            - url
-            - caption
-            - alt
-            - width
-            - height
-            - source
-          properties:
-            url:
-              type: string
-            caption:
-              type: string
-            alt:
-              type: string
-            width:
-              type: integer
-            height:
-              type: integer
-            source:
-              type: string
+          type: array
+          items:
+            type: object
+            required:
+              - url
+              - caption
+              - alt
+              - width
+              - height
+              - source
+            properties:
+              url:
+                type: string
+              caption:
+                type: string
+              alt:
+                type: string
+              width:
+                type: integer
+              height:
+                type: integer
+              source:
+                type: string
         audio:
-          type: object
-          required:
-            - url
-            - caption
-            - duration
-            - icon
-          properties:
-            url:
-              type: string
-            duration:
-              type: integer
-            caption:
-              type: string
-            icon:
-              type: string
-    UpdateContent:
+          type: array
+          items:
+            type: object
+            required:
+              - url
+              - caption
+              - duration
+              - icon
+            properties:
+              url:
+                type: string
+              duration:
+                type: integer
+              caption:
+                type: string
+              icon:
+                type: string
+    UpdateContentSection:
       type: object
       required:
-        - data
+        - type
+        - section
       properties:
-        data:
-          type: object
-          required:
-            - type
-            - attributes
-          properties:
-            type:
-              type: string
-              enum:
-                - article_content_update
-            attributes:
-              type: object
-              required:
-                - sectionID
-                - action
-                - content
-              properties:
-                sectionID:
-                  type: integer
-                  description: The ID of the section to be updated.
-                action:
-                  type: string
-                  enum:
-                    - add
-                    - remove
-                    - update
-                  description: The action to be performed on the content.
-                content:
-                  $ref: '#/components/schemas/Content'
-    UpdateContentResponse:
+        type:
+          type: string
+          enum:
+            - update_content_section
+        section:
+          $ref: '#/components/schemas/Section'
+    UpdateContentSectionResponse:
       type: object
       required:
-        - data
+        - status
+        - message
+        - type
+        - section
       properties:
-        data:
-          type: object
-          required:
-            - type
-            - attributes
-          properties:
-            type:
-              type: string
-              enum:
-                - article_content_update_response
-            attributes:
-              type: object
-              required:
-                - status
-                - section_number
-                - message
-              properties:
-                status:
-                  type: string
-                  enum:
-                    - success
-                    - error
-                  description: The status of the content update operation.
-                message:
-                  type: string
-                  description: A message providing additional information about the operation.
-                section_number:
-                  type: integer
-                content:
-                  $ref: '#/components/schemas/Content'
+        status:
+          type: string
+          enum:
+            - success
+            - error
+          description: The status of the content update operation.
+        message:
+          type: string
+          description: A message providing additional information about the operation.
+        type:
+          type: string
+          enum:
+            - content_update_section
+        section:
+          $ref: '#/components/schemas/Section'
     Tag:
       type: object
       required:

@@ -16,11 +16,11 @@ import (
 	"fmt"
 )
 
-// checks if the ContentMedia type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &ContentMedia{}
+// checks if the SectionMediaInner type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &SectionMediaInner{}
 
-// ContentMedia struct for ContentMedia
-type ContentMedia struct {
+// SectionMediaInner struct for SectionMediaInner
+type SectionMediaInner struct {
 	Url string `json:"url"`
 	Caption string `json:"caption"`
 	Alt string `json:"alt"`
@@ -29,14 +29,14 @@ type ContentMedia struct {
 	Source string `json:"source"`
 }
 
-type _ContentMedia ContentMedia
+type _SectionMediaInner SectionMediaInner
 
-// NewContentMedia instantiates a new ContentMedia object
+// NewSectionMediaInner instantiates a new SectionMediaInner object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewContentMedia(url string, caption string, alt string, width int32, height int32, source string) *ContentMedia {
-	this := ContentMedia{}
+func NewSectionMediaInner(url string, caption string, alt string, width int32, height int32, source string) *SectionMediaInner {
+	this := SectionMediaInner{}
 	this.Url = url
 	this.Caption = caption
 	this.Alt = alt
@@ -46,16 +46,16 @@ func NewContentMedia(url string, caption string, alt string, width int32, height
 	return &this
 }
 
-// NewContentMediaWithDefaults instantiates a new ContentMedia object
+// NewSectionMediaInnerWithDefaults instantiates a new SectionMediaInner object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewContentMediaWithDefaults() *ContentMedia {
-	this := ContentMedia{}
+func NewSectionMediaInnerWithDefaults() *SectionMediaInner {
+	this := SectionMediaInner{}
 	return &this
 }
 
 // GetUrl returns the Url field value
-func (o *ContentMedia) GetUrl() string {
+func (o *SectionMediaInner) GetUrl() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -66,7 +66,7 @@ func (o *ContentMedia) GetUrl() string {
 
 // GetUrlOk returns a tuple with the Url field value
 // and a boolean to check if the value has been set.
-func (o *ContentMedia) GetUrlOk() (*string, bool) {
+func (o *SectionMediaInner) GetUrlOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -74,12 +74,12 @@ func (o *ContentMedia) GetUrlOk() (*string, bool) {
 }
 
 // SetUrl sets field value
-func (o *ContentMedia) SetUrl(v string) {
+func (o *SectionMediaInner) SetUrl(v string) {
 	o.Url = v
 }
 
 // GetCaption returns the Caption field value
-func (o *ContentMedia) GetCaption() string {
+func (o *SectionMediaInner) GetCaption() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -90,7 +90,7 @@ func (o *ContentMedia) GetCaption() string {
 
 // GetCaptionOk returns a tuple with the Caption field value
 // and a boolean to check if the value has been set.
-func (o *ContentMedia) GetCaptionOk() (*string, bool) {
+func (o *SectionMediaInner) GetCaptionOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -98,12 +98,12 @@ func (o *ContentMedia) GetCaptionOk() (*string, bool) {
 }
 
 // SetCaption sets field value
-func (o *ContentMedia) SetCaption(v string) {
+func (o *SectionMediaInner) SetCaption(v string) {
 	o.Caption = v
 }
 
 // GetAlt returns the Alt field value
-func (o *ContentMedia) GetAlt() string {
+func (o *SectionMediaInner) GetAlt() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -114,7 +114,7 @@ func (o *ContentMedia) GetAlt() string {
 
 // GetAltOk returns a tuple with the Alt field value
 // and a boolean to check if the value has been set.
-func (o *ContentMedia) GetAltOk() (*string, bool) {
+func (o *SectionMediaInner) GetAltOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -122,12 +122,12 @@ func (o *ContentMedia) GetAltOk() (*string, bool) {
 }
 
 // SetAlt sets field value
-func (o *ContentMedia) SetAlt(v string) {
+func (o *SectionMediaInner) SetAlt(v string) {
 	o.Alt = v
 }
 
 // GetWidth returns the Width field value
-func (o *ContentMedia) GetWidth() int32 {
+func (o *SectionMediaInner) GetWidth() int32 {
 	if o == nil {
 		var ret int32
 		return ret
@@ -138,7 +138,7 @@ func (o *ContentMedia) GetWidth() int32 {
 
 // GetWidthOk returns a tuple with the Width field value
 // and a boolean to check if the value has been set.
-func (o *ContentMedia) GetWidthOk() (*int32, bool) {
+func (o *SectionMediaInner) GetWidthOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -146,12 +146,12 @@ func (o *ContentMedia) GetWidthOk() (*int32, bool) {
 }
 
 // SetWidth sets field value
-func (o *ContentMedia) SetWidth(v int32) {
+func (o *SectionMediaInner) SetWidth(v int32) {
 	o.Width = v
 }
 
 // GetHeight returns the Height field value
-func (o *ContentMedia) GetHeight() int32 {
+func (o *SectionMediaInner) GetHeight() int32 {
 	if o == nil {
 		var ret int32
 		return ret
@@ -162,7 +162,7 @@ func (o *ContentMedia) GetHeight() int32 {
 
 // GetHeightOk returns a tuple with the Height field value
 // and a boolean to check if the value has been set.
-func (o *ContentMedia) GetHeightOk() (*int32, bool) {
+func (o *SectionMediaInner) GetHeightOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -170,12 +170,12 @@ func (o *ContentMedia) GetHeightOk() (*int32, bool) {
 }
 
 // SetHeight sets field value
-func (o *ContentMedia) SetHeight(v int32) {
+func (o *SectionMediaInner) SetHeight(v int32) {
 	o.Height = v
 }
 
 // GetSource returns the Source field value
-func (o *ContentMedia) GetSource() string {
+func (o *SectionMediaInner) GetSource() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -186,7 +186,7 @@ func (o *ContentMedia) GetSource() string {
 
 // GetSourceOk returns a tuple with the Source field value
 // and a boolean to check if the value has been set.
-func (o *ContentMedia) GetSourceOk() (*string, bool) {
+func (o *SectionMediaInner) GetSourceOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -194,11 +194,11 @@ func (o *ContentMedia) GetSourceOk() (*string, bool) {
 }
 
 // SetSource sets field value
-func (o *ContentMedia) SetSource(v string) {
+func (o *SectionMediaInner) SetSource(v string) {
 	o.Source = v
 }
 
-func (o ContentMedia) MarshalJSON() ([]byte, error) {
+func (o SectionMediaInner) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -206,7 +206,7 @@ func (o ContentMedia) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o ContentMedia) ToMap() (map[string]interface{}, error) {
+func (o SectionMediaInner) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["url"] = o.Url
 	toSerialize["caption"] = o.Caption
@@ -217,7 +217,7 @@ func (o ContentMedia) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-func (o *ContentMedia) UnmarshalJSON(data []byte) (err error) {
+func (o *SectionMediaInner) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
@@ -244,53 +244,53 @@ func (o *ContentMedia) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varContentMedia := _ContentMedia{}
+	varSectionMediaInner := _SectionMediaInner{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varContentMedia)
+	err = decoder.Decode(&varSectionMediaInner)
 
 	if err != nil {
 		return err
 	}
 
-	*o = ContentMedia(varContentMedia)
+	*o = SectionMediaInner(varSectionMediaInner)
 
 	return err
 }
 
-type NullableContentMedia struct {
-	value *ContentMedia
+type NullableSectionMediaInner struct {
+	value *SectionMediaInner
 	isSet bool
 }
 
-func (v NullableContentMedia) Get() *ContentMedia {
+func (v NullableSectionMediaInner) Get() *SectionMediaInner {
 	return v.value
 }
 
-func (v *NullableContentMedia) Set(val *ContentMedia) {
+func (v *NullableSectionMediaInner) Set(val *SectionMediaInner) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableContentMedia) IsSet() bool {
+func (v NullableSectionMediaInner) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableContentMedia) Unset() {
+func (v *NullableSectionMediaInner) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableContentMedia(val *ContentMedia) *NullableContentMedia {
-	return &NullableContentMedia{value: val, isSet: true}
+func NewNullableSectionMediaInner(val *SectionMediaInner) *NullableSectionMediaInner {
+	return &NullableSectionMediaInner{value: val, isSet: true}
 }
 
-func (v NullableContentMedia) MarshalJSON() ([]byte, error) {
+func (v NullableSectionMediaInner) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableContentMedia) UnmarshalJSON(src []byte) error {
+func (v *NullableSectionMediaInner) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

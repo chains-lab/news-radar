@@ -8,7 +8,7 @@ Name | Type | Description | Notes
 **Status** | **string** | Article status | 
 **Icon** | Pointer to **string** | Article link | [optional] 
 **Desc** | Pointer to **string** | Article description | [optional] 
-**Content** | Pointer to [**[]Content**](Content.md) |  | [optional] 
+**Content** | Pointer to [**[]Section**](Section.md) |  | [optional] 
 **PublishedAt** | Pointer to **time.Time** | Published at | [optional] 
 **UpdatedAt** | Pointer to **time.Time** | Updated at | [optional] 
 **CreatedAt** | **time.Time** | Created at | 
@@ -124,20 +124,20 @@ HasDesc returns a boolean if a field has been set.
 
 ### GetContent
 
-`func (o *ArticleAttributes) GetContent() []Content`
+`func (o *ArticleAttributes) GetContent() []Section`
 
 GetContent returns the Content field if non-nil, zero value otherwise.
 
 ### GetContentOk
 
-`func (o *ArticleAttributes) GetContentOk() (*[]Content, bool)`
+`func (o *ArticleAttributes) GetContentOk() (*[]Section, bool)`
 
 GetContentOk returns a tuple with the Content field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetContent
 
-`func (o *ArticleAttributes) SetContent(v []Content)`
+`func (o *ArticleAttributes) SetContent(v []Section)`
 
 SetContent sets Content field to given value.
 

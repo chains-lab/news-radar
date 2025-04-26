@@ -5,14 +5,13 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **SectionID** | **int32** | The ID of the section to be updated. | 
-**Action** | **string** | The action to be performed on the content. | 
-**Content** | [**Content**](Content.md) |  | 
+**Content** | [**Section**](Section.md) |  | 
 
 ## Methods
 
 ### NewUpdateContentDataAttributes
 
-`func NewUpdateContentDataAttributes(sectionID int32, action string, content Content, ) *UpdateContentDataAttributes`
+`func NewUpdateContentDataAttributes(sectionID int32, content Section, ) *UpdateContentDataAttributes`
 
 NewUpdateContentDataAttributes instantiates a new UpdateContentDataAttributes object
 This constructor will assign default values to properties that have it defined,
@@ -47,42 +46,22 @@ and a boolean to check if the value has been set.
 SetSectionID sets SectionID field to given value.
 
 
-### GetAction
-
-`func (o *UpdateContentDataAttributes) GetAction() string`
-
-GetAction returns the Action field if non-nil, zero value otherwise.
-
-### GetActionOk
-
-`func (o *UpdateContentDataAttributes) GetActionOk() (*string, bool)`
-
-GetActionOk returns a tuple with the Action field if it's non-nil, zero value otherwise
-and a boolean to check if the value has been set.
-
-### SetAction
-
-`func (o *UpdateContentDataAttributes) SetAction(v string)`
-
-SetAction sets Action field to given value.
-
-
 ### GetContent
 
-`func (o *UpdateContentDataAttributes) GetContent() Content`
+`func (o *UpdateContentDataAttributes) GetContent() Section`
 
 GetContent returns the Content field if non-nil, zero value otherwise.
 
 ### GetContentOk
 
-`func (o *UpdateContentDataAttributes) GetContentOk() (*Content, bool)`
+`func (o *UpdateContentDataAttributes) GetContentOk() (*Section, bool)`
 
 GetContentOk returns a tuple with the Content field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetContent
 
-`func (o *UpdateContentDataAttributes) SetContent(v Content)`
+`func (o *UpdateContentDataAttributes) SetContent(v Section)`
 
 SetContent sets Content field to given value.
 

@@ -1,69 +1,69 @@
-# UpdateContent
+# UpdateContentSection
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Type** | **string** |  | 
-**Content** | [**Section**](Section.md) |  | 
+**Section** | [**Section**](Section.md) |  | 
 
 ## Methods
 
-### NewUpdateContent
+### NewUpdateContentSection
 
-`func NewUpdateContent(type_ string, content Section, ) *UpdateContent`
+`func NewUpdateContentSection(type_ string, section Section, ) *UpdateContentSection`
 
-NewUpdateContent instantiates a new UpdateContent object
+NewUpdateContentSection instantiates a new UpdateContentSection object
 This constructor will assign default values to properties that have it defined,
 and makes sure properties required by API are set, but the set of arguments
 will change when the set of required properties is changed
 
-### NewUpdateContentWithDefaults
+### NewUpdateContentSectionWithDefaults
 
-`func NewUpdateContentWithDefaults() *UpdateContent`
+`func NewUpdateContentSectionWithDefaults() *UpdateContentSection`
 
-NewUpdateContentWithDefaults instantiates a new UpdateContent object
+NewUpdateContentSectionWithDefaults instantiates a new UpdateContentSection object
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
 
 ### GetType
 
-`func (o *UpdateContent) GetType() string`
+`func (o *UpdateContentSection) GetType() string`
 
 GetType returns the Type field if non-nil, zero value otherwise.
 
 ### GetTypeOk
 
-`func (o *UpdateContent) GetTypeOk() (*string, bool)`
+`func (o *UpdateContentSection) GetTypeOk() (*string, bool)`
 
 GetTypeOk returns a tuple with the Type field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetType
 
-`func (o *UpdateContent) SetType(v string)`
+`func (o *UpdateContentSection) SetType(v string)`
 
 SetType sets Type field to given value.
 
 
-### GetContent
+### GetSection
 
-`func (o *UpdateContent) GetContent() Section`
+`func (o *UpdateContentSection) GetSection() Section`
 
-GetContent returns the Content field if non-nil, zero value otherwise.
+GetSection returns the Section field if non-nil, zero value otherwise.
 
-### GetContentOk
+### GetSectionOk
 
-`func (o *UpdateContent) GetContentOk() (*Section, bool)`
+`func (o *UpdateContentSection) GetSectionOk() (*Section, bool)`
 
-GetContentOk returns a tuple with the Content field if it's non-nil, zero value otherwise
+GetSectionOk returns a tuple with the Section field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
-### SetContent
+### SetSection
 
-`func (o *UpdateContent) SetContent(v Section)`
+`func (o *UpdateContentSection) SetSection(v Section)`
 
-SetContent sets Content field to given value.
+SetSection sets Section field to given value.
 
 
 

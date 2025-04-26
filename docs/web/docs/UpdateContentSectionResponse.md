@@ -1,4 +1,4 @@
-# UpdateContentResponse
+# UpdateContentSectionResponse
 
 ## Properties
 
@@ -11,99 +11,99 @@ Name | Type | Description | Notes
 
 ## Methods
 
-### NewUpdateContentResponse
+### NewUpdateContentSectionResponse
 
-`func NewUpdateContentResponse(status string, message string, type_ string, section Section, ) *UpdateContentResponse`
+`func NewUpdateContentSectionResponse(status string, message string, type_ string, section Section, ) *UpdateContentSectionResponse`
 
-NewUpdateContentResponse instantiates a new UpdateContentResponse object
+NewUpdateContentSectionResponse instantiates a new UpdateContentSectionResponse object
 This constructor will assign default values to properties that have it defined,
 and makes sure properties required by API are set, but the set of arguments
 will change when the set of required properties is changed
 
-### NewUpdateContentResponseWithDefaults
+### NewUpdateContentSectionResponseWithDefaults
 
-`func NewUpdateContentResponseWithDefaults() *UpdateContentResponse`
+`func NewUpdateContentSectionResponseWithDefaults() *UpdateContentSectionResponse`
 
-NewUpdateContentResponseWithDefaults instantiates a new UpdateContentResponse object
+NewUpdateContentSectionResponseWithDefaults instantiates a new UpdateContentSectionResponse object
 This constructor will only assign default values to properties that have it defined,
 but it doesn't guarantee that properties required by API are set
 
 ### GetStatus
 
-`func (o *UpdateContentResponse) GetStatus() string`
+`func (o *UpdateContentSectionResponse) GetStatus() string`
 
 GetStatus returns the Status field if non-nil, zero value otherwise.
 
 ### GetStatusOk
 
-`func (o *UpdateContentResponse) GetStatusOk() (*string, bool)`
+`func (o *UpdateContentSectionResponse) GetStatusOk() (*string, bool)`
 
 GetStatusOk returns a tuple with the Status field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetStatus
 
-`func (o *UpdateContentResponse) SetStatus(v string)`
+`func (o *UpdateContentSectionResponse) SetStatus(v string)`
 
 SetStatus sets Status field to given value.
 
 
 ### GetMessage
 
-`func (o *UpdateContentResponse) GetMessage() string`
+`func (o *UpdateContentSectionResponse) GetMessage() string`
 
 GetMessage returns the Message field if non-nil, zero value otherwise.
 
 ### GetMessageOk
 
-`func (o *UpdateContentResponse) GetMessageOk() (*string, bool)`
+`func (o *UpdateContentSectionResponse) GetMessageOk() (*string, bool)`
 
 GetMessageOk returns a tuple with the Message field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetMessage
 
-`func (o *UpdateContentResponse) SetMessage(v string)`
+`func (o *UpdateContentSectionResponse) SetMessage(v string)`
 
 SetMessage sets Message field to given value.
 
 
 ### GetType
 
-`func (o *UpdateContentResponse) GetType() string`
+`func (o *UpdateContentSectionResponse) GetType() string`
 
 GetType returns the Type field if non-nil, zero value otherwise.
 
 ### GetTypeOk
 
-`func (o *UpdateContentResponse) GetTypeOk() (*string, bool)`
+`func (o *UpdateContentSectionResponse) GetTypeOk() (*string, bool)`
 
 GetTypeOk returns a tuple with the Type field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetType
 
-`func (o *UpdateContentResponse) SetType(v string)`
+`func (o *UpdateContentSectionResponse) SetType(v string)`
 
 SetType sets Type field to given value.
 
 
 ### GetSection
 
-`func (o *UpdateContentResponse) GetSection() Section`
+`func (o *UpdateContentSectionResponse) GetSection() Section`
 
 GetSection returns the Section field if non-nil, zero value otherwise.
 
 ### GetSectionOk
 
-`func (o *UpdateContentResponse) GetSectionOk() (*Section, bool)`
+`func (o *UpdateContentSectionResponse) GetSectionOk() (*Section, bool)`
 
 GetSectionOk returns a tuple with the Section field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetSection
 
-`func (o *UpdateContentResponse) SetSection(v Section)`
+`func (o *UpdateContentSectionResponse) SetSection(v Section)`
 
 SetSection sets Section field to given value.
 

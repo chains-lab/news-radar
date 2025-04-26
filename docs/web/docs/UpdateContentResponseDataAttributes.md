@@ -7,7 +7,7 @@ Name | Type | Description | Notes
 **Status** | **string** | The status of the content update operation. | 
 **Message** | **string** | A message providing additional information about the operation. | 
 **SectionNumber** | **int32** |  | 
-**Content** | Pointer to [**Content**](Content.md) |  | [optional] 
+**Content** | Pointer to [**Section**](Section.md) |  | [optional] 
 
 ## Methods
 
@@ -90,20 +90,20 @@ SetSectionNumber sets SectionNumber field to given value.
 
 ### GetContent
 
-`func (o *UpdateContentResponseDataAttributes) GetContent() Content`
+`func (o *UpdateContentResponseDataAttributes) GetContent() Section`
 
 GetContent returns the Content field if non-nil, zero value otherwise.
 
 ### GetContentOk
 
-`func (o *UpdateContentResponseDataAttributes) GetContentOk() (*Content, bool)`
+`func (o *UpdateContentResponseDataAttributes) GetContentOk() (*Section, bool)`
 
 GetContentOk returns a tuple with the Content field if it's non-nil, zero value otherwise
 and a boolean to check if the value has been set.
 
 ### SetContent
 
-`func (o *UpdateContentResponseDataAttributes) SetContent(v Content)`
+`func (o *UpdateContentResponseDataAttributes) SetContent(v Section)`
 
 SetContent sets Content field to given value.
 

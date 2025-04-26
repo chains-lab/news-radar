@@ -16,25 +16,25 @@ import (
 	"fmt"
 )
 
-// checks if the ContentAudio type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &ContentAudio{}
+// checks if the SectionAudioInner type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &SectionAudioInner{}
 
-// ContentAudio struct for ContentAudio
-type ContentAudio struct {
+// SectionAudioInner struct for SectionAudioInner
+type SectionAudioInner struct {
 	Url string `json:"url"`
 	Duration int32 `json:"duration"`
 	Caption string `json:"caption"`
 	Icon string `json:"icon"`
 }
 
-type _ContentAudio ContentAudio
+type _SectionAudioInner SectionAudioInner
 
-// NewContentAudio instantiates a new ContentAudio object
+// NewSectionAudioInner instantiates a new SectionAudioInner object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewContentAudio(url string, duration int32, caption string, icon string) *ContentAudio {
-	this := ContentAudio{}
+func NewSectionAudioInner(url string, duration int32, caption string, icon string) *SectionAudioInner {
+	this := SectionAudioInner{}
 	this.Url = url
 	this.Duration = duration
 	this.Caption = caption
@@ -42,16 +42,16 @@ func NewContentAudio(url string, duration int32, caption string, icon string) *C
 	return &this
 }
 
-// NewContentAudioWithDefaults instantiates a new ContentAudio object
+// NewSectionAudioInnerWithDefaults instantiates a new SectionAudioInner object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewContentAudioWithDefaults() *ContentAudio {
-	this := ContentAudio{}
+func NewSectionAudioInnerWithDefaults() *SectionAudioInner {
+	this := SectionAudioInner{}
 	return &this
 }
 
 // GetUrl returns the Url field value
-func (o *ContentAudio) GetUrl() string {
+func (o *SectionAudioInner) GetUrl() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -62,7 +62,7 @@ func (o *ContentAudio) GetUrl() string {
 
 // GetUrlOk returns a tuple with the Url field value
 // and a boolean to check if the value has been set.
-func (o *ContentAudio) GetUrlOk() (*string, bool) {
+func (o *SectionAudioInner) GetUrlOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -70,12 +70,12 @@ func (o *ContentAudio) GetUrlOk() (*string, bool) {
 }
 
 // SetUrl sets field value
-func (o *ContentAudio) SetUrl(v string) {
+func (o *SectionAudioInner) SetUrl(v string) {
 	o.Url = v
 }
 
 // GetDuration returns the Duration field value
-func (o *ContentAudio) GetDuration() int32 {
+func (o *SectionAudioInner) GetDuration() int32 {
 	if o == nil {
 		var ret int32
 		return ret
@@ -86,7 +86,7 @@ func (o *ContentAudio) GetDuration() int32 {
 
 // GetDurationOk returns a tuple with the Duration field value
 // and a boolean to check if the value has been set.
-func (o *ContentAudio) GetDurationOk() (*int32, bool) {
+func (o *SectionAudioInner) GetDurationOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -94,12 +94,12 @@ func (o *ContentAudio) GetDurationOk() (*int32, bool) {
 }
 
 // SetDuration sets field value
-func (o *ContentAudio) SetDuration(v int32) {
+func (o *SectionAudioInner) SetDuration(v int32) {
 	o.Duration = v
 }
 
 // GetCaption returns the Caption field value
-func (o *ContentAudio) GetCaption() string {
+func (o *SectionAudioInner) GetCaption() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -110,7 +110,7 @@ func (o *ContentAudio) GetCaption() string {
 
 // GetCaptionOk returns a tuple with the Caption field value
 // and a boolean to check if the value has been set.
-func (o *ContentAudio) GetCaptionOk() (*string, bool) {
+func (o *SectionAudioInner) GetCaptionOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -118,12 +118,12 @@ func (o *ContentAudio) GetCaptionOk() (*string, bool) {
 }
 
 // SetCaption sets field value
-func (o *ContentAudio) SetCaption(v string) {
+func (o *SectionAudioInner) SetCaption(v string) {
 	o.Caption = v
 }
 
 // GetIcon returns the Icon field value
-func (o *ContentAudio) GetIcon() string {
+func (o *SectionAudioInner) GetIcon() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -134,7 +134,7 @@ func (o *ContentAudio) GetIcon() string {
 
 // GetIconOk returns a tuple with the Icon field value
 // and a boolean to check if the value has been set.
-func (o *ContentAudio) GetIconOk() (*string, bool) {
+func (o *SectionAudioInner) GetIconOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -142,11 +142,11 @@ func (o *ContentAudio) GetIconOk() (*string, bool) {
 }
 
 // SetIcon sets field value
-func (o *ContentAudio) SetIcon(v string) {
+func (o *SectionAudioInner) SetIcon(v string) {
 	o.Icon = v
 }
 
-func (o ContentAudio) MarshalJSON() ([]byte, error) {
+func (o SectionAudioInner) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -154,7 +154,7 @@ func (o ContentAudio) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o ContentAudio) ToMap() (map[string]interface{}, error) {
+func (o SectionAudioInner) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["url"] = o.Url
 	toSerialize["duration"] = o.Duration
@@ -163,7 +163,7 @@ func (o ContentAudio) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-func (o *ContentAudio) UnmarshalJSON(data []byte) (err error) {
+func (o *SectionAudioInner) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
@@ -188,53 +188,53 @@ func (o *ContentAudio) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varContentAudio := _ContentAudio{}
+	varSectionAudioInner := _SectionAudioInner{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varContentAudio)
+	err = decoder.Decode(&varSectionAudioInner)
 
 	if err != nil {
 		return err
 	}
 
-	*o = ContentAudio(varContentAudio)
+	*o = SectionAudioInner(varSectionAudioInner)
 
 	return err
 }
 
-type NullableContentAudio struct {
-	value *ContentAudio
+type NullableSectionAudioInner struct {
+	value *SectionAudioInner
 	isSet bool
 }
 
-func (v NullableContentAudio) Get() *ContentAudio {
+func (v NullableSectionAudioInner) Get() *SectionAudioInner {
 	return v.value
 }
 
-func (v *NullableContentAudio) Set(val *ContentAudio) {
+func (v *NullableSectionAudioInner) Set(val *SectionAudioInner) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableContentAudio) IsSet() bool {
+func (v NullableSectionAudioInner) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableContentAudio) Unset() {
+func (v *NullableSectionAudioInner) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableContentAudio(val *ContentAudio) *NullableContentAudio {
-	return &NullableContentAudio{value: val, isSet: true}
+func NewNullableSectionAudioInner(val *SectionAudioInner) *NullableSectionAudioInner {
+	return &NullableSectionAudioInner{value: val, isSet: true}
 }
 
-func (v NullableContentAudio) MarshalJSON() ([]byte, error) {
+func (v NullableSectionAudioInner) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableContentAudio) UnmarshalJSON(src []byte) error {
+func (v *NullableSectionAudioInner) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

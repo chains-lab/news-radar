@@ -16,43 +16,42 @@ import (
 	"fmt"
 )
 
-// checks if the Content type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &Content{}
+// checks if the Section type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &Section{}
 
-// Content struct for Content
-type Content struct {
-	Id string `json:"id"`
-	Type string `json:"type"`
-	Text []ContentTextInner `json:"text,omitempty"`
-	Media *ContentMedia `json:"media,omitempty"`
-	Audio *ContentAudio `json:"audio,omitempty"`
+// Section struct for Section
+type Section struct {
+	// Unique identifier for the content in this content block. (Num in section)
+	Id int32 `json:"id"`
+	Text []SectionTextInner `json:"text,omitempty"`
+	Media []SectionMediaInner `json:"media,omitempty"`
+	Audio []SectionAudioInner `json:"audio,omitempty"`
 }
 
-type _Content Content
+type _Section Section
 
-// NewContent instantiates a new Content object
+// NewSection instantiates a new Section object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewContent(id string, type_ string) *Content {
-	this := Content{}
+func NewSection(id int32) *Section {
+	this := Section{}
 	this.Id = id
-	this.Type = type_
 	return &this
 }
 
-// NewContentWithDefaults instantiates a new Content object
+// NewSectionWithDefaults instantiates a new Section object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewContentWithDefaults() *Content {
-	this := Content{}
+func NewSectionWithDefaults() *Section {
+	this := Section{}
 	return &this
 }
 
 // GetId returns the Id field value
-func (o *Content) GetId() string {
+func (o *Section) GetId() int32 {
 	if o == nil {
-		var ret string
+		var ret int32
 		return ret
 	}
 
@@ -61,7 +60,7 @@ func (o *Content) GetId() string {
 
 // GetIdOk returns a tuple with the Id field value
 // and a boolean to check if the value has been set.
-func (o *Content) GetIdOk() (*string, bool) {
+func (o *Section) GetIdOk() (*int32, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -69,38 +68,14 @@ func (o *Content) GetIdOk() (*string, bool) {
 }
 
 // SetId sets field value
-func (o *Content) SetId(v string) {
+func (o *Section) SetId(v int32) {
 	o.Id = v
 }
 
-// GetType returns the Type field value
-func (o *Content) GetType() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.Type
-}
-
-// GetTypeOk returns a tuple with the Type field value
-// and a boolean to check if the value has been set.
-func (o *Content) GetTypeOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.Type, true
-}
-
-// SetType sets field value
-func (o *Content) SetType(v string) {
-	o.Type = v
-}
-
 // GetText returns the Text field value if set, zero value otherwise.
-func (o *Content) GetText() []ContentTextInner {
+func (o *Section) GetText() []SectionTextInner {
 	if o == nil || IsNil(o.Text) {
-		var ret []ContentTextInner
+		var ret []SectionTextInner
 		return ret
 	}
 	return o.Text
@@ -108,7 +83,7 @@ func (o *Content) GetText() []ContentTextInner {
 
 // GetTextOk returns a tuple with the Text field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Content) GetTextOk() ([]ContentTextInner, bool) {
+func (o *Section) GetTextOk() ([]SectionTextInner, bool) {
 	if o == nil || IsNil(o.Text) {
 		return nil, false
 	}
@@ -116,7 +91,7 @@ func (o *Content) GetTextOk() ([]ContentTextInner, bool) {
 }
 
 // HasText returns a boolean if a field has been set.
-func (o *Content) HasText() bool {
+func (o *Section) HasText() bool {
 	if o != nil && !IsNil(o.Text) {
 		return true
 	}
@@ -124,23 +99,23 @@ func (o *Content) HasText() bool {
 	return false
 }
 
-// SetText gets a reference to the given []ContentTextInner and assigns it to the Text field.
-func (o *Content) SetText(v []ContentTextInner) {
+// SetText gets a reference to the given []SectionTextInner and assigns it to the Text field.
+func (o *Section) SetText(v []SectionTextInner) {
 	o.Text = v
 }
 
 // GetMedia returns the Media field value if set, zero value otherwise.
-func (o *Content) GetMedia() ContentMedia {
+func (o *Section) GetMedia() []SectionMediaInner {
 	if o == nil || IsNil(o.Media) {
-		var ret ContentMedia
+		var ret []SectionMediaInner
 		return ret
 	}
-	return *o.Media
+	return o.Media
 }
 
 // GetMediaOk returns a tuple with the Media field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Content) GetMediaOk() (*ContentMedia, bool) {
+func (o *Section) GetMediaOk() ([]SectionMediaInner, bool) {
 	if o == nil || IsNil(o.Media) {
 		return nil, false
 	}
@@ -148,7 +123,7 @@ func (o *Content) GetMediaOk() (*ContentMedia, bool) {
 }
 
 // HasMedia returns a boolean if a field has been set.
-func (o *Content) HasMedia() bool {
+func (o *Section) HasMedia() bool {
 	if o != nil && !IsNil(o.Media) {
 		return true
 	}
@@ -156,23 +131,23 @@ func (o *Content) HasMedia() bool {
 	return false
 }
 
-// SetMedia gets a reference to the given ContentMedia and assigns it to the Media field.
-func (o *Content) SetMedia(v ContentMedia) {
-	o.Media = &v
+// SetMedia gets a reference to the given []SectionMediaInner and assigns it to the Media field.
+func (o *Section) SetMedia(v []SectionMediaInner) {
+	o.Media = v
 }
 
 // GetAudio returns the Audio field value if set, zero value otherwise.
-func (o *Content) GetAudio() ContentAudio {
+func (o *Section) GetAudio() []SectionAudioInner {
 	if o == nil || IsNil(o.Audio) {
-		var ret ContentAudio
+		var ret []SectionAudioInner
 		return ret
 	}
-	return *o.Audio
+	return o.Audio
 }
 
 // GetAudioOk returns a tuple with the Audio field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *Content) GetAudioOk() (*ContentAudio, bool) {
+func (o *Section) GetAudioOk() ([]SectionAudioInner, bool) {
 	if o == nil || IsNil(o.Audio) {
 		return nil, false
 	}
@@ -180,7 +155,7 @@ func (o *Content) GetAudioOk() (*ContentAudio, bool) {
 }
 
 // HasAudio returns a boolean if a field has been set.
-func (o *Content) HasAudio() bool {
+func (o *Section) HasAudio() bool {
 	if o != nil && !IsNil(o.Audio) {
 		return true
 	}
@@ -188,12 +163,12 @@ func (o *Content) HasAudio() bool {
 	return false
 }
 
-// SetAudio gets a reference to the given ContentAudio and assigns it to the Audio field.
-func (o *Content) SetAudio(v ContentAudio) {
-	o.Audio = &v
+// SetAudio gets a reference to the given []SectionAudioInner and assigns it to the Audio field.
+func (o *Section) SetAudio(v []SectionAudioInner) {
+	o.Audio = v
 }
 
-func (o Content) MarshalJSON() ([]byte, error) {
+func (o Section) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -201,10 +176,9 @@ func (o Content) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o Content) ToMap() (map[string]interface{}, error) {
+func (o Section) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["id"] = o.Id
-	toSerialize["type"] = o.Type
 	if !IsNil(o.Text) {
 		toSerialize["text"] = o.Text
 	}
@@ -217,13 +191,12 @@ func (o Content) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-func (o *Content) UnmarshalJSON(data []byte) (err error) {
+func (o *Section) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
 		"id",
-		"type",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -240,53 +213,53 @@ func (o *Content) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varContent := _Content{}
+	varSection := _Section{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varContent)
+	err = decoder.Decode(&varSection)
 
 	if err != nil {
 		return err
 	}
 
-	*o = Content(varContent)
+	*o = Section(varSection)
 
 	return err
 }
 
-type NullableContent struct {
-	value *Content
+type NullableSection struct {
+	value *Section
 	isSet bool
 }
 
-func (v NullableContent) Get() *Content {
+func (v NullableSection) Get() *Section {
 	return v.value
 }
 
-func (v *NullableContent) Set(val *Content) {
+func (v *NullableSection) Set(val *Section) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableContent) IsSet() bool {
+func (v NullableSection) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableContent) Unset() {
+func (v *NullableSection) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableContent(val *Content) *NullableContent {
-	return &NullableContent{value: val, isSet: true}
+func NewNullableSection(val *Section) *NullableSection {
+	return &NullableSection{value: val, isSet: true}
 }
 
-func (v NullableContent) MarshalJSON() ([]byte, error) {
+func (v NullableSection) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableContent) UnmarshalJSON(src []byte) error {
+func (v *NullableSection) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

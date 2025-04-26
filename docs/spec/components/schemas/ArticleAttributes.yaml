@@ -23,7 +23,7 @@ properties:
   content:
     type: array
     items:
-      $ref: './Content.yaml'
+      $ref: './Section.yaml'
   published_at:
     type: string
     format: date-time

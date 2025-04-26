@@ -1,0 +1,57 @@
+type: object
+required:
+  - id
+  - type
+properties:
+  id:
+    type: integer
+    description: Unique identifier for the content in this content block. (Num in section)
+  text:
+    type: array
+    items:
+      type: object
+      properties:
+        text:
+          type: string
+  media:
+    type: array
+    items:
+      type: object
+      required:
+          - url
+          - caption
+          - alt
+          - width
+          - height
+          - source
+      properties:
+        url:
+          type: string
+        caption:
+          type: string
+        alt:
+          type: string
+        width:
+          type: integer
+        height:
+          type: integer
+        source:
+          type: string
+  audio:
+    type: array
+    items:
+      type: object
+      required:
+          - url
+          - caption
+          - duration
+          - icon
+      properties:
+        url:
+          type: string
+        duration:
+          type: integer
+        caption:
+          type: string
+        icon:
+          type: string

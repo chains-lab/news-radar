@@ -63,7 +63,7 @@ components:
           type: string
         content:
           items:
-            $ref: '#/components/schemas/Content'
+            $ref: '#/components/schemas/Section'
           type: array
         published_at:
           description: Published at
@@ -239,37 +239,62 @@ components:
       required:
       - data
       type: object
-    Content:
+    Section:
       properties:
         id:
-          type: string
-        type:
-          type: string
+          description: Unique identifier for the content in this content block. (Num
+            in section)
+          type: integer
         text:
           items:
-            $ref: '#/components/schemas/Content_text_inner'
+            $ref: '#/components/schemas/Section_text_inner'
           type: array
         media:
-          $ref: '#/components/schemas/Content_media'
+          items:
+            $ref: '#/components/schemas/Section_media_inner'
+          type: array
         audio:
-          $ref: '#/components/schemas/Content_audio'
+          items:
+            $ref: '#/components/schemas/Section_audio_inner'
+          type: array
       required:
       - id
       - type
       type: object
-    UpdateContent:
+    UpdateContentSection:
       properties:
-        data:
-          $ref: '#/components/schemas/UpdateContent_data'
+        type:
+          enum:
+          - update_content_section
+          type: string
+        section:
+          $ref: '#/components/schemas/Section'
       required:
-      - data
+      - section
+      - type
       type: object
-    UpdateContentResponse:
+    UpdateContentSectionResponse:
       properties:
-        data:
-          $ref: '#/components/schemas/UpdateContentResponse_data'
+        status:
+          description: The status of the content update operation.
+          enum:
+          - success
+          - error
+          type: string
+        message:
+          description: A message providing additional information about the operation.
+          type: string
+        type:
+          enum:
+          - content_update_section
+          type: string
+        section:
+          $ref: '#/components/schemas/Section'
       required:
-      - data
+      - message
+      - section
+      - status
+      - type
       type: object
     Tag:
       properties:
@@ -641,20 +666,12 @@ components:
       - id
       - type
       type: object
-    Content_text_inner:
+    Section_text_inner:
       properties:
         text:
           type: string
-        marks:
-          items:
-            type: string
-          type: array
-        color:
-          type: string
-        link:
-          type: string
       type: object
-    Content_media:
+    Section_media_inner:
       properties:
         url:
           type: string
@@ -676,7 +693,7 @@ components:
       - url
       - width
       type: object
-    Content_audio:
+    Section_audio_inner:
       properties:
         url:
           type: string
@@ -691,69 +708,6 @@ components:
       - duration
       - icon
       - url
-      type: object
-    UpdateContent_data_attributes:
-      properties:
-        sectionID:
-          description: The ID of the section to be updated.
-          type: integer
-        action:
-          description: The action to be performed on the content.
-          enum:
-          - add
-          - remove
-          - update
-          type: string
-        content:
-          $ref: '#/components/schemas/Content'
-      required:
-      - action
-      - content
-      - sectionID
-      type: object
-    UpdateContent_data:
-      properties:
-        type:
-          enum:
-          - article_content_update
-          type: string
-        attributes:
-          $ref: '#/components/schemas/UpdateContent_data_attributes'
-      required:
-      - attributes
-      - type
-      type: object
-    UpdateContentResponse_data_attributes:
-      properties:
-        status:
-          description: The status of the content update operation.
-          enum:
-          - success
-          - error
-          type: string
-        message:
-          description: A message providing additional information about the operation.
-          type: string
-        section_number:
-          type: integer
-        content:
-          $ref: '#/components/schemas/Content'
-      required:
-      - message
-      - section_number
-      - status
-      type: object
-    UpdateContentResponse_data:
-      properties:
-        type:
-          enum:
-          - article_content_update_response
-          type: string
-        attributes:
-          $ref: '#/components/schemas/UpdateContentResponse_data_attributes'
-      required:
-      - attributes
-      - type
       type: object
     CreateTag_data_attributes:
       properties:

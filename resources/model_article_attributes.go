@@ -30,7 +30,7 @@ type ArticleAttributes struct {
 	Icon *string `json:"icon,omitempty"`
 	// Article description
 	Desc *string `json:"desc,omitempty"`
-	Content []Content `json:"content,omitempty"`
+	Content []Section `json:"content,omitempty"`
 	// Published at
 	PublishedAt *time.Time `json:"published_at,omitempty"`
 	// Updated at
@@ -174,9 +174,9 @@ func (o *ArticleAttributes) SetDesc(v string) {
 }
 
 // GetContent returns the Content field value if set, zero value otherwise.
-func (o *ArticleAttributes) GetContent() []Content {
+func (o *ArticleAttributes) GetContent() []Section {
 	if o == nil || IsNil(o.Content) {
-		var ret []Content
+		var ret []Section
 		return ret
 	}
 	return o.Content
@@ -184,7 +184,7 @@ func (o *ArticleAttributes) GetContent() []Content {
 
 // GetContentOk returns a tuple with the Content field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *ArticleAttributes) GetContentOk() ([]Content, bool) {
+func (o *ArticleAttributes) GetContentOk() ([]Section, bool) {
 	if o == nil || IsNil(o.Content) {
 		return nil, false
 	}
@@ -200,8 +200,8 @@ func (o *ArticleAttributes) HasContent() bool {
 	return false
 }
 
-// SetContent gets a reference to the given []Content and assigns it to the Content field.
-func (o *ArticleAttributes) SetContent(v []Content) {
+// SetContent gets a reference to the given []Section and assigns it to the Content field.
+func (o *ArticleAttributes) SetContent(v []Section) {
 	o.Content = v
 }
 

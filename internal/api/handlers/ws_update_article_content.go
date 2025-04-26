@@ -11,6 +11,7 @@ import (
 	"github.com/hs-zavet/news-radar/internal/api/responses"
 )
 
+//TODO make in mongo content non struct doc
 func (h *Handler) ArticleContentWS(w http.ResponseWriter, r *http.Request) {
 	articleID, err := uuid.Parse(chi.URLParam(r, "article_id"))
 	if err != nil {
@@ -62,7 +63,7 @@ func (h *Handler) ArticleContentWS(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		section, err := requests.UpdateSection(wsMsg.Data.Attributes.Content)
+		section, err := requests.UpdateSection(wsMsg.Section)
 		if err != nil {
 			h.log.WithError(err).Warn("failed to build section")
 			err := conn.WriteJSON(responses.ArticleContentUpdate("error", "Invalid section payload", nil))
@@ -75,7 +76,7 @@ func (h *Handler) ArticleContentWS(w http.ResponseWriter, r *http.Request) {
 		article, err := h.app.UpdateArticleContent(
 			r.Context(),
 			articleID,
-			int(wsMsg.Data.Attributes.SectionID),
+			int(wsMsg.Section.Id),
 			section,
 		)
 		if err != nil {
@@ -87,7 +88,7 @@ func (h *Handler) ArticleContentWS(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		err = conn.WriteJSON(responses.ArticleContentUpdate("success", "Content updated", &article.Content[int(wsMsg.Data.Attributes.SectionID)]))
+		err = conn.WriteJSON(responses.ArticleContentUpdate("success", "Content updated", &article.Content[int(wsMsg.Section.Id)]))
 		if err != nil {
 			return
 		}

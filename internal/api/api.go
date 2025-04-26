@@ -57,10 +57,9 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 					r.With(admin).Delete("/", a.handlers.DeleteArticle)
 					r.With(admin).Put("/", a.handlers.UpdateArticle)
 
-					//Todo websocket
-					//r.Route("/ws", func(r chi.Router) {
-					//	r.Get("/content", a.handlers.ArticleContentWS)
-					//})
+					r.Route("/ws", func(r chi.Router) {
+						r.Get("/content", a.handlers.ArticleContentWS)
+					})
 
 					r.Route("/tags", func(r chi.Router) {
 						r.With(auth).Put("/", a.handlers.SetHashTags)

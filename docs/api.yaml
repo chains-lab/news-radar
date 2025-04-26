@@ -53,12 +53,12 @@ components:
     SetAuthorship:
       $ref: './spec/components/schemas/SetAuthorship.yaml'
 
-    Content:
-      $ref: './spec/components/schemas/Content.yaml'
-    UpdateContent:
-      $ref: './spec/components/schemas/UpdateContent.yaml'
-    UpdateContentResponse:
-      $ref: './spec/components/schemas/UpdateContentResponse.yaml'
+    Section:
+      $ref: './spec/components/schemas/Section.yaml'
+    UpdateContentSection:
+      $ref: './spec/components/schemas/UpdateContentSection.yaml'
+    UpdateContentSectionResponse:
+      $ref: './spec/components/schemas/UpdateContentSectionResponse.yaml'
 
     Tag:
       $ref: './spec/components/schemas/Tag.yaml'

@@ -1,62 +1,51 @@
 package requests
 
 import (
-	"fmt"
-
 	"github.com/hs-zavet/news-radar/internal/content"
-	"github.com/hs-zavet/news-radar/internal/enums"
 	"github.com/hs-zavet/news-radar/resources"
 )
 
-func UpdateSection(res resources.Content) (content.Section, error) {
-	secType, ok := enums.SectionTypeParse(res.Type)
-	if !ok {
-		return content.Section{}, fmt.Errorf("invalid section type: %q", res.Type)
-	}
-
+func UpdateSection(section resources.Section) (content.Section, error) {
 	sec := content.Section{
-		ID:   res.Id,
-		Type: secType,
+		ID: int(section.Id),
 	}
 
-	// Маппинг медиа (image/video)
-	if res.Media != nil {
-		sec.Media = &content.Media{
-			URL:     res.Media.Url,
-			Caption: res.Media.Caption,
-			Alt:     res.Media.Alt,
-			Width:   int(res.Media.Width),
-			Height:  int(res.Media.Height),
-			Source:  res.Media.Source,
+	if section.Audio != nil {
+		audio := make([]resources.SectionAudioInner, 0)
+		for _, a := range section.Audio {
+			audio = append(audio, resources.SectionAudioInner{
+				Url:      a.Url,
+				Duration: a.Duration,
+				Caption:  a.Caption,
+				Icon:     a.Icon,
+			})
 		}
 	}
 
-	// Маппинг аудио
-	if res.Audio != nil {
-		sec.Audio = &content.Audio{
-			URL:      res.Audio.Url,
-			Duration: int(res.Audio.Duration),
-			Caption:  res.Audio.Caption,
-			Icon:     res.Audio.Icon,
+	if section.Text != nil {
+		text := make([]resources.SectionTextInner, 0)
+		for _, t := range section.Text {
+			text = append(text, resources.SectionTextInner{
+				Text: t.Text,
+			})
 		}
+		section.Text = text
 	}
 
-	// Маппинг текстовых блоков
-	for _, ti := range res.Text {
-		var marks []enums.TextMark
-		for _, m := range ti.Marks {
-			mark, ok := enums.TextMarkParse(m)
-			if !ok {
-				return content.Section{}, fmt.Errorf("invalid text mark: %q", m)
-			}
-			marks = append(marks, mark)
-		}
-
+	for _, ti := range section.Text {
 		sec.Text = append(sec.Text, content.TextBlock{
-			Text:  ti.Text,
-			Marks: marks,
-			Color: ti.Color,
-			Link:  ti.Link,
+			Text: *ti.Text,
+		})
+	}
+
+	for _, m := range section.Media {
+		sec.Media = append(sec.Media, content.Media{
+			URL:     m.Url,
+			Caption: m.Caption,
+			Alt:     m.Alt,
+			Width:   int(m.Width),
+			Height:  int(m.Height),
+			Source:  m.Source,
 		})
 	}
 

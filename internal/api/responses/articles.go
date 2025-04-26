@@ -6,7 +6,7 @@ import (
 )
 
 func Article(article models.Article, tags []models.Tag, authors []models.Author) resources.Article {
-	content := make([]resources.Content, 0)
+	content := make([]resources.Section, 0)
 	if article.Content != nil {
 		for _, c := range article.Content {
 			content = append(content, Content(c))
