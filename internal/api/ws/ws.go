@@ -1,12 +1,15 @@
-package handlers
+package ws
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 	"github.com/hs-zavet/news-radar/internal/app"
 	"github.com/hs-zavet/news-radar/internal/app/models"
 	"github.com/hs-zavet/news-radar/internal/config"
+	"github.com/hs-zavet/news-radar/internal/content"
 	"github.com/sirupsen/logrus"
 )
 
@@ -29,6 +32,9 @@ type App interface {
 	DeleteArticleAuthor(ctx context.Context, articleID uuid.UUID, authorID uuid.UUID) error
 	CleanArticleAuthors(ctx context.Context, articleID uuid.UUID) error
 
+	UpdateContentSection(ctx context.Context, articleID uuid.UUID, section content.Section) (models.Article, error)
+	DeleteContentSection(ctx context.Context, articleID uuid.UUID, sectionID int) (models.Article, error)
+
 	CreateTag(ctx context.Context, request app.CreateTagRequest) (models.Tag, error)
 	DeleteTag(ctx context.Context, id string) error
 	UpdateTag(ctx context.Context, id string, request app.UpdateTagRequest) (models.Tag, error)
@@ -43,16 +49,26 @@ type App interface {
 	TopicSearch(ctx context.Context, tag string, start, limit int) ([]models.Article, error)
 }
 
-type Handler struct {
-	app App
-	cfg config.Config
-	log *logrus.Entry
+type WebSocket struct {
+	app      App
+	cfg      config.Config
+	log      *logrus.Entry
+	upgrader websocket.Upgrader
 }
 
-func NewHandlers(cfg config.Config, log *logrus.Entry, app *app.App) Handler {
-	return Handler{
-		app: app,
-		cfg: cfg,
-		log: log,
+func NewWebSocket(cfg config.Config, log *logrus.Entry, app *app.App) WebSocket {
+	var upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			//allowedOrigin := "https://example.com"
+			//return r.Header.GetTag("Origin") == allowedOrigin
+			return true
+		},
+	}
+
+	return WebSocket{
+		app:      app,
+		cfg:      cfg,
+		log:      log,
+		upgrader: upgrader,
 	}
 }

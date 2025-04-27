@@ -16,44 +16,47 @@ import (
 	"fmt"
 )
 
-// checks if the UpdateContentSectionResponse type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &UpdateContentSectionResponse{}
+// checks if the ContentSectionResponse type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &ContentSectionResponse{}
 
-// UpdateContentSectionResponse struct for UpdateContentSectionResponse
-type UpdateContentSectionResponse struct {
+// ContentSectionResponse struct for ContentSectionResponse
+type ContentSectionResponse struct {
 	// The status of the content update operation.
 	Status string `json:"status"`
+	// A code representing the result of the operation.
+	Code int32 `json:"code"`
 	// A message providing additional information about the operation.
 	Message string `json:"message"`
 	Type string `json:"type"`
 	Section Section `json:"section"`
 }
 
-type _UpdateContentSectionResponse UpdateContentSectionResponse
+type _ContentSectionResponse ContentSectionResponse
 
-// NewUpdateContentSectionResponse instantiates a new UpdateContentSectionResponse object
+// NewContentSectionResponse instantiates a new ContentSectionResponse object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewUpdateContentSectionResponse(status string, message string, type_ string, section Section) *UpdateContentSectionResponse {
-	this := UpdateContentSectionResponse{}
+func NewContentSectionResponse(status string, code int32, message string, type_ string, section Section) *ContentSectionResponse {
+	this := ContentSectionResponse{}
 	this.Status = status
+	this.Code = code
 	this.Message = message
 	this.Type = type_
 	this.Section = section
 	return &this
 }
 
-// NewUpdateContentSectionResponseWithDefaults instantiates a new UpdateContentSectionResponse object
+// NewContentSectionResponseWithDefaults instantiates a new ContentSectionResponse object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewUpdateContentSectionResponseWithDefaults() *UpdateContentSectionResponse {
-	this := UpdateContentSectionResponse{}
+func NewContentSectionResponseWithDefaults() *ContentSectionResponse {
+	this := ContentSectionResponse{}
 	return &this
 }
 
 // GetStatus returns the Status field value
-func (o *UpdateContentSectionResponse) GetStatus() string {
+func (o *ContentSectionResponse) GetStatus() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -64,7 +67,7 @@ func (o *UpdateContentSectionResponse) GetStatus() string {
 
 // GetStatusOk returns a tuple with the Status field value
 // and a boolean to check if the value has been set.
-func (o *UpdateContentSectionResponse) GetStatusOk() (*string, bool) {
+func (o *ContentSectionResponse) GetStatusOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -72,12 +75,36 @@ func (o *UpdateContentSectionResponse) GetStatusOk() (*string, bool) {
 }
 
 // SetStatus sets field value
-func (o *UpdateContentSectionResponse) SetStatus(v string) {
+func (o *ContentSectionResponse) SetStatus(v string) {
 	o.Status = v
 }
 
+// GetCode returns the Code field value
+func (o *ContentSectionResponse) GetCode() int32 {
+	if o == nil {
+		var ret int32
+		return ret
+	}
+
+	return o.Code
+}
+
+// GetCodeOk returns a tuple with the Code field value
+// and a boolean to check if the value has been set.
+func (o *ContentSectionResponse) GetCodeOk() (*int32, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Code, true
+}
+
+// SetCode sets field value
+func (o *ContentSectionResponse) SetCode(v int32) {
+	o.Code = v
+}
+
 // GetMessage returns the Message field value
-func (o *UpdateContentSectionResponse) GetMessage() string {
+func (o *ContentSectionResponse) GetMessage() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -88,7 +115,7 @@ func (o *UpdateContentSectionResponse) GetMessage() string {
 
 // GetMessageOk returns a tuple with the Message field value
 // and a boolean to check if the value has been set.
-func (o *UpdateContentSectionResponse) GetMessageOk() (*string, bool) {
+func (o *ContentSectionResponse) GetMessageOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -96,12 +123,12 @@ func (o *UpdateContentSectionResponse) GetMessageOk() (*string, bool) {
 }
 
 // SetMessage sets field value
-func (o *UpdateContentSectionResponse) SetMessage(v string) {
+func (o *ContentSectionResponse) SetMessage(v string) {
 	o.Message = v
 }
 
 // GetType returns the Type field value
-func (o *UpdateContentSectionResponse) GetType() string {
+func (o *ContentSectionResponse) GetType() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -112,7 +139,7 @@ func (o *UpdateContentSectionResponse) GetType() string {
 
 // GetTypeOk returns a tuple with the Type field value
 // and a boolean to check if the value has been set.
-func (o *UpdateContentSectionResponse) GetTypeOk() (*string, bool) {
+func (o *ContentSectionResponse) GetTypeOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -120,12 +147,12 @@ func (o *UpdateContentSectionResponse) GetTypeOk() (*string, bool) {
 }
 
 // SetType sets field value
-func (o *UpdateContentSectionResponse) SetType(v string) {
+func (o *ContentSectionResponse) SetType(v string) {
 	o.Type = v
 }
 
 // GetSection returns the Section field value
-func (o *UpdateContentSectionResponse) GetSection() Section {
+func (o *ContentSectionResponse) GetSection() Section {
 	if o == nil {
 		var ret Section
 		return ret
@@ -136,7 +163,7 @@ func (o *UpdateContentSectionResponse) GetSection() Section {
 
 // GetSectionOk returns a tuple with the Section field value
 // and a boolean to check if the value has been set.
-func (o *UpdateContentSectionResponse) GetSectionOk() (*Section, bool) {
+func (o *ContentSectionResponse) GetSectionOk() (*Section, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -144,11 +171,11 @@ func (o *UpdateContentSectionResponse) GetSectionOk() (*Section, bool) {
 }
 
 // SetSection sets field value
-func (o *UpdateContentSectionResponse) SetSection(v Section) {
+func (o *ContentSectionResponse) SetSection(v Section) {
 	o.Section = v
 }
 
-func (o UpdateContentSectionResponse) MarshalJSON() ([]byte, error) {
+func (o ContentSectionResponse) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -156,21 +183,23 @@ func (o UpdateContentSectionResponse) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o UpdateContentSectionResponse) ToMap() (map[string]interface{}, error) {
+func (o ContentSectionResponse) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["status"] = o.Status
+	toSerialize["code"] = o.Code
 	toSerialize["message"] = o.Message
 	toSerialize["type"] = o.Type
 	toSerialize["section"] = o.Section
 	return toSerialize, nil
 }
 
-func (o *UpdateContentSectionResponse) UnmarshalJSON(data []byte) (err error) {
+func (o *ContentSectionResponse) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
 		"status",
+		"code",
 		"message",
 		"type",
 		"section",
@@ -190,53 +219,53 @@ func (o *UpdateContentSectionResponse) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varUpdateContentSectionResponse := _UpdateContentSectionResponse{}
+	varContentSectionResponse := _ContentSectionResponse{}
 
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	err = decoder.Decode(&varUpdateContentSectionResponse)
+	err = decoder.Decode(&varContentSectionResponse)
 
 	if err != nil {
 		return err
 	}
 
-	*o = UpdateContentSectionResponse(varUpdateContentSectionResponse)
+	*o = ContentSectionResponse(varContentSectionResponse)
 
 	return err
 }
 
-type NullableUpdateContentSectionResponse struct {
-	value *UpdateContentSectionResponse
+type NullableContentSectionResponse struct {
+	value *ContentSectionResponse
 	isSet bool
 }
 
-func (v NullableUpdateContentSectionResponse) Get() *UpdateContentSectionResponse {
+func (v NullableContentSectionResponse) Get() *ContentSectionResponse {
 	return v.value
 }
 
-func (v *NullableUpdateContentSectionResponse) Set(val *UpdateContentSectionResponse) {
+func (v *NullableContentSectionResponse) Set(val *ContentSectionResponse) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableUpdateContentSectionResponse) IsSet() bool {
+func (v NullableContentSectionResponse) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableUpdateContentSectionResponse) Unset() {
+func (v *NullableContentSectionResponse) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableUpdateContentSectionResponse(val *UpdateContentSectionResponse) *NullableUpdateContentSectionResponse {
-	return &NullableUpdateContentSectionResponse{value: val, isSet: true}
+func NewNullableContentSectionResponse(val *ContentSectionResponse) *NullableContentSectionResponse {
+	return &NullableContentSectionResponse{value: val, isSet: true}
 }
 
-func (v NullableUpdateContentSectionResponse) MarshalJSON() ([]byte, error) {
+func (v NullableContentSectionResponse) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableUpdateContentSectionResponse) UnmarshalJSON(src []byte) error {
+func (v *NullableContentSectionResponse) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

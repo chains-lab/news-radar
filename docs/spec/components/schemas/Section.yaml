@@ -6,10 +6,16 @@ properties:
   id:
     type: integer
     description: Unique identifier for the content in this content block. (Num in section)
+  type:
+    type: string
+    enum: [ text, media, audio ]
+    description: The type of content in this section.
   text:
     type: array
     items:
       type: object
+      required:
+        - text
       properties:
         text:
           type: string

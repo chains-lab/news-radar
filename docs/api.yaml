@@ -55,10 +55,13 @@ components:
 
     Section:
       $ref: './spec/components/schemas/Section.yaml'
+
+    DeleteContentSection:
+      $ref: './spec/components/schemas/WSDeleteContentSection.yaml'
     UpdateContentSection:
-      $ref: './spec/components/schemas/UpdateContentSection.yaml'
-    UpdateContentSectionResponse:
-      $ref: './spec/components/schemas/UpdateContentSectionResponse.yaml'
+      $ref: './spec/components/schemas/WSUpdateContentSection.yaml'
+    ContentSectionResponse:
+      $ref: './spec/components/schemas/WSContentSectionResponse.yaml'
 
     Tag:
       $ref: './spec/components/schemas/Tag.yaml'

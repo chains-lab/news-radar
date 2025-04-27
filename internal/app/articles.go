@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/hs-zavet/news-radar/internal/app/ape"
 	"github.com/hs-zavet/news-radar/internal/app/models"
-	"github.com/hs-zavet/news-radar/internal/content"
 	"github.com/hs-zavet/news-radar/internal/enums"
 	"github.com/hs-zavet/news-radar/internal/repo"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -105,17 +104,6 @@ func (a App) UpdateArticle(ctx context.Context, articleID uuid.UUID, request Upd
 	}
 
 	res := ArticleRepoToModels(article)
-	return res, nil
-}
-
-func (a App) UpdateArticleContent(ctx context.Context, articleID uuid.UUID, index int, section content.Section) (models.Article, error) {
-	article, err := a.articles.UpdateContent(articleID, index, section)
-	if err != nil {
-		return models.Article{}, err
-	}
-
-	res := ArticleRepoToModels(article)
-
 	return res, nil
 }
 

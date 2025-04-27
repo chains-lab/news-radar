@@ -245,6 +245,13 @@ components:
           description: Unique identifier for the content in this content block. (Num
             in section)
           type: integer
+        type:
+          description: The type of content in this section.
+          enum:
+          - text
+          - media
+          - audio
+          type: string
         text:
           items:
             $ref: '#/components/schemas/Section_text_inner'
@@ -261,11 +268,24 @@ components:
       - id
       - type
       type: object
+    DeleteContentSection:
+      properties:
+        type:
+          enum:
+          - content_update_section
+          type: string
+        section_id:
+          description: Unique identifier for the content section to be deleted.
+          type: integer
+      required:
+      - section_id
+      - type
+      type: object
     UpdateContentSection:
       properties:
         type:
           enum:
-          - update_content_section
+          - content_update_section
           type: string
         section:
           $ref: '#/components/schemas/Section'
@@ -273,7 +293,7 @@ components:
       - section
       - type
       type: object
-    UpdateContentSectionResponse:
+    ContentSectionResponse:
       properties:
         status:
           description: The status of the content update operation.
@@ -281,6 +301,9 @@ components:
           - success
           - error
           type: string
+        code:
+          description: A code representing the result of the operation.
+          type: integer
         message:
           description: A message providing additional information about the operation.
           type: string
@@ -291,6 +314,7 @@ components:
         section:
           $ref: '#/components/schemas/Section'
       required:
+      - code
       - message
       - section
       - status
@@ -670,6 +694,8 @@ components:
       properties:
         text:
           type: string
+      required:
+      - text
       type: object
     Section_media_inner:
       properties:

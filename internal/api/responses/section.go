@@ -5,7 +5,7 @@ import (
 	"github.com/hs-zavet/news-radar/resources"
 )
 
-func Content(section content.Section) resources.Section {
+func ContentSection(section content.Section) resources.Section {
 	res := resources.Section{
 		Id: int32(section.ID),
 	}
@@ -40,7 +40,7 @@ func Content(section content.Section) resources.Section {
 		text := make([]resources.SectionTextInner, 0)
 		for _, t := range section.Text {
 			text = append(text, resources.SectionTextInner{
-				Text: &t.Text,
+				Text: t.Text,
 			})
 		}
 		res.Text = text

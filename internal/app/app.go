@@ -57,7 +57,8 @@ type articlesRepo interface {
 	GetAuthors(articleID uuid.UUID) ([]uuid.UUID, error)
 	GetArticlesForAuthor(authorID uuid.UUID) ([]uuid.UUID, error)
 
-	UpdateContent(ID uuid.UUID, index int, section content.Section) (repo.ArticleModel, error)
+	UpdateContentSection(ID uuid.UUID, section content.Section) error
+	DeleteContentSection(ID uuid.UUID, sectionID int) error
 
 	GetByID(ID uuid.UUID) (repo.ArticleModel, error)
 

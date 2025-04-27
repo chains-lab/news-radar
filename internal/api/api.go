@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hs-zavet/news-radar/internal/api/handlers"
+	"github.com/hs-zavet/news-radar/internal/api/ws"
 	"github.com/hs-zavet/news-radar/internal/app"
 	"github.com/hs-zavet/news-radar/internal/config"
 	"github.com/hs-zavet/tokens"
@@ -15,9 +16,10 @@ import (
 )
 
 type Api struct {
-	server   *http.Server
-	router   *chi.Mux
-	handlers handlers.Handler
+	server     *http.Server
+	router     *chi.Mux
+	handlers   handlers.Handler
+	websockets ws.WebSocket
 
 	log *logrus.Entry
 	cfg config.Config
@@ -32,13 +34,16 @@ func NewAPI(cfg config.Config, log *logrus.Logger, app *app.App) Api {
 	}
 
 	hands := handlers.NewHandlers(cfg, logger, app)
+	websocket := ws.NewWebSocket(cfg, logger, app)
 
 	return Api{
-		handlers: hands,
-		router:   router,
-		server:   server,
-		log:      logger,
-		cfg:      cfg,
+		server:     server,
+		router:     router,
+		handlers:   hands,
+		websockets: websocket,
+
+		log: logger,
+		cfg: cfg,
 	}
 }
 
@@ -58,7 +63,7 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 					r.With(admin).Put("/", a.handlers.UpdateArticle)
 
 					r.Route("/ws", func(r chi.Router) {
-						r.Get("/content", a.handlers.ArticleContentWS)
+						r.Get("/content", a.websockets.ArticleContentWS)
 					})
 
 					r.Route("/tags", func(r chi.Router) {

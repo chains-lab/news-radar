@@ -5,6 +5,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **Id** | **int32** | Unique identifier for the content in this content block. (Num in section) | 
+**Type** | **string** | The type of content in this section. | 
 **Text** | Pointer to [**[]SectionTextInner**](SectionTextInner.md) |  | [optional] 
 **Media** | Pointer to [**[]SectionMediaInner**](SectionMediaInner.md) |  | [optional] 
 **Audio** | Pointer to [**[]SectionAudioInner**](SectionAudioInner.md) |  | [optional] 
@@ -13,7 +14,7 @@ Name | Type | Description | Notes
 
 ### NewSection
 
-`func NewSection(id int32, ) *Section`
+`func NewSection(id int32, type_ string, ) *Section`
 
 NewSection instantiates a new Section object
 This constructor will assign default values to properties that have it defined,
@@ -46,6 +47,26 @@ and a boolean to check if the value has been set.
 `func (o *Section) SetId(v int32)`
 
 SetId sets Id field to given value.
+
+
+### GetType
+
+`func (o *Section) GetType() string`
+
+GetType returns the Type field if non-nil, zero value otherwise.
+
+### GetTypeOk
+
+`func (o *Section) GetTypeOk() (*string, bool)`
+
+GetTypeOk returns a tuple with the Type field if it's non-nil, zero value otherwise
+and a boolean to check if the value has been set.
+
+### SetType
+
+`func (o *Section) SetType(v string)`
+
+SetType sets Type field to given value.
 
 
 ### GetText

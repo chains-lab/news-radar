@@ -23,6 +23,8 @@ var _ MappedNullable = &Section{}
 type Section struct {
 	// Unique identifier for the content in this content block. (Num in section)
 	Id int32 `json:"id"`
+	// The type of content in this section.
+	Type string `json:"type"`
 	Text []SectionTextInner `json:"text,omitempty"`
 	Media []SectionMediaInner `json:"media,omitempty"`
 	Audio []SectionAudioInner `json:"audio,omitempty"`
@@ -34,9 +36,10 @@ type _Section Section
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewSection(id int32) *Section {
+func NewSection(id int32, type_ string) *Section {
 	this := Section{}
 	this.Id = id
+	this.Type = type_
 	return &this
 }
 
@@ -70,6 +73,30 @@ func (o *Section) GetIdOk() (*int32, bool) {
 // SetId sets field value
 func (o *Section) SetId(v int32) {
 	o.Id = v
+}
+
+// GetType returns the Type field value
+func (o *Section) GetType() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Type
+}
+
+// GetTypeOk returns a tuple with the Type field value
+// and a boolean to check if the value has been set.
+func (o *Section) GetTypeOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Type, true
+}
+
+// SetType sets field value
+func (o *Section) SetType(v string) {
+	o.Type = v
 }
 
 // GetText returns the Text field value if set, zero value otherwise.
@@ -179,6 +206,7 @@ func (o Section) MarshalJSON() ([]byte, error) {
 func (o Section) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["id"] = o.Id
+	toSerialize["type"] = o.Type
 	if !IsNil(o.Text) {
 		toSerialize["text"] = o.Text
 	}
@@ -197,6 +225,7 @@ func (o *Section) UnmarshalJSON(data []byte) (err error) {
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
 		"id",
+		"type",
 	}
 
 	allProperties := make(map[string]interface{})

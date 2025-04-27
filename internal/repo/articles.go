@@ -2,7 +2,6 @@ package repo
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -44,7 +43,16 @@ type articlesMongoQ interface {
 	FilterStatus(status enums.ArticleStatus) *mongodb.ArticlesQ
 
 	Update(ctx context.Context, input mongodb.ArticleUpdateInput) (mongodb.ArticleModel, error)
-	UpdateContent(ctx context.Context, index int, section content.Section, updatedAt time.Time) (mongodb.ArticleModel, error)
+	DeleteContentSection(
+		ctx context.Context,
+		index int,
+		updatedAt time.Time,
+	) error
+	UpdateContentSection(
+		ctx context.Context,
+		section content.Section,
+		updatedAt time.Time,
+	) error
 
 	Limit(limit int64) *mongodb.ArticlesQ
 	Skip(skip int64) *mongodb.ArticlesQ
@@ -117,7 +125,7 @@ func (a *ArticlesRepo) Create(input ArticleCreateInput) (ArticleModel, error) {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
-	mongoTag, err := a.mongo.New().Insert(ctxSync, mongodb.ArticleInsertInput{
+	mongo, err := a.mongo.New().Insert(ctxSync, mongodb.ArticleInsertInput{
 		ID:        input.ID,
 		Status:    input.Status,
 		Title:     input.Title,
@@ -135,15 +143,7 @@ func (a *ArticlesRepo) Create(input ArticleCreateInput) (ArticleModel, error) {
 		return ArticleModel{}, err
 	}
 
-	return ArticleModel{
-		ID:        mongoTag.ID,
-		Status:    mongoTag.Status,
-		Title:     mongoTag.Title,
-		Icon:      mongoTag.Icon,
-		Desc:      mongoTag.Desc,
-		Content:   mongoTag.Content,
-		CreatedAt: mongoTag.CreatedAt,
-	}, nil
+	return articleMongoToRepo(mongo), nil
 }
 
 type ArticleUpdateInput struct {
@@ -195,40 +195,21 @@ func (a *ArticlesRepo) Update(ID uuid.UUID, input ArticleUpdateInput) (ArticleMo
 		return ArticleModel{}, err
 	}
 
-	return ArticleModel{
-		ID:          mongo.ID,
-		Status:      mongo.Status,
-		Title:       mongo.Title,
-		Icon:        mongo.Icon,
-		Desc:        mongo.Desc,
-		Content:     mongo.Content,
-		PublishedAt: mongo.PublishedAt,
-		UpdatedAt:   mongo.UpdatedAt,
-		CreatedAt:   mongo.CreatedAt,
-	}, nil
+	return articleMongoToRepo(mongo), nil
 }
 
-func (a *ArticlesRepo) UpdateContent(ID uuid.UUID, index int, section content.Section) (ArticleModel, error) {
+func (a *ArticlesRepo) DeleteContentSection(ID uuid.UUID, sectionID int) error {
 	ctxSync, cancel := context.WithTimeout(context.Background(), dataCtxTimeAisle)
 	defer cancel()
 
 	updatedAt := time.Now().UTC()
 
-	res, err := a.mongo.FilterID(ID).UpdateContent(ctxSync, index, section, updatedAt)
+	err := a.mongo.New().FilterID(ID).DeleteContentSection(ctxSync, sectionID, updatedAt)
 	if err != nil {
-		return ArticleModel{}, err
+		return err
 	}
 
-	return ArticleModel{
-		ID:        res.ID,
-		Status:    res.Status,
-		Title:     res.Title,
-		Icon:      res.Icon,
-		Desc:      res.Desc,
-		Content:   res.Content,
-		UpdatedAt: res.UpdatedAt,
-		CreatedAt: res.CreatedAt,
-	}, nil
+	return nil
 }
 
 func (a *ArticlesRepo) Delete(ID uuid.UUID) error {
@@ -257,15 +238,7 @@ func (a *ArticlesRepo) GetByID(ID uuid.UUID) (ArticleModel, error) {
 		return ArticleModel{}, err
 	}
 
-	neoRes, err := a.neo.GetByID(ctxSync, ID)
-	if err != nil {
-		return ArticleModel{}, err
-	}
-
-	res, err := CreateArticleModel(mongoRes, neoRes)
-	if err != nil {
-		return ArticleModel{}, err
-	}
+	res := articleMongoToRepo(mongoRes)
 
 	return res, nil
 }
@@ -290,10 +263,7 @@ func (a *ArticlesRepo) RecommendByTopic(
 			return nil, err
 		}
 
-		model, err := CreateArticleModel(mongoRes, item)
-		if err != nil {
-			return nil, err
-		}
+		model := articleMongoToRepo(mongoRes)
 
 		articles = append(articles, model)
 	}
@@ -321,10 +291,7 @@ func (a *ArticlesRepo) TopicSearch(
 			return nil, err
 		}
 
-		model, err := CreateArticleModel(mongoRes, item)
-		if err != nil {
-			return nil, err
-		}
+		model := articleMongoToRepo(mongoRes)
 
 		articles = append(articles, model)
 	}
@@ -332,20 +299,33 @@ func (a *ArticlesRepo) TopicSearch(
 	return articles, nil
 }
 
-func CreateArticleModel(mongo mongodb.ArticleModel, neo neodb.ArticleModel) (ArticleModel, error) {
-	if mongo.ID != neo.ID {
-		return ArticleModel{}, fmt.Errorf("mongo and neo IDs do not match")
+func articleMongoToRepo(mongo mongodb.ArticleModel) ArticleModel {
+	res := ArticleModel{
+		ID:        mongo.ID,
+		Status:    mongo.Status,
+		Title:     mongo.Title,
+		CreatedAt: mongo.CreatedAt,
 	}
 
-	return ArticleModel{
-		ID:          neo.ID,
-		Title:       mongo.Title,
-		Icon:        mongo.Icon,
-		Desc:        mongo.Desc,
-		Content:     mongo.Content,
-		Status:      neo.Status,
-		PublishedAt: neo.PublishedAt,
-		UpdatedAt:   mongo.UpdatedAt,
-		CreatedAt:   mongo.CreatedAt,
-	}, nil
+	if mongo.Icon != nil {
+		res.Icon = mongo.Icon
+	}
+
+	if mongo.Desc != nil {
+		res.Desc = mongo.Desc
+	}
+
+	if mongo.PublishedAt != nil {
+		res.PublishedAt = mongo.PublishedAt
+	}
+
+	if mongo.UpdatedAt != nil {
+		res.UpdatedAt = mongo.UpdatedAt
+	}
+
+	if mongo.Content != nil {
+		res.Content = mongo.Content
+	}
+
+	return res
 }

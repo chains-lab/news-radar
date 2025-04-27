@@ -223,14 +223,14 @@ func TestUpdateContent(t *testing.T) {
 	created := time.Now().UTC()
 	// вставляем начальный документ
 	if err := aq.Insert(ctx, ArticleInsertInput{ID: id, Title: "C", CreatedAt: created}); err != nil {
-		t.Fatalf("Insert for UpdateContent failed: %v", err)
+		t.Fatalf("Insert for UpdateContentSection failed: %v", err)
 	}
 	aqt := aq.New().FilterID(id)
 
 	// 1. Добавление текстовой секции
 	tb := content.TextBlock{Text: ptrString("Hello"), Marks: nil, Color: nil, Link: nil}
 	secText := content.Section{ID: "sec1", Type: enums.SectionTypeText, Text: []content.TextBlock{tb}}
-	art1, err := aqt.UpdateContent(ctx, 0, secText, time.Now().UTC())
+	art1, err := aqt.UpdateContentSection(ctx, 0, secText, time.Now().UTC())
 	if err != nil {
 		t.Fatalf("Add text section failed: %v", err)
 	}
@@ -240,8 +240,8 @@ func TestUpdateContent(t *testing.T) {
 
 	// 2. Обновление на медиа секцию
 	media := &content.Media{URL: "u", Caption: "c", Alt: "a", Width: 1, Height: 2, Source: "s"}
-	secMedia := content.Section{ID: "sec1", Type: enums.SectionTypeImage, Media: media}
-	art2, err := aqt.UpdateContent(ctx, 0, secMedia, time.Now().UTC())
+	secMedia := content.Section{ID: "sec1", Type: enums.SectionTypeMedia, Media: media}
+	art2, err := aqt.UpdateContentSection(ctx, 0, secMedia, time.Now().UTC())
 	if err != nil {
 		t.Fatalf("Update media section failed: %v", err)
 	}
@@ -252,7 +252,7 @@ func TestUpdateContent(t *testing.T) {
 	// 3. Добавление аудио секции в конец
 	audio := &content.Audio{URL: "au", Duration: 3, Caption: "cap", Icon: "ic"}
 	secAudio := content.Section{ID: "sec2", Type: enums.SectionTypeAudio, Audio: audio}
-	art3, err := aqt.UpdateContent(ctx, 1, secAudio, time.Now().UTC())
+	art3, err := aqt.UpdateContentSection(ctx, 1, secAudio, time.Now().UTC())
 	if err != nil {
 		t.Fatalf("Append audio section failed: %v", err)
 	}
@@ -262,7 +262,7 @@ func TestUpdateContent(t *testing.T) {
 
 	// 4. Удаление секции по индексу
 	empty := content.Section{}
-	art4, err := aqt.UpdateContent(ctx, 0, empty, time.Now().UTC())
+	art4, err := aqt.UpdateContentSection(ctx, 0, empty, time.Now().UTC())
 	if err != nil {
 		t.Fatalf("Remove section failed: %v", err)
 	}
@@ -273,7 +273,7 @@ func TestUpdateContent(t *testing.T) {
 	// 5. No-op для выхода за пределы: меняется только UpdatedAt
 	prev := art4.UpdatedAt
 	time.Sleep(1 * time.Millisecond)
-	art5, err := aqt.UpdateContent(ctx, 5, empty, time.Now().UTC())
+	art5, err := aqt.UpdateContentSection(ctx, 5, empty, time.Now().UTC())
 	if err != nil {
 		t.Fatalf("No-op section failed: %v", err)
 	}
