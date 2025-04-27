@@ -2,6 +2,7 @@ package responses
 
 import (
 	"github.com/hs-zavet/news-radar/internal/content"
+	"github.com/hs-zavet/news-radar/internal/enums"
 	"github.com/hs-zavet/news-radar/resources"
 )
 
@@ -22,6 +23,8 @@ func ContentSection(section content.Section) resources.Section {
 				Source:  m.Source,
 			})
 		}
+		res.Media = media
+		res.Type = string(enums.SectionTypeMedia)
 	}
 
 	if section.Audio != nil {
@@ -34,6 +37,8 @@ func ContentSection(section content.Section) resources.Section {
 				Icon:     a.Icon,
 			})
 		}
+		res.Audio = audio
+		res.Type = string(enums.SectionTypeAudio)
 	}
 
 	if section.Text != nil {
@@ -44,6 +49,7 @@ func ContentSection(section content.Section) resources.Section {
 			})
 		}
 		res.Text = text
+		res.Type = string(enums.SectionTypeText)
 	}
 
 	return res

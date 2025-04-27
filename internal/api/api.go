@@ -63,7 +63,7 @@ func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
 					r.With(admin).Put("/", a.handlers.UpdateArticle)
 
 					r.Route("/ws", func(r chi.Router) {
-						r.Get("/content", a.websockets.ArticleContentWS)
+						r.Get("/content", a.websockets.ArticleContentUpdate)
 					})
 
 					r.Route("/tags", func(r chi.Router) {

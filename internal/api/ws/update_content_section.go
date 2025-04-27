@@ -13,136 +13,106 @@ import (
 	"github.com/hs-zavet/news-radar/internal/app/ape"
 	"github.com/hs-zavet/news-radar/internal/content"
 	"github.com/hs-zavet/news-radar/resources"
-	"github.com/sirupsen/logrus"
 )
 
-func (s *WebSocket) ArticleContentWS(w http.ResponseWriter, r *http.Request) {
+func (s *WebSocket) ArticleContentUpdate(w http.ResponseWriter, r *http.Request) {
 	articleID, err := uuid.Parse(chi.URLParam(r, "article_id"))
 	if err != nil {
 		s.log.WithError(err).Warn("invalid article ID")
 		http.Error(w, "invalid article ID", http.StatusBadRequest)
 		return
 	}
-
 	conn, err := s.upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		s.log.WithError(err).Error("ws upgrade error")
 		return
 	}
+	defer conn.Close()
 
-	defer func(conn *websocket.Conn) {
-		err := conn.Close()
-		if err != nil {
-
+	//initialize the timeout timer
+	conn.SetPongHandler(func(string) error {
+		return conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+	})
+	go func() {
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			_ = conn.WriteMessage(websocket.PingMessage, nil)
 		}
-	}(conn)
+	}()
+	_ = conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 
-	err = conn.SetReadDeadline(time.Now().Add(60 * time.Second))
-	if err != nil {
-		return
+	//handlers for handling different types of requests
+	handlers := map[string]func(msg []byte) error{
+		//Update section or create new section
+		resources.ContentUpdateSection: func(msg []byte) error {
+			req, err := requests.ParseContentSectionUpdate(msg)
+			if err != nil {
+				return writeErr(conn, 400, "Invalid ws message")
+			}
+
+			section, err := content.ParseContentSection(req.Section)
+			if err != nil {
+				return writeErr(conn, 400, "Invalid section payload")
+			}
+
+			if _, err := s.app.UpdateContentSection(r.Context(), articleID, section); err != nil {
+				if errors.Is(err, ape.ErrArticleNotFound) {
+					return writeErr(conn, 404, "Article not found")
+				}
+				return writeErr(conn, 500, "Failed to update content")
+			}
+
+			return writeOK(conn, "content section updated success", &section)
+		},
+
+		//Delete section
+		resources.ContentDeleteSection: func(msg []byte) error {
+			req, err := requests.ParseContentSectionDelete(msg)
+			if err != nil {
+				return writeErr(conn, 400, "Invalid ws message")
+			}
+
+			if _, err := s.app.DeleteContentSection(r.Context(), articleID, int(req.SectionId)); err != nil {
+				if errors.Is(err, ape.ErrArticleNotFound) {
+					return writeErr(conn, 404, "Article not found")
+				}
+				return writeErr(conn, 500, "Failed to delete content")
+			}
+
+			return writeOK(conn, "content section deleted success", nil)
+		},
 	}
 
-	conn.SetPongHandler(func(string) error {
-		err = conn.SetReadDeadline(time.Now().Add(60 * time.Second))
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-
 	for {
-
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
 			s.log.WithError(err).Warn("ws read error")
 			break
 		}
 
-		msgType, payload, err := requests.ParseArticleContentWS(msg)
+		msgType, err := requests.ParseContSectionUpdateType(msg)
 		if err != nil {
-			s.log.WithError(err).Warn("invalid ws message")
-			err := conn.WriteJSON(responses.ArticleContentUpdate("error", 400, "Invalid ws message", nil))
-			if err != nil {
-				return
-			}
+			writeErr(conn, 400, "Invalid ws message")
 			continue
 		}
 
-		switch msgType {
-		case resources.ContentUpdateSection:
-			upd := payload.(resources.UpdateContentSection)
-
-			section, err := content.ParseContentSection(upd.Section)
-			if err != nil {
-				s.log.WithError(err).Warn("failed to build section")
-				err := conn.WriteJSON(responses.ArticleContentUpdate("error", 400, "Invalid section payload", nil))
-				if err != nil {
-					return
-				}
-				continue
+		if h, ok := handlers[msgType]; ok {
+			if err := h(msg); err != nil {
+				s.log.WithError(err).Warn("handler error")
 			}
-
-			_, err = s.app.UpdateContentSection(
-				r.Context(),
-				articleID,
-				section,
-			)
-			if err != nil {
-				switch {
-				case errors.Is(err, ape.ErrArticleNotFound):
-					err = conn.WriteJSON(responses.ArticleContentUpdate("error", 404, "Article not found", &section))
-					if err != nil {
-						return
-					}
-				default:
-					err = conn.WriteJSON(responses.ArticleContentUpdate("error", 500, "Failed to update content", &section))
-					if err != nil {
-						return
-					}
-					break
-				}
-				s.log.WithError(err).Warn("failed to update article content")
-				continue
-			}
-
-			err = conn.WriteJSON(responses.ArticleContentUpdate("success", 200, "ContentSection updated", &section))
-			if err != nil {
-				return
-			}
-
-		case resources.ContentDeleteSection:
-			logrus.Info("case delete")
-			upd := payload.(resources.DeleteContentSection)
-			_, err = s.app.DeleteContentSection(
-				r.Context(),
-				articleID,
-				int(upd.SectionId),
-			)
-			if err != nil {
-				switch {
-				case errors.Is(err, ape.ErrArticleNotFound):
-					err = conn.WriteJSON(responses.ArticleContentUpdate("error", 404, "Article not found", nil))
-					if err != nil {
-						return
-					}
-				default:
-					err = conn.WriteJSON(responses.ArticleContentUpdate("error", 500, "Failed to update content", nil))
-					break
-				}
-				s.log.WithError(err).Warn("failed to update article content")
-				continue
-			}
-
-			err = conn.WriteJSON(responses.ArticleContentUpdate("success", 200, "ContentSection updated", nil))
-			if err != nil {
-				return
-			}
-
-		default:
-			err = conn.WriteJSON(responses.ArticleContentUpdate("error", 400, "Invalid ws message type", nil))
-			if err != nil {
-				return
-			}
+		} else {
+			writeErr(conn, 400, "Unknown message type")
 		}
 	}
+}
+
+func writeErr(conn *websocket.Conn, code int, msg string) error {
+	resp := responses.ArticleContentUpdate("error", code, msg, nil)
+	return conn.WriteJSON(resp)
+}
+
+func writeOK(conn *websocket.Conn, msg string, data *content.Section) error {
+	resp := responses.ArticleContentUpdate("success", 200, msg, data)
+	return conn.WriteJSON(resp)
 }

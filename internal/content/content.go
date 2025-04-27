@@ -4,7 +4,6 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/hs-zavet/news-radar/internal/enums"
 	"github.com/hs-zavet/news-radar/resources"
-	"github.com/sirupsen/logrus"
 )
 
 type Section struct {
@@ -40,16 +39,12 @@ func ParseContentSection(req resources.Section) (Section, error) {
 		ID: int(req.Id),
 	}
 
-	logrus.Info("1")
-
 	sectionType, ok := enums.SectionTypeParse(req.Type)
 	if !ok {
 		return sec, validation.Errors{
 			"type": validation.NewError("invalid", "invalid section type"),
 		}
 	}
-
-	logrus.Info("2")
 
 	if sectionType == enums.SectionTypeAudio {
 		if req.Audio == nil || len(req.Audio) == 0 {
@@ -71,8 +66,6 @@ func ParseContentSection(req resources.Section) (Section, error) {
 		sec.Audio = audio
 	}
 
-	logrus.Info("3")
-
 	if sectionType == enums.SectionTypeText {
 		if req.Text == nil || len(req.Text) == 0 {
 			return sec, validation.Errors{
@@ -88,8 +81,6 @@ func ParseContentSection(req resources.Section) (Section, error) {
 		sec.Type = enums.SectionTypeText
 		sec.Text = text
 	}
-
-	logrus.Info("4")
 
 	if sectionType == enums.SectionTypeMedia {
 		if req.Media == nil || len(req.Media) == 0 {
@@ -111,8 +102,6 @@ func ParseContentSection(req resources.Section) (Section, error) {
 		sec.Type = enums.SectionTypeMedia
 		sec.Media = media
 	}
-
-	logrus.Info("5")
 
 	return sec, nil
 }
