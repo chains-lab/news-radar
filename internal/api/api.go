@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hs-zavet/news-radar/internal/api/handlers"
-	"github.com/hs-zavet/news-radar/internal/api/ws"
+	"github.com/hs-zavet/news-radar/internal/api/rest/handlers"
+	"github.com/hs-zavet/news-radar/internal/api/sockets"
 	"github.com/hs-zavet/news-radar/internal/app"
 	"github.com/hs-zavet/news-radar/internal/config"
 	"github.com/hs-zavet/tokens"
@@ -19,7 +19,7 @@ type Api struct {
 	server     *http.Server
 	router     *chi.Mux
 	handlers   handlers.Handler
-	websockets ws.WebSocket
+	websockets sockets.WebSocket
 
 	log *logrus.Entry
 	cfg config.Config
@@ -34,7 +34,7 @@ func NewAPI(cfg config.Config, log *logrus.Logger, app *app.App) Api {
 	}
 
 	hands := handlers.NewHandlers(cfg, logger, app)
-	websocket := ws.NewWebSocket(cfg, logger, app)
+	websocket := sockets.NewWebSocket(cfg, logger, app)
 
 	return Api{
 		server:     server,

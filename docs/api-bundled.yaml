@@ -142,7 +142,7 @@ components:
             type:
               type: string
               enum:
-                - article_updated
+                - article_update
             attributes:
               type: object
               properties:
@@ -171,6 +171,34 @@ components:
                   type: array
                   items:
                     type: string
+    UpdateArticleContent:
+      type: object
+      required:
+        - data
+        - included
+      properties:
+        data:
+          type: object
+          required:
+            - id
+            - type
+            - attributes
+          properties:
+            id:
+              type: string
+              description: Article ID uuid
+              example: Article ID uuid
+            type:
+              type: string
+              enum:
+                - article_content_update
+            attributes:
+              type: object
+              properties:
+                content:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Section'
     ArticleShort:
       type: object
       required:

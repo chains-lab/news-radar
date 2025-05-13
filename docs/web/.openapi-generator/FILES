@@ -59,6 +59,9 @@ docs/TagCollectionDataAttributes.md
 docs/TagData.md
 docs/TestAPI.md
 docs/UpdateArticle.md
+docs/UpdateArticleContent.md
+docs/UpdateArticleContentData.md
+docs/UpdateArticleContentDataAttributes.md
 docs/UpdateArticleData.md
 docs/UpdateArticleDataAttributes.md
 docs/UpdateAuthor.md
@@ -124,6 +127,9 @@ model_tag_collection_data.go
 model_tag_collection_data_attributes.go
 model_tag_data.go
 model_update_article.go
+model_update_article_content.go
+model_update_article_content_data.go
+model_update_article_content_data_attributes.go
 model_update_article_data.go
 model_update_article_data_attributes.go
 model_update_author.go

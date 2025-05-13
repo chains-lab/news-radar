@@ -15,4 +15,6 @@ var (
 	ErrAuthorReplication = fmt.Errorf("author replication error")
 
 	ErrArticleNotFound = fmt.Errorf("article not found")
+
+	ErrArticleContentNumerationIsIncorrect = fmt.Errorf("article content numeration is incorrect")
 )

@@ -28,6 +28,8 @@ components:
       $ref: './spec/components/schemas/CreateArticle.yaml'
     UpdateArticle:
       $ref: './spec/components/schemas/UpdateArticle.yaml'
+    UpdateArticleContent:
+      $ref: './spec/components/schemas/UpdateArticleContent.yaml'
     ArticleShort:
       $ref: './spec/components/schemas/ArticleShort.yaml'
     ArticleShortCollection:

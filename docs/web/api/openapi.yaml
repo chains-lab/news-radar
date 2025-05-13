@@ -115,6 +115,14 @@ components:
       - data
       - included
       type: object
+    UpdateArticleContent:
+      properties:
+        data:
+          $ref: '#/components/schemas/UpdateArticleContent_data'
+      required:
+      - data
+      - included
+      type: object
     ArticleShort:
       properties:
         data:
@@ -503,10 +511,34 @@ components:
           type: string
         type:
           enum:
-          - article_updated
+          - article_update
           type: string
         attributes:
           $ref: '#/components/schemas/UpdateArticle_data_attributes'
+      required:
+      - attributes
+      - id
+      - type
+      type: object
+    UpdateArticleContent_data_attributes:
+      properties:
+        content:
+          items:
+            $ref: '#/components/schemas/Section'
+          type: array
+      type: object
+    UpdateArticleContent_data:
+      properties:
+        id:
+          description: Article ID uuid
+          example: Article ID uuid
+          type: string
+        type:
+          enum:
+          - article_content_update
+          type: string
+        attributes:
+          $ref: '#/components/schemas/UpdateArticleContent_data_attributes'
       required:
       - attributes
       - id

@@ -16,7 +16,7 @@ properties:
         example: "Article ID uuid"
       type:
         type: string
-        enum: [ article_updated ]
+        enum: [ article_update ]
       attributes:
         type: object
         properties:

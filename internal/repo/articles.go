@@ -88,6 +88,8 @@ type ArticlesRepo struct {
 	authorship authorship
 }
 
+//TODO return ArticlesRepo not *ArticlesRepo
+
 func NewArticles(cfg config.Config) (*ArticlesRepo, error) {
 	mongo, err := mongodb.NewArticles(cfg.Database.Mongo.Name, cfg.Database.Mongo.URI)
 	if err != nil {

@@ -1,10 +1,11 @@
 package resources
 
 const (
-	ArticleCreateType = "article_create"
-	ArticleUpdateType = "article_update"
-	ArticleDeleteType = "article_delete"
-	ArticleType       = "article"
+	ArticleCreateType        = "article_create"
+	ArticleUpdateType        = "article_update"
+	ArticleDeleteType        = "article_delete"
+	ArticleUpdateContentType = "article_update_content"
+	ArticleType              = "article"
 
 	ContentUpdateSection = "content_update_section"
 	ContentDeleteSection = "content_delete_section"

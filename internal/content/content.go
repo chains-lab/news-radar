@@ -1,7 +1,8 @@
 package content
 
 import (
-	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"fmt"
+
 	"github.com/hs-zavet/news-radar/internal/enums"
 	"github.com/hs-zavet/news-radar/resources"
 )
@@ -34,6 +35,11 @@ type TextBlock struct {
 	Text string `json:"text,omitempty" bson:"text,omitempty"`
 }
 
+var ErrInvalidSectionType = fmt.Errorf("invalid section type")
+var ErrInvalidAudioSection = fmt.Errorf("audio section must have at least one audio")
+var ErrInvalidTextSection = fmt.Errorf("text section must have at least one text")
+var ErrInvalidMediaSection = fmt.Errorf("media section must have at least one media")
+
 func ParseContentSection(req resources.Section) (Section, error) {
 	sec := Section{
 		ID: int(req.Id),
@@ -41,16 +47,12 @@ func ParseContentSection(req resources.Section) (Section, error) {
 
 	sectionType, ok := enums.SectionTypeParse(req.Type)
 	if !ok {
-		return sec, validation.Errors{
-			"type": validation.NewError("invalid", "invalid section type"),
-		}
+		return sec, ErrInvalidSectionType
 	}
 
 	if sectionType == enums.SectionTypeAudio {
 		if req.Audio == nil || len(req.Audio) == 0 {
-			return sec, validation.Errors{
-				"audio": validation.NewError("invalid", "audio section must have at least one audio"),
-			}
+			return sec, ErrInvalidAudioSection
 		}
 		audio := make([]Audio, 0)
 		for _, a := range req.Audio {
@@ -68,9 +70,7 @@ func ParseContentSection(req resources.Section) (Section, error) {
 
 	if sectionType == enums.SectionTypeText {
 		if req.Text == nil || len(req.Text) == 0 {
-			return sec, validation.Errors{
-				"text": validation.NewError("invalid", "text section must have at least one text"),
-			}
+			return sec, ErrInvalidTextSection
 		}
 		text := make([]TextBlock, 0)
 		for _, t := range req.Text {
@@ -84,9 +84,7 @@ func ParseContentSection(req resources.Section) (Section, error) {
 
 	if sectionType == enums.SectionTypeMedia {
 		if req.Media == nil || len(req.Media) == 0 {
-			return sec, validation.Errors{
-				"media": validation.NewError("invalid", "media section must have at least one media"),
-			}
+			return sec, ErrInvalidMediaSection
 		}
 		media := make([]Media, 0)
 		for _, m := range req.Media {

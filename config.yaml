@@ -3,7 +3,7 @@ server:
   port: ":8004"
   base_path: "/api/v1"
   test_mode: true
-  logging:
+  log:
     level: "debug"
     format: "text"
 
