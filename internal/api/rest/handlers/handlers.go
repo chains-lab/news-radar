@@ -3,11 +3,11 @@ package handlers
 import (
 	"context"
 
+	"github.com/chains-lab/news-radar/internal/app"
+	"github.com/chains-lab/news-radar/internal/app/models"
+	"github.com/chains-lab/news-radar/internal/config"
+	"github.com/chains-lab/news-radar/internal/content"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/news-radar/internal/app"
-	"github.com/hs-zavet/news-radar/internal/app/models"
-	"github.com/hs-zavet/news-radar/internal/config"
-	"github.com/hs-zavet/news-radar/internal/content"
 	"github.com/sirupsen/logrus"
 )
 

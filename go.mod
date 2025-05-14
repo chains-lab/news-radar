@@ -1,4 +1,4 @@
-module github.com/hs-zavet/news-radar
+module github.com/chains-lab/news-radar
 
 go 1.23.4
 

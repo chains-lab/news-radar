@@ -9,8 +9,8 @@ import (
 	"syscall"
 
 	"github.com/alecthomas/kingpin"
-	"github.com/hs-zavet/news-radar/internal/app"
-	"github.com/hs-zavet/news-radar/internal/config"
+	"github.com/chains-lab/news-radar/internal/app"
+	"github.com/chains-lab/news-radar/internal/config"
 )
 
 func Run(args []string) bool {

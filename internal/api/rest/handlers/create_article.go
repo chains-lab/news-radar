@@ -5,9 +5,9 @@ import (
 
 	"github.com/chains-lab/gatekit/httpkit"
 	"github.com/chains-lab/gatekit/tokens"
-	"github.com/hs-zavet/news-radar/internal/api/rest/requests"
-	"github.com/hs-zavet/news-radar/internal/api/rest/responses"
-	"github.com/hs-zavet/news-radar/internal/app"
+	"github.com/chains-lab/news-radar/internal/api/rest/requests"
+	"github.com/chains-lab/news-radar/internal/api/rest/responses"
+	"github.com/chains-lab/news-radar/internal/app"
 )
 
 func (h *Handler) CreateArticle(w http.ResponseWriter, r *http.Request) {

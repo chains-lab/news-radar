@@ -1,9 +1,9 @@
 package responses
 
 import (
-	"github.com/hs-zavet/news-radar/internal/content"
-	"github.com/hs-zavet/news-radar/internal/enums"
-	"github.com/hs-zavet/news-radar/resources"
+	"github.com/chains-lab/news-radar/internal/content"
+	"github.com/chains-lab/news-radar/internal/enums"
+	"github.com/chains-lab/news-radar/resources"
 )
 
 func ContentSection(section content.Section) resources.Section {

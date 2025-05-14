@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/hs-zavet/news-radar/internal/enums"
+	"github.com/chains-lab/news-radar/internal/enums"
 )
 
 type Tag struct {

@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/chains-lab/gatekit/jsonkit"
+	"github.com/chains-lab/news-radar/resources"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/hs-zavet/news-radar/resources"
 )
 
 func CreateAuthor(r *http.Request) (req resources.CreateAuthor, err error) {

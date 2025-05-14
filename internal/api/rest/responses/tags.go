@@ -1,8 +1,8 @@
 package responses
 
 import (
-	"github.com/hs-zavet/news-radar/internal/app/models"
-	"github.com/hs-zavet/news-radar/resources"
+	"github.com/chains-lab/news-radar/internal/app/models"
+	"github.com/chains-lab/news-radar/resources"
 )
 
 func Tag(tag models.Tag) resources.Tag {

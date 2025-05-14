@@ -1,8 +1,8 @@
 package responses
 
 import (
-	"github.com/hs-zavet/news-radar/internal/app/models"
-	"github.com/hs-zavet/news-radar/resources"
+	"github.com/chains-lab/news-radar/internal/app/models"
+	"github.com/chains-lab/news-radar/resources"
 )
 
 func ArticleRecommends(article models.Article, tags []models.Tag, authors []models.Author, recommend []models.Article) resources.ArticleWithRecommends {

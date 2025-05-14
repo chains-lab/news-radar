@@ -3,8 +3,8 @@ package content
 import (
 	"fmt"
 
-	"github.com/hs-zavet/news-radar/internal/enums"
-	"github.com/hs-zavet/news-radar/resources"
+	"github.com/chains-lab/news-radar/internal/enums"
+	"github.com/chains-lab/news-radar/resources"
 )
 
 type Section struct {

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hs-zavet/news-radar/internal/enums"
+	"github.com/chains-lab/news-radar/internal/enums"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
 )
 

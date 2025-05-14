@@ -6,9 +6,9 @@ import (
 
 	"github.com/chains-lab/gatekit/httpkit"
 	"github.com/chains-lab/gatekit/tokens"
+	"github.com/chains-lab/news-radar/internal/app/ape"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/news-radar/internal/app/ape"
 )
 
 func (h *Handler) DeleteArticle(w http.ResponseWriter, r *http.Request) {

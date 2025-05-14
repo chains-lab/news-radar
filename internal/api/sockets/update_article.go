@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/chains-lab/news-radar/internal/api/sockets/messages"
+	"github.com/chains-lab/news-radar/internal/app/ape"
+	"github.com/chains-lab/news-radar/internal/content"
+	"github.com/chains-lab/news-radar/resources"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
-	"github.com/hs-zavet/news-radar/internal/api/sockets/messages"
-	"github.com/hs-zavet/news-radar/internal/app/ape"
-	"github.com/hs-zavet/news-radar/internal/content"
-	"github.com/hs-zavet/news-radar/resources"
 )
 
 func (s *WebSocket) ArticleContentUpdate(w http.ResponseWriter, r *http.Request) {

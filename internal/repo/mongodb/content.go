@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hs-zavet/news-radar/internal/content"
+	"github.com/chains-lab/news-radar/internal/content"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )

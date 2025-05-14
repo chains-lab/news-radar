@@ -5,11 +5,11 @@ import (
 	"errors"
 	"time"
 
+	"github.com/chains-lab/news-radar/internal/app/ape"
+	"github.com/chains-lab/news-radar/internal/app/models"
+	"github.com/chains-lab/news-radar/internal/enums"
+	"github.com/chains-lab/news-radar/internal/repo"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/news-radar/internal/app/ape"
-	"github.com/hs-zavet/news-radar/internal/app/models"
-	"github.com/hs-zavet/news-radar/internal/enums"
-	"github.com/hs-zavet/news-radar/internal/repo"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 

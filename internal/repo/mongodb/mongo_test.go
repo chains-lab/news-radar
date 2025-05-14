@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/chains-lab/news-radar/internal/content"
+	"github.com/chains-lab/news-radar/internal/enums"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/news-radar/internal/content"
-	"github.com/hs-zavet/news-radar/internal/enums"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

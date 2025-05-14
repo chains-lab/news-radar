@@ -6,11 +6,11 @@ import (
 
 	"github.com/chains-lab/gatekit/httpkit"
 	"github.com/chains-lab/gatekit/tokens"
-	"github.com/hs-zavet/news-radar/internal/api/rest/requests"
-	"github.com/hs-zavet/news-radar/internal/api/rest/responses"
-	"github.com/hs-zavet/news-radar/internal/app"
-	"github.com/hs-zavet/news-radar/internal/app/ape"
-	"github.com/hs-zavet/news-radar/internal/enums"
+	"github.com/chains-lab/news-radar/internal/api/rest/requests"
+	"github.com/chains-lab/news-radar/internal/api/rest/responses"
+	"github.com/chains-lab/news-radar/internal/app"
+	"github.com/chains-lab/news-radar/internal/app/ape"
+	"github.com/chains-lab/news-radar/internal/enums"
 )
 
 func (h *Handler) CreateTag(w http.ResponseWriter, r *http.Request) {

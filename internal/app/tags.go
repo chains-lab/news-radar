@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hs-zavet/news-radar/internal/app/ape"
-	"github.com/hs-zavet/news-radar/internal/app/models"
-	"github.com/hs-zavet/news-radar/internal/enums"
-	"github.com/hs-zavet/news-radar/internal/repo"
+	"github.com/chains-lab/news-radar/internal/app/ape"
+	"github.com/chains-lab/news-radar/internal/app/models"
+	"github.com/chains-lab/news-radar/internal/enums"
+	"github.com/chains-lab/news-radar/internal/repo"
 )
 
 type CreateTagRequest struct {

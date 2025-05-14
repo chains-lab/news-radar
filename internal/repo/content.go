@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/chains-lab/news-radar/internal/content"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/news-radar/internal/content"
 )
 
 func (a *ArticlesRepo) UpdateContentSection(ID uuid.UUID, section content.Section) error {

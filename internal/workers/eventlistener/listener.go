@@ -3,8 +3,8 @@ package eventlistener
 import (
 	"context"
 
-	"github.com/hs-zavet/news-radar/internal/app"
-	"github.com/hs-zavet/news-radar/internal/config"
+	"github.com/chains-lab/news-radar/internal/app"
+	"github.com/chains-lab/news-radar/internal/config"
 	"github.com/sirupsen/logrus"
 )
 

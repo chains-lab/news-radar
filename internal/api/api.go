@@ -7,11 +7,11 @@ import (
 
 	"github.com/chains-lab/gatekit/mdlv"
 	"github.com/chains-lab/gatekit/roles"
+	"github.com/chains-lab/news-radar/internal/api/rest/handlers"
+	"github.com/chains-lab/news-radar/internal/api/sockets"
+	"github.com/chains-lab/news-radar/internal/app"
+	"github.com/chains-lab/news-radar/internal/config"
 	"github.com/go-chi/chi/v5"
-	"github.com/hs-zavet/news-radar/internal/api/rest/handlers"
-	"github.com/hs-zavet/news-radar/internal/api/sockets"
-	"github.com/hs-zavet/news-radar/internal/app"
-	"github.com/hs-zavet/news-radar/internal/config"
 	"github.com/sirupsen/logrus"
 )
 

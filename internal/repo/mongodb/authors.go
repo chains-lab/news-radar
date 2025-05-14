@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/chains-lab/news-radar/internal/enums"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/news-radar/internal/enums"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"

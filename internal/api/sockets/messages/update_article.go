@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 
 	"github.com/chains-lab/gatekit/jsonkit"
+	"github.com/chains-lab/news-radar/internal/api/rest/responses"
+	"github.com/chains-lab/news-radar/internal/content"
+	"github.com/chains-lab/news-radar/resources"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/hs-zavet/news-radar/internal/api/rest/responses"
-	"github.com/hs-zavet/news-radar/internal/content"
-	"github.com/hs-zavet/news-radar/resources"
 )
 
 func ParseContSectionUpdateType(msg []byte) (msgType string, err error) {

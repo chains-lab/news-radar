@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
+	"github.com/chains-lab/news-radar/internal/app/ape"
+	"github.com/chains-lab/news-radar/internal/app/models"
+	"github.com/chains-lab/news-radar/internal/content"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/news-radar/internal/app/ape"
-	"github.com/hs-zavet/news-radar/internal/app/models"
-	"github.com/hs-zavet/news-radar/internal/content"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 

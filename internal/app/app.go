@@ -3,10 +3,10 @@ package app
 import (
 	"context"
 
+	"github.com/chains-lab/news-radar/internal/config"
+	"github.com/chains-lab/news-radar/internal/content"
+	"github.com/chains-lab/news-radar/internal/repo"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/news-radar/internal/config"
-	"github.com/hs-zavet/news-radar/internal/content"
-	"github.com/hs-zavet/news-radar/internal/repo"
 	"github.com/sirupsen/logrus"
 )
 
