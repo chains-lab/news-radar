@@ -4,34 +4,44 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/chains-lab/gatekit/httpkit"
+	"github.com/chains-lab/gatekit/tokens"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/comtools/httpkit"
-	"github.com/hs-zavet/comtools/httpkit/problems"
 	"github.com/hs-zavet/news-radar/internal/api/rest/responses"
 	"github.com/hs-zavet/news-radar/internal/app/ape"
-	"github.com/hs-zavet/tokens"
 )
 
 func (h *Handler) AddAuthor(w http.ResponseWriter, r *http.Request) {
 	user, err := tokens.GetAccountTokenData(r.Context())
 	if err != nil {
 		h.log.WithError(err).Warn("error parsing request")
-		httpkit.RenderErr(w, problems.BadRequest(err)...)
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusBadRequest,
+			Detail: err.Error(),
+		})...)
 		return
 	}
 
 	articleID, err := uuid.Parse(chi.URLParam(r, "article_id"))
 	if err != nil {
 		h.log.WithError(err).Warn("error parsing request")
-		httpkit.RenderErr(w, problems.BadRequest(err)...)
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status:   http.StatusBadRequest,
+			Detail:   "Article ID must be a valid UUID.",
+			Parametr: "article_id",
+		})...)
 		return
 	}
 
 	authorID, err := uuid.Parse(chi.URLParam(r, "author_id"))
 	if err != nil {
 		h.log.WithError(err).Warn("error parsing request")
-		httpkit.RenderErr(w, problems.BadRequest(err)...)
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status:   http.StatusBadRequest,
+			Detail:   "Author ID must be a valid UUID.",
+			Parametr: "author_id",
+		})...)
 		return
 	}
 
@@ -39,13 +49,30 @@ func (h *Handler) AddAuthor(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ape.ErrAuthorNotFound):
-			httpkit.RenderErr(w, problems.NotFound("author not found"))
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status:   http.StatusNotFound,
+				Title:    "Author not found",
+				Detail:   "Author dose not exist.",
+				Parametr: "author_id",
+			})...)
 		case errors.Is(err, ape.ErrArticleNotFound):
-			httpkit.RenderErr(w, problems.NotFound("article not found"))
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status:   http.StatusNotFound,
+				Title:    "Article not found",
+				Detail:   "Article dose not exist.",
+				Parametr: "article_id",
+			})...)
 		case errors.Is(err, ape.ErrAuthorInactive):
-			httpkit.RenderErr(w, problems.Conflict("author is inactive"))
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status:   http.StatusConflict,
+				Title:    "Author inactive",
+				Detail:   "Author is inactive.",
+				Parametr: "author_id",
+			})...)
 		default:
-			httpkit.RenderErr(w, problems.InternalError())
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusInternalServerError,
+			})...)
 		}
 		h.log.WithError(err).Errorf("error adding author to article %s", articleID)
 		return
@@ -55,9 +82,16 @@ func (h *Handler) AddAuthor(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ape.ErrArticleNotFound):
-			httpkit.RenderErr(w, problems.NotFound("article not found"))
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status:   http.StatusNotFound,
+				Title:    "Article not found",
+				Detail:   "Article dose not exist.",
+				Parametr: "article_id",
+			})...)
 		default:
-			httpkit.RenderErr(w, problems.InternalError())
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusInternalServerError,
+			})...)
 		}
 		h.log.WithError(err).Errorf("error getting article %s", articleID)
 		return
@@ -67,9 +101,15 @@ func (h *Handler) AddAuthor(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ape.ErrArticleNotFound):
-			httpkit.RenderErr(w, problems.NotFound("article not found"))
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusNotFound,
+				Title:  "Article not found",
+				Detail: "Article dose not exist.",
+			})...)
 		default:
-			httpkit.RenderErr(w, problems.InternalError())
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusInternalServerError,
+			})...)
 		}
 		h.log.WithError(err).Errorf("error getting article %s", articleID)
 		return
@@ -79,9 +119,15 @@ func (h *Handler) AddAuthor(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ape.ErrArticleNotFound):
-			httpkit.RenderErr(w, problems.NotFound("article not found"))
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusNotFound,
+				Title:  "Article not found",
+				Detail: "Article dose not exist.",
+			})...)
 		default:
-			httpkit.RenderErr(w, problems.InternalError())
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusInternalServerError,
+			})...)
 		}
 		h.log.WithError(err).Errorf("error getting article %s", articleID)
 		return

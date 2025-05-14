@@ -3,8 +3,8 @@ package messages
 import (
 	"encoding/json"
 
+	"github.com/chains-lab/gatekit/jsonkit"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/hs-zavet/comtools/jsonkit"
 	"github.com/hs-zavet/news-radar/internal/api/rest/responses"
 	"github.com/hs-zavet/news-radar/internal/content"
 	"github.com/hs-zavet/news-radar/resources"

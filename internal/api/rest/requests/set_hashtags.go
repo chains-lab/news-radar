@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/chains-lab/gatekit/jsonkit"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/hs-zavet/comtools/jsonkit"
 	"github.com/hs-zavet/news-radar/resources"
 )
 

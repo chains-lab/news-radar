@@ -4,26 +4,34 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/chains-lab/gatekit/httpkit"
+	"github.com/chains-lab/gatekit/tokens"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/comtools/httpkit"
-	"github.com/hs-zavet/comtools/httpkit/problems"
 	"github.com/hs-zavet/news-radar/internal/app/ape"
-	"github.com/hs-zavet/tokens"
 )
+
+//TODO in future maybe need to dont use this handlers
 
 func (h *Handler) DeleteAuthor(w http.ResponseWriter, r *http.Request) {
 	user, err := tokens.GetAccountTokenData(r.Context())
 	if err != nil {
-		h.log.WithError(err).Warn("Error parsing request")
-		httpkit.RenderErr(w, problems.BadRequest(err)...)
+		h.log.WithError(err).Warn("error parsing request")
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusBadRequest,
+			Detail: err.Error(),
+		})...)
 		return
 	}
 
 	authorID, err := uuid.Parse(chi.URLParam(r, "author_id"))
 	if err != nil {
 		h.log.WithError(err).Warn("Error parsing request")
-		httpkit.RenderErr(w, problems.BadRequest(err)...)
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status:   http.StatusBadRequest,
+			Detail:   "Author ID must be a valid UUID.",
+			Parametr: "author_id",
+		})...)
 		return
 	}
 
@@ -32,9 +40,17 @@ func (h *Handler) DeleteAuthor(w http.ResponseWriter, r *http.Request) {
 		switch {
 		//TODO If the author is associated with entities, it will not be deleted, we need cath this error in future.
 		case errors.Is(err, ape.ErrAuthorNotFound):
-			httpkit.RenderErr(w, problems.NotFound())
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status:   http.StatusNotFound,
+				Title:    "Author not found",
+				Detail:   "The requested author does not exist.",
+				Parametr: "author_id",
+			})...)
 		default:
-			httpkit.RenderErr(w, problems.InternalError())
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusInternalServerError,
+				Detail: "Failed to delete author",
+			})...)
 		}
 		h.log.WithError(err).Errorf("error deleting author %s", authorID)
 		return

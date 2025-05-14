@@ -5,13 +5,13 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/chains-lab/gatekit/mdlv"
+	"github.com/chains-lab/gatekit/roles"
 	"github.com/go-chi/chi/v5"
 	"github.com/hs-zavet/news-radar/internal/api/rest/handlers"
 	"github.com/hs-zavet/news-radar/internal/api/sockets"
 	"github.com/hs-zavet/news-radar/internal/app"
 	"github.com/hs-zavet/news-radar/internal/config"
-	"github.com/hs-zavet/tokens"
-	"github.com/hs-zavet/tokens/roles"
 	"github.com/sirupsen/logrus"
 )
 
@@ -48,8 +48,8 @@ func NewAPI(cfg config.Config, log *logrus.Logger, app *app.App) Api {
 }
 
 func (a *Api) Run(ctx context.Context, log *logrus.Logger) {
-	auth := tokens.AuthMdl(a.cfg.JWT.AccessToken.SecretKey, a.cfg.JWT.ServiceToken.SecretKey)
-	admin := tokens.AccessGrant(a.cfg.JWT.AccessToken.SecretKey, a.cfg.JWT.ServiceToken.SecretKey, roles.Admin, roles.SuperUser)
+	auth := mdlv.AuthMdl(a.cfg.JWT.AccessToken.SecretKey, a.cfg.JWT.ServiceToken.SecretKey)
+	admin := mdlv.AccessGrant(a.cfg.JWT.AccessToken.SecretKey, a.cfg.JWT.ServiceToken.SecretKey, roles.Admin, roles.SuperUser)
 
 	a.router.Route("/hs/news-radar", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {

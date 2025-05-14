@@ -4,23 +4,24 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/chains-lab/gatekit/httpkit"
+	"github.com/chains-lab/gatekit/tokens"
 	"github.com/go-chi/chi/v5"
-	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/hs-zavet/comtools/httpkit"
-	"github.com/hs-zavet/comtools/httpkit/problems"
 	"github.com/hs-zavet/news-radar/internal/api/rest/requests"
 	"github.com/hs-zavet/news-radar/internal/api/rest/responses"
 	"github.com/hs-zavet/news-radar/internal/app"
 	"github.com/hs-zavet/news-radar/internal/app/ape"
 	"github.com/hs-zavet/news-radar/internal/enums"
-	"github.com/hs-zavet/tokens"
 )
 
 func (h *Handler) UpdateTag(w http.ResponseWriter, r *http.Request) {
 	user, err := tokens.GetAccountTokenData(r.Context())
 	if err != nil {
 		h.log.WithError(err).Warn("Error parsing request")
-		httpkit.RenderErr(w, problems.BadRequest(err)...)
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusBadRequest,
+			Detail: "Article ID must be a valid UUID.",
+		})...)
 		return
 	}
 
@@ -29,14 +30,20 @@ func (h *Handler) UpdateTag(w http.ResponseWriter, r *http.Request) {
 	req, err := requests.UpdateTag(r)
 	if err != nil {
 		h.log.WithError(err).Warn("Error parsing request")
-		httpkit.RenderErr(w, problems.BadRequest(err)...)
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusBadRequest,
+			Error:  err,
+		})...)
 		return
 	}
 
 	if tagID != req.Data.Id {
 		h.log.Warn("Error parsing request")
-		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
-			"Id": errors.New("id and tagID do not match"),
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status:   http.StatusBadRequest,
+			Detail:   "Tag ID must be a valid UUID.",
+			Parametr: "tag_id",
+			Pointer:  "data/id",
 		})...)
 		return
 	}
@@ -81,11 +88,25 @@ func (h *Handler) UpdateTag(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ape.ErrTagNotFound):
-			httpkit.RenderErr(w, problems.NotFound())
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status:   http.StatusNotFound,
+				Title:    "Tag not found",
+				Detail:   "Tag does not exist.",
+				Pointer:  "data/id",
+				Parametr: "tag_id",
+			})...)
 		case errors.Is(err, ape.ErrorTagNameAlreadyTaken):
-			httpkit.RenderErr(w, problems.Conflict("tag name already taken"))
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status:   http.StatusConflict,
+				Title:    "Tag name already taken",
+				Detail:   "Tag name already taken.",
+				Pointer:  "data/attributes/name",
+				Parametr: "tag_name",
+			})...)
 		default:
-			httpkit.RenderErr(w, problems.InternalError())
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusInternalServerError,
+			})...)
 		}
 
 		h.log.WithError(err).Error("Error updating tagID")

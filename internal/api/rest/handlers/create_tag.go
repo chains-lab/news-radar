@@ -4,37 +4,41 @@ import (
 	"errors"
 	"net/http"
 
-	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/hs-zavet/comtools/httpkit"
-	"github.com/hs-zavet/comtools/httpkit/problems"
+	"github.com/chains-lab/gatekit/httpkit"
+	"github.com/chains-lab/gatekit/tokens"
 	"github.com/hs-zavet/news-radar/internal/api/rest/requests"
 	"github.com/hs-zavet/news-radar/internal/api/rest/responses"
 	"github.com/hs-zavet/news-radar/internal/app"
 	"github.com/hs-zavet/news-radar/internal/app/ape"
 	"github.com/hs-zavet/news-radar/internal/enums"
-	"github.com/hs-zavet/tokens"
 )
 
 func (h *Handler) CreateTag(w http.ResponseWriter, r *http.Request) {
 	user, err := tokens.GetAccountTokenData(r.Context())
 	if err != nil {
 		h.log.WithError(err).Error("Failed to retrieve account data")
-		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
-		return
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusUnauthorized,
+			Detail: err.Error(),
+		})...)
 	}
 
 	req, err := requests.CreateTag(r)
 	if err != nil {
 		h.log.WithError(err).Warn("Error parsing request")
-		httpkit.RenderErr(w, problems.BadRequest(err)...)
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusBadRequest,
+			Error:  err,
+		})...)
 		return
 	}
 
 	tagStatus, ok := enums.ParseTagStatus(req.Data.Attributes.Status)
 	if !ok {
 		h.log.WithError(err).Warn("Error parsing tag status")
-		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
-			"status": validation.NewError("invalid", "invalid tag status"),
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusBadRequest,
+			Detail: "Invalid tag status",
 		})...)
 		return
 	}
@@ -42,8 +46,9 @@ func (h *Handler) CreateTag(w http.ResponseWriter, r *http.Request) {
 	tagType, ok := enums.ParseTagType(req.Data.Attributes.Type)
 	if !ok {
 		h.log.WithError(err).Warn("Error parsing tag type")
-		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
-			"type": validation.NewError("invalid", "invalid tag type"),
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusBadRequest,
+			Detail: "Invalid tag type",
 		})...)
 		return
 	}
@@ -59,9 +64,15 @@ func (h *Handler) CreateTag(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ape.ErrorTagNameAlreadyTaken):
-			httpkit.RenderErr(w, problems.Conflict())
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusConflict,
+				Title:  "Tag name already taken",
+				Detail: "Tag name already taken",
+			})...)
 		default:
-			httpkit.RenderErr(w, problems.InternalError())
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusInternalServerError,
+			})...)
 		}
 		h.log.WithError(err).Error("Failed to create tag")
 		return

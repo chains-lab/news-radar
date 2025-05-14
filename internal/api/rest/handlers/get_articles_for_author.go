@@ -4,11 +4,9 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/chains-lab/gatekit/httpkit"
 	"github.com/go-chi/chi/v5"
-	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/comtools/httpkit"
-	"github.com/hs-zavet/comtools/httpkit/problems"
 	"github.com/hs-zavet/news-radar/internal/api/rest/responses"
 	"github.com/hs-zavet/news-radar/internal/app/ape"
 )
@@ -18,8 +16,9 @@ func (h *Handler) GetArticlesForAuthor(w http.ResponseWriter, r *http.Request) {
 	authorID, err := uuid.Parse(chi.URLParam(r, "author_id"))
 	if err != nil {
 		h.log.WithError(err).Warn("error parsing request")
-		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
-			"author_id": validation.NewError("author_id", "Invalid author ID"),
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusBadRequest,
+			Detail: "Article ID must be a valid UUID.",
 		})...)
 		return
 	}
@@ -27,10 +26,17 @@ func (h *Handler) GetArticlesForAuthor(w http.ResponseWriter, r *http.Request) {
 	res, err := h.app.GetArticleForAuthor(r.Context(), authorID)
 	if err != nil {
 		switch {
-		case errors.Is(err, ape.ErrArticleNotFound):
-			httpkit.RenderErr(w, problems.NotFound("article not found"))
+		case errors.Is(err, ape.ErrAuthorNotFound):
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status:   http.StatusNotFound,
+				Title:    "Author not found",
+				Detail:   "Author dose not exist.",
+				Parametr: "author_id",
+			})...)
 		default:
-			httpkit.RenderErr(w, problems.InternalError())
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusInternalServerError,
+			})...)
 		}
 		h.log.WithError(err).Warn("error getting article for author")
 		return

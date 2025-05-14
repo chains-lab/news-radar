@@ -4,19 +4,21 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/chains-lab/gatekit/httpkit"
+	"github.com/chains-lab/gatekit/tokens"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/comtools/httpkit"
-	"github.com/hs-zavet/comtools/httpkit/problems"
 	"github.com/hs-zavet/news-radar/internal/app/ape"
-	"github.com/hs-zavet/tokens"
 )
 
 func (h *Handler) DeleteArticle(w http.ResponseWriter, r *http.Request) {
 	user, err := tokens.GetAccountTokenData(r.Context())
 	if err != nil {
 		h.log.WithError(err).Error("Failed to retrieve account data")
-		httpkit.RenderErr(w, problems.Unauthorized(err.Error()))
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusUnauthorized,
+			Detail: err.Error(),
+		})...)
 		return
 	}
 
@@ -30,11 +32,17 @@ func (h *Handler) DeleteArticle(w http.ResponseWriter, r *http.Request) {
 	err = h.app.DeleteArticle(r.Context(), articleID)
 	if err != nil {
 		switch {
-		//TODO If the article is associated with entities, it will not be deleted, we need cath this error in future.
 		case errors.Is(err, ape.ErrArticleNotFound):
-			httpkit.RenderErr(w, problems.NotFound())
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status:   http.StatusNotFound,
+				Title:    "Article not found",
+				Detail:   "The requested article does not exist.",
+				Parametr: "article_id",
+			})...)
 		default:
-			httpkit.RenderErr(w, problems.InternalError())
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusInternalServerError,
+			})...)
 		}
 		h.log.WithError(err).Error("Failed to delete article")
 		return

@@ -4,32 +4,35 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/chains-lab/gatekit/httpkit"
+	"github.com/chains-lab/gatekit/tokens"
 	"github.com/go-chi/chi/v5"
-	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/google/uuid"
-	"github.com/hs-zavet/comtools/httpkit"
-	"github.com/hs-zavet/comtools/httpkit/problems"
 	"github.com/hs-zavet/news-radar/internal/api/rest/requests"
 	"github.com/hs-zavet/news-radar/internal/api/rest/responses"
 	"github.com/hs-zavet/news-radar/internal/app"
 	"github.com/hs-zavet/news-radar/internal/app/ape"
 	"github.com/hs-zavet/news-radar/internal/enums"
-	"github.com/hs-zavet/tokens"
 )
 
 func (h *Handler) UpdateAuthor(w http.ResponseWriter, r *http.Request) {
 	user, err := tokens.GetAccountTokenData(r.Context())
 	if err != nil {
 		h.log.WithError(err).Warn("Error parsing request")
-		httpkit.RenderErr(w, problems.BadRequest(err)...)
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusBadRequest,
+			Detail: "Article ID must be a valid UUID.",
+		})...)
 		return
 	}
 
 	authorID, err := uuid.Parse(chi.URLParam(r, "author_id"))
 	if err != nil {
 		h.log.WithError(err).Warn("Error parsing request")
-		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
-			"author_id": validation.NewError("author_id", "invalid author id"),
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status:   http.StatusBadRequest,
+			Detail:   "Article ID must be a valid UUID.",
+			Parametr: "author_id",
 		})...)
 		return
 	}
@@ -37,23 +40,30 @@ func (h *Handler) UpdateAuthor(w http.ResponseWriter, r *http.Request) {
 	req, err := requests.UpdateAuthor(r)
 	if err != nil {
 		h.log.WithError(err).Warn("Error parsing request")
-		httpkit.RenderErr(w, problems.BadRequest(err)...)
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status: http.StatusBadRequest,
+			Error:  err,
+		})...)
 		return
 	}
 
 	authorIdReq, err := uuid.Parse(req.Data.Id)
 	if err != nil {
 		h.log.WithError(err).Warn("Error parsing request")
-		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
-			"author_id": validation.NewError("author_id", "invalid author id"),
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status:  http.StatusBadRequest,
+			Detail:  "Author ID must be a valid UUID.",
+			Pointer: "data/id",
 		})...)
 		return
 	}
 
 	if authorID != authorIdReq {
 		h.log.WithError(err).Warn("Error parsing request")
-		httpkit.RenderErr(w, problems.BadRequest(validation.Errors{
-			"author_id": validation.NewError("author_id", "author id mismatch"),
+		httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+			Status:  http.StatusBadRequest,
+			Detail:  "Author ID must be the same in query and in body.",
+			Pointer: "data/id",
 		})...)
 		return
 	}
@@ -67,7 +77,11 @@ func (h *Handler) UpdateAuthor(w http.ResponseWriter, r *http.Request) {
 		status, ok := enums.ParseAuthorStatus(*req.Data.Attributes.Status)
 		if !ok {
 			h.log.Warn("Error parsing status")
-			httpkit.RenderErr(w, problems.BadRequest(err)...)
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status:  http.StatusBadRequest,
+				Detail:  "Invalid author status",
+				Pointer: "data/attributes/status",
+			})...)
 			return
 		}
 
@@ -98,9 +112,17 @@ func (h *Handler) UpdateAuthor(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ape.ErrAuthorNotFound):
-			httpkit.RenderErr(w, problems.NotFound())
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status:   http.StatusNotFound,
+				Title:    "Author not found",
+				Detail:   "Author does not exist.",
+				Pointer:  "data/id",
+				Parametr: "author_id",
+			})...)
 		default:
-			httpkit.RenderErr(w, problems.InternalError())
+			httpkit.RenderErr(w, httpkit.ResponseError(httpkit.ResponseErrorInput{
+				Status: http.StatusInternalServerError,
+			})...)
 		}
 		h.log.WithError(err).Error("Error updating author")
 		return
